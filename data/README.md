@@ -10,7 +10,7 @@
 | Package identifier | `nvl/core` |
 | PHP namespace | `Nvl\Data` |
 | Service provider | `Nvl\Data\Providers\DataServiceProvider` |
-| Configuration | `data/config/nvl-data.php` |
+| Configuration | Packaged default: `data/config/nvl-data.php`; optional application copy: `config/nvl-data.php` |
 
 ## Purpose
 

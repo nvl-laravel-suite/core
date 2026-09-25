@@ -5,6 +5,8 @@
 For support, [open an issue](https://github.com/nvl-laravel-suite/core/issues). For vulnerabilities, use
 [private reporting](https://github.com/nvl-laravel-suite/core/security/advisories/new). See [Contributing](CONTRIBUTING.md).
 
+See the [installation and publishing guide](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/INSTALLATION.md) for Composer setup, configuration, migration ownership, and agent skills.
+
 ## Quick reference
 
 | Item | Value |
@@ -13,7 +15,7 @@ For support, [open an issue](https://github.com/nvl-laravel-suite/core/issues). 
 | Package identifier | `nvl/core` |
 | PHP namespaces | `Nvl\Support`, `Nvl\Data` |
 | Service providers | `Nvl\Support\Providers\SupportServiceProvider`, `Nvl\Data\Providers\DataServiceProvider` |
-| Configuration | `data/config/nvl-data.php` |
+| Configuration | Packaged default: `data/config/nvl-data.php`; optional application copy: `config/nvl-data.php` |
 
 ## Purpose
 
@@ -27,19 +29,22 @@ The Support namespace provides transport-neutral contracts and exceptions. The D
 composer require nvl/core:^2.0
 ```
 
-Laravel auto-discovers the Support and Data providers. Agent guidance is optional:
+Laravel auto-discovers the Support and Data providers. Defaults work without
+publishing configuration. Publish only what the application needs:
 
 ```bash
-php artisan vendor:publish --tag=support-skills
 php artisan vendor:publish --tag=data-config
-php artisan vendor:publish --tag=nvl-data-config
+php artisan vendor:publish --tag=support-skills
 php artisan vendor:publish --tag=data-skills
 php artisan vendor:publish --tag=nvl-data-generated-types-tooling
 ```
 
-The skill commands publish `.agents/skills/nvl-support` and `.agents/skills/nvl-data`.
-Laravel Boost can also discover both skills automatically from Core's root
-`resources/boost/skills` directory when a consumer runs `boost:install`.
+`data-config` publishes `config/nvl-data.php`; `nvl-data-config` is an alias for
+the same file, so use one tag. The generated-types tooling tag copies optional
+ESLint and Prettier fragments. The skill tags publish
+`.agents/skills/nvl-support` and `.agents/skills/nvl-data`. Laravel Boost can
+also discover the bundled skills during `boost:install` or
+`boost:update --discover` after adding Core to an existing application.
 
 ## Define a stable response code
 
