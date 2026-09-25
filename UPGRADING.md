@@ -6,10 +6,10 @@ Install `nvl/core` in place of `nvl/support` and `nvl/data`. The `Nvl\Support` a
 
 ## Historical Support 1.0 guidance
 
-Version 1.0 is a deliberately small foundation.
+Version 1.0 was a deliberately small foundation. The following steps describe the former split packages; Core's Data and Support namespaces now provide both capabilities.
 
-1. Move paginated DTOs to `nvl/data`.
-2. Register TypeScript sources with `nvl/data`.
+1. Move paginated DTOs to the `Nvl\Data` namespace provided by `nvl/core`.
+2. Register TypeScript sources with Core's Data provider.
 3. Keep HTTP response creation in the application exception handler.
 4. Use the exception status only as a suggested presentation status.
 5. Separate public exception context from internal diagnostics.

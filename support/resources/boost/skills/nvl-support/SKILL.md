@@ -1,6 +1,6 @@
 ---
 name: nvl-support
-description: Implement, integrate, test, or review nvl/support in Laravel 13. Use for transport-neutral business exceptions, stable response codes, safe public error context, internal diagnostic context, exception chaining, or package-family foundation boundaries.
+description: Implement, integrate, test, or review the Support namespace shipped by nvl/core in Laravel 13. Use for transport-neutral business exceptions, stable response codes, safe public error context, internal diagnostic context, exception chaining, or package-family foundation boundaries.
 ---
 
 # NVL Support

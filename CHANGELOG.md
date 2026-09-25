@@ -4,6 +4,12 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-09-26
+
+### Documentation
+
+- Clarify public support, contribution, and private security reporting paths.
+
 ## [2.2.0] - 2026-09-25
 
 ### Changed

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `nvl/data` are documented here.
+This records changes to the Data component of `nvl/core`, including its history as the separate `nvl/data` package.
 
 ## [Unreleased]
 

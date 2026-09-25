@@ -1,6 +1,6 @@
 ---
 name: nvl-data
-description: Implement, integrate, test, or review nvl/data on PHP 8.3–8.5 and Laravel 13. Use for Spatie Data DTOs, persistence transforms, paginated contracts, deterministic PHP-to-TypeScript generation, source registration, artifact manifests, stale checks, or protected generated-type delivery.
+description: Implement, integrate, test, or review the Data namespace shipped by nvl/core on PHP 8.3–8.5 and Laravel 13. Use for Spatie Data DTOs, persistence transforms, paginated contracts, deterministic PHP-to-TypeScript generation, source registration, artifact manifests, stale checks, or protected generated-type delivery.
 ---
 
 # NVL Data

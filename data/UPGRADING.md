@@ -1,5 +1,7 @@
 # Upgrading NVL Data
 
+This guide records historical Data 1.0 changes. Data now ships in `nvl/core`; see the [Core upgrade guide](../UPGRADING.md) for current installation.
+
 ## Upgrading to 1.0
 
 Version 1.0 removes application-specific source paths, old TypeScript namespaces, and speculative DTO doctrine.

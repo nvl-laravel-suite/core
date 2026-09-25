@@ -10,7 +10,7 @@
 | Package identifier | `nvl/core` |
 | PHP namespace | `Nvl\Data` |
 | Service provider | `Nvl\Data\Providers\DataServiceProvider` |
-| Configuration | `config/nvl-data.php` |
+| Configuration | `data/config/nvl-data.php` |
 
 ## Purpose
 
@@ -84,7 +84,7 @@ Keep display and mutation DTOs separate. Infrastructure objects that gain no val
 }
 ```
 
-This is the stable package-family pagination envelope. Pagination does not belong in `nvl/support`.
+This is the stable package-family pagination envelope. Pagination belongs to Core's Data namespace, not its Support namespace.
 
 ## Configure TypeScript sources
 
