@@ -65,6 +65,3 @@ All notable changes to `nvl/data` are documented here.
 - Added typed pagination DTOs and deterministic source registration.
 - Added generated TypeScript manifests, stale checks, integrity checks, and protected artifact delivery.
 - Standardized generated declarations under `Nvl.*`.
-
-<!-- tenancy-program-p2 -->
-Configurable-tenancy implementation and adoption documentation are present. The final consolidated verification matrix is pending; do not treat this package as release-ready until that gate passes.
