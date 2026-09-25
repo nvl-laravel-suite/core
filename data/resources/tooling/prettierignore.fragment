@@ -1,0 +1,4 @@
+# NVL Data generator-owned declarations and integrity metadata.
+resources/js/types/generated.d.ts
+resources/js/types/generated/**
+resources/js/types/generated.manifest.json

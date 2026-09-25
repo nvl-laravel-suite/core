@@ -1,0 +1,4 @@
+interface:
+  display_name: "NVL Data"
+  short_description: "Build DTO and TypeScript boundaries"
+  default_prompt: "Use $nvl-data to implement or review Spatie Data DTOs, persistence transforms, and deterministic TypeScript artifacts."

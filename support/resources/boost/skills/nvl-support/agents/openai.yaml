@@ -1,0 +1,4 @@
+interface:
+  display_name: "NVL Support"
+  short_description: "Build safe transport-neutral errors"
+  default_prompt: "Use $nvl-support to implement or review stable response codes, business exceptions, safe context, and foundation boundaries."
