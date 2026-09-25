@@ -4,6 +4,8 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-25
+
 ### Changed
 
 - Combine Support and Data in the independently published `nvl/core` package while retaining both PHP namespaces and service providers.
