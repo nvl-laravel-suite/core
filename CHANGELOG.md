@@ -9,6 +9,7 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 ### Changed
 
 - Combine Support and Data in the independently published `nvl/core` package while retaining both PHP namespaces and service providers.
+- Expose both Support and Data skills at the package root for Laravel Boost discovery while retaining their individual publish tags.
 
 ## [2.0.1] - 2026-09-22
 

@@ -35,6 +35,8 @@ php artisan vendor:publish --tag=nvl-data-generated-types-tooling
 ```
 
 The skill commands publish `.agents/skills/nvl-support` and `.agents/skills/nvl-data`.
+Laravel Boost can also discover both skills automatically from Core's root
+`resources/boost/skills` directory when a consumer runs `boost:install`.
 
 ## Define a stable response code
 
