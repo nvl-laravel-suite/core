@@ -39,8 +39,9 @@ php artisan vendor:publish --tag=data-skills
 php artisan vendor:publish --tag=nvl-data-generated-types-tooling
 ```
 
-`data-config` publishes `config/nvl-data.php`; `nvl-data-config` is an alias for
-the same file, so use one tag. The generated-types tooling tag copies optional
+`data-config` publishes `config/nvl-data.php`;
+`php artisan vendor:publish --tag=nvl-data-config` is an alternative command
+for the same file, so use one tag. The generated-types tooling tag copies optional
 ESLint and Prettier fragments. The skill tags publish
 `.agents/skills/nvl-support` and `.agents/skills/nvl-data`. Laravel Boost can
 also discover the bundled skills during `boost:install` or
