@@ -138,6 +138,7 @@ try {
         'internal_table' => $catalog->tableOwner('nvl_comments_revisions'),
         'missing_table' => $catalog->tableOwner('nvl_media'),
         'traits' => $catalog->capabilityRelations('Nvl\\Comments\\Traits\\InteractsWithComments'),
+        'trait_methods' => $catalog->symbol('Nvl\\Comments\\Traits\\InteractsWithComments')?->methods,
         'unknown_trait' => $catalog->capabilityRelations('Host\\HasComments'),
         'owner' => $comment === null ? null : $catalog->packageForFile($comment->sourcePath()),
         'contract_owner' => $symbol === null ? null : $catalog->packageForFile($symbol->sourcePath()),
@@ -196,6 +197,18 @@ it('retains immutable exact model permissions and internal ownership/trait metad
         ->and($result['owner'])->toBe('nvl/comments')
         ->and($result['host_owner'])->toBeNull()
         ->and(array_keys($result['core_roots']['psr4']))->toBe(['Nvl\\Support\\', 'Nvl\\Data\\']);
+});
+
+it('retains forbidden capability relations when the selected trait has no public methods without loading source PHP', function (): void {
+    $catalogs = consumerCatalogFixtures();
+    $catalogs['nvl/comments']['symbols']['Nvl\\Comments\\Traits\\InteractsWithComments']['methods'] = [];
+    $result = consumerCatalogProbe($catalogs);
+
+    expect($result['error'])->toBeNull()
+        ->and($result['traits'])->toBe(['comments'])
+        ->and($result['trait_methods'])->toBe([])
+        ->and($result['loaded'])->toBe([])
+        ->and($result['fixture_loaded'])->toBeFalse();
 });
 
 it('supports ordered multi-root prefixes alongside existing string roots and symlinked installations', function (bool $symlinked): void {
@@ -464,6 +477,15 @@ it('rejects malformed protocol and permission metadata', function (Closure $muta
     'relation wildcard' => [function (array &$catalog): void {
         $catalog['capability_relations']['Nvl\\Comments\\Traits\\InteractsWithComments'] = ['*'];
     }, 'capability_relations'],
+    'malformed relation name' => [function (array &$catalog): void {
+        $catalog['capability_relations']['Nvl\\Comments\\Traits\\InteractsWithComments'] = ['comments.extra'];
+    }, 'capability_relations'],
+    'duplicate relation name' => [function (array &$catalog): void {
+        $catalog['capability_relations']['Nvl\\Comments\\Traits\\InteractsWithComments'] = ['comments', 'comments'];
+    }, 'capability_relations'],
+    'nontrait capability symbol' => [function (array &$catalog): void {
+        $catalog['capability_relations']['Nvl\\Comments\\Models\\Comment'] = ['comments'];
+    }, 'trait'],
     'unselected capability trait' => [function (array &$catalog): void {
         $catalog['capability_relations']['Host\\HasComments'] = ['comments'];
     }, 'trait'],
@@ -471,6 +493,19 @@ it('rejects malformed protocol and permission metadata', function (Closure $muta
         $catalog['symbols']['Nvl\\Comments\\Models\\Comment']['file'] = 'src/Models/Other.php';
     }, 'file'],
 ]);
+
+it('rejects capability metadata that claims a trait selected by another package', function (): void {
+    $catalogs = consumerCatalogFixtures();
+    $trait = 'Nvl\\Support\\Traits\\HasComments';
+    $catalogs['nvl/core']['symbols'][$trait] = [
+        'kind' => 'trait', 'file' => 'support/src/Traits/HasComments.php', 'methods' => [], 'properties' => [], 'constants' => [],
+    ];
+    $catalogs['nvl/comments']['capability_relations'][$trait] = ['comments'];
+    $result = consumerCatalogProbe($catalogs);
+
+    expect($result['exception'])->toBe('RuntimeException')
+        ->and($result['error'])->toContain('nvl/comments', $trait, 'selected trait in this package');
+});
 
 it('retains a public alias shim and validates its forward canonical target without loading PHP', function (): void {
     $catalogs = consumerCatalogFixtures();

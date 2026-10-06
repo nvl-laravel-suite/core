@@ -176,9 +176,6 @@ final readonly class ConsumerApiCatalog
                     throw self::invalid($package, "Capability trait [{$trait}] requires a selected trait in this package.");
                 }
                 $relations = self::names($relations, $package, 'capability_relations');
-                if (array_diff($relations, $symbol->methods) !== []) {
-                    throw self::invalid($package, "Capability trait [{$trait}] declares unavailable relation methods.");
-                }
                 $traits[$trait] = $relations;
             }
 
