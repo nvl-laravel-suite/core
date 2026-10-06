@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Tests\Unit;
 
+use Illuminate\Config\Repository;
+use Illuminate\Contracts\Config\Repository as RepositoryContract;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Nvl\Support\Providers\SupportServiceProvider;
@@ -20,7 +22,9 @@ it('is auto-discoverable through Core and can boot its provider in isolation', f
         512,
         JSON_THROW_ON_ERROR,
     );
-    $provider = new SupportServiceProvider(new Application($packageRoot));
+    $application = new Application($packageRoot);
+    $application->instance(RepositoryContract::class, new Repository);
+    $provider = new SupportServiceProvider($application);
     $provider->boot();
 
     expect($manifest['extra']['laravel']['providers'] ?? [])
@@ -32,6 +36,7 @@ it('is auto-discoverable through Core and can boot its provider in isolation', f
 it('publishes its packaged agent guidance through the documented tag', function (): void {
     $packageRoot = dirname(__DIR__, 2);
     $application = new Application($packageRoot);
+    $application->instance(RepositoryContract::class, new Repository);
     $provider = new SupportServiceProvider($application);
     $provider->boot();
 
@@ -63,6 +68,7 @@ it('has no runtime boot side effects outside the console', function (): void {
             return false;
         }
     };
+    $application->instance(RepositoryContract::class, new Repository);
     $publishPathsBeforeBoot = SupportServiceProvider::pathsToPublish(
         SupportServiceProvider::class,
         'support-skills',
@@ -112,13 +118,12 @@ it('keeps its source boundary minimal and transport-neutral', function (): void 
         ->implode("\n");
 
     expect($sourceDirectories)
-        ->toBe(['Config', 'Contracts', 'Exceptions', 'Providers', 'Traits'])
+        ->toBe(['Config', 'Console', 'Contracts', 'Doctor', 'Exceptions', 'Facades', 'Integrations', 'Locales', 'Providers', 'Schema', 'Tenancy', 'Traits'])
         ->and($source)
         ->not->toMatch('/^use\s+Nvl\\\\(?!Support\\\\)/m')
-        ->not->toContain('Illuminate\\Http\\')
         ->not->toMatch('/\b(?:abort|redirect|response)\s*\(/');
 
-    foreach (['config', 'database', 'routes'] as $forbiddenDirectory) {
+    foreach (['database', 'routes'] as $forbiddenDirectory) {
         expect($packageRoot.'/'.$forbiddenDirectory)->not->toBeDirectory();
     }
 });

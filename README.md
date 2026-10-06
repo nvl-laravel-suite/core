@@ -121,3 +121,70 @@ See [Data documentation](data/README.md), [upgrading](UPGRADING.md), [security](
 ## License
 
 Released under the [MIT License](LICENSE).
+
+## Shared owner identity
+
+Publish Core defaults with `php artisan vendor:publish --tag=nvl-core-config`, then declare stable morph aliases in `config/nvl-core.php`:
+
+```php
+'owners' => ['article' => Article::class],
+```
+
+`Nvl\Support\OwnerRegistry` exposes `register($alias, $modelClass)`, `model($alias)`, `aliasFor($model)`, and `all()`. Identical registrations are idempotent. A conflicting alias, a second canonical alias for the same model, or an incompatible existing host morph map fails before use. Core merges compatible entries without calling `Relation::enforceMorphMap()` for unrelated models.
+
+Each package enables its own capability separately. Identity does not authorize Comments, Media, SEO, Content, Taxonomy, Metafields, Pages, Templates, or translation editing. Behavior definitions keep their resolvers, handlers, scopes, metadata, and mutation abilities.
+
+Compatibility class inputs are available for one major cycle. `reference()` resolves them without adding a morph mapping when their package historically wrote class names; existing mapped registrations retain their aliases. `deprecations()` returns diagnostics keyed by source, with reference and replacement fields. Run `php artisan nvl:doctor --strict --format=json` after configuration changes and follow [UPGRADING.md](UPGRADING.md) for stored morph types.
+
+## Shared content locale catalog
+
+Depend on `Nvl\Support\Contracts\LocaleCatalog` for supported locales, the content default, configured fallbacks, normalization, and deterministic resolution chains. Core provides it without Translatable or Primitives. Its default catalog uses the distinct valid `app.locale` and `app.fallback_locale` values. Configure a standalone content catalog in `nvl-core.php` when content differs from application language defaults:
+
+```php
+'locales' => [
+    'supported' => ['fr', 'fr-CA', 'en'],
+    'default' => 'fr',
+    'fallback' => ['en'],
+],
+```
+
+Null values inherit application defaults; an explicit empty fallback list stays empty. A host can bind its own `LocaleCatalog`. Translatable supplies a validated adapter when installed, with explicit `translatable` catalog values authoritative and null values inheriting Core defaults. Host implementations remain selected across provider order changes.
+
+Use constructor injection for runtime consumers. `Nvl\Support\Facades\Locales` exposes the same contract for declarative model definitions and static validation rules. Shared locale-code normalization preserves canonical regional/script casing such as `zh-Hant-TW`. A chain orders the requested locale, supported parents, explicit resource fallbacks, catalog fallbacks, and the content default without duplicate values.
+
+`primitives.locales` is deprecated for one major cycle. Its explicit legacy catalog is translated only by the standalone Core default when no canonical catalog is selected. `LocaleCatalogDiagnostics::inspect()` and `nvl:doctor` report deprecations and catalog conflicts without changing locale rows.
+
+## Consumer diagnostics
+
+Core provides `php artisan nvl:doctor --strict --format=json` for applications that install individual NVL packages. Loaded package providers contribute their own read-only checks; the command requires neither the suite metapackage nor the workbench. JSON uses `schema_version: 1` and includes package, check key, severity, result (`pass` or `fail`), and an actionable message. Errors fail the command; warnings also fail with `--strict`. Informational optional capabilities do not fail the gate. Invalid formats and contributor exceptions return a nonzero status.
+
+Core also validates effective database, queue, lock-store, and authorization guard names against configured backends, even when no domain package is loaded. Its informational checks expose only those selected names and the queue name. Deprecated configuration inputs produce warnings without including their values.
+
+A host extension implements `Nvl\Support\Doctor\DoctorContributor` and tags its binding with that interface. Contributions are discovered at execution time and sorted deterministically. Existing package Doctor commands remain available; `nvl:suite:doctor` additionally checks workbench module and production requirements.
+
+## Shared infrastructure defaults
+
+Configure common infrastructure in `nvl-core.php` and override only the capabilities that need separate infrastructure:
+
+```php
+'connection' => null,
+'queue' => ['connection' => 'redis', 'name' => 'nvl-work'],
+'locks' => ['store' => 'redis'],
+'routes' => ['middleware' => ['api', 'auth']],
+'authorization' => ['guard' => 'admin'],
+```
+
+`Nvl\Support\Config\PackageOptions` resolves a canonical package option, an explicit compatibility input, Core, then Laravel's effective configured default. Null inherits; an empty string fails validation. A canonical host setting wins over a deprecated alias even when it is null. Queue names inherit the selected queue connection's configured queue. Middleware lists replace whole lists, including intentional empty lists where the capability permits them; an explicitly selected guard applies to bare `auth` middleware and preserves existing `auth:guard` declarations. Authorization abilities and callbacks remain capability-owned.
+
+Package schema options use `connection`, `tables.<logical_key>`, and `migrations.enabled`. Migration opt-in defaults stay package-specific. Lock durations and queue job retry settings also stay operation-specific. Media can choose independent `locks.mutation.store`, `locks.deduplication.store`, and `locks.multipart.store` overrides before its shared `locks.store` fallback.
+
+Compatibility aliases are normalized from the host overlay before package defaults merge. `PackageOptions::deprecations()` reports each original key once with its replacement, effective canonical value before inheritance, and conflict flag. Reports live in serializable configuration and survive config caching. Rebuild configuration caches and restart workers after changing infrastructure.
+
+
+### Neutral tenant boundaries
+
+Core owns `Nvl\Support\Tenancy` contracts, immutable identifiers and snapshots, queue envelopes, resource definitions, and the resource metadata registry. Packages consume `TenantBoundary`, `TenantContext`, `TenantRunner`, `TenantQueueContext`, `TenantInstallationState`, and `TenantOwnershipConfiguration` contracts from that namespace. Registering a neutral package registers Core; it does not select the enforcing Tenancy provider.
+
+Without `nvl/tenancy`, the disabled boundary preserves validated legacy queries and identity keys and supplies no ownership attributes. Tenant context is disabled, and requiring a tenant or privileged platform execution fails. The actual resource connection is checked for persisted adoption before access. Setting `tenancy.enabled=true` without the enforcing provider fails, and adopted storage cannot be reopened through disabled defaults. Queue admission runs before native command deserialization and rejects captured tenant work or adopted storage without the runtime.
+
+`nvl/tenancy` is suggested by neutral packages and required for their tenancy test profiles. Select its provider through Laravel discovery or register it explicitly to activate the runtime implementations. Merely having its classes on disk does not register adoption adapters. Billing continues to require the runtime.
