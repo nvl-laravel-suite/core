@@ -50,6 +50,20 @@ function consumerCatalogFixtures(): array
 }
 
 /**
+ * Split one prefix's selected classes across two ordered runtime directories.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function consumerMultiRootFixtures(): array
+{
+    $catalogs = consumerCatalogFixtures();
+    $catalogs['nvl/comments']['psr4']['Nvl\\Comments\\'] = ['src/', 'contracts-src/'];
+    $catalogs['nvl/comments']['symbols']['Nvl\\Comments\\Contracts\\ListOwnerCommentSummariesContract']['file'] = 'contracts-src/Contracts/ListOwnerCommentSummariesContract.php';
+
+    return $catalogs;
+}
+
+/**
  * Exercise discovery in a process with no Laravel or registered vendor inventory.
  *
  * @param  array<string, array<string, mixed>>  $catalogs
@@ -69,8 +83,12 @@ function consumerCatalogProbe(array $catalogs, ?Closure $prepare = null): array
             $roots[$package] = $root;
             $versions[$package] = ['install_path' => $root, 'type' => 'library'];
 
-            foreach ($catalog['psr4'] ?? [] as $relative) {
-                mkdir($root.'/'.$relative, 0700, true);
+            foreach ($catalog['psr4'] ?? [] as $directories) {
+                foreach (is_string($directories) ? [$directories] : $directories as $relative) {
+                    if (! is_dir($root.'/'.$relative)) {
+                        mkdir($root.'/'.$relative, 0700, true);
+                    }
+                }
             }
 
             foreach ($catalog['symbols'] ?? [] as $symbol) {
@@ -122,8 +140,10 @@ try {
         'traits' => $catalog->capabilityRelations('Nvl\\Comments\\Traits\\InteractsWithComments'),
         'unknown_trait' => $catalog->capabilityRelations('Host\\HasComments'),
         'owner' => $comment === null ? null : $catalog->packageForFile($comment->sourcePath()),
+        'contract_owner' => $symbol === null ? null : $catalog->packageForFile($symbol->sourcePath()),
         'host_owner' => $catalog->packageForFile($argv[2].'/host/Nvl/Comments/Models/Comment.php'),
         'core_roots' => $core,
+        'leaf_roots' => $roots['nvl/comments'] ?? null,
         'immutable' => $immutable,
         'loaded' => array_values(array_filter(get_declared_classes(), static fn (string $class): bool => str_starts_with($class, 'Illuminate\\') || str_starts_with($class, 'Nvl\\Suite\\') || str_starts_with($class, 'PhpParser\\'))),
         'fixture_loaded' => class_exists('Nvl\\Comments\\Models\\Comment', false),
@@ -176,6 +196,141 @@ it('retains immutable exact model permissions and internal ownership/trait metad
         ->and($result['owner'])->toBe('nvl/comments')
         ->and($result['host_owner'])->toBeNull()
         ->and(array_keys($result['core_roots']['psr4']))->toBe(['Nvl\\Support\\', 'Nvl\\Data\\']);
+});
+
+it('supports ordered multi-root prefixes alongside existing string roots and symlinked installations', function (bool $symlinked): void {
+    $result = consumerCatalogProbe(consumerMultiRootFixtures(), function (array $roots, array &$versions) use ($symlinked): void {
+        if ($symlinked) {
+            $link = $roots['nvl/comments'].'-linked';
+            symlink($roots['nvl/comments'], $link);
+            $versions['nvl/comments']['install_path'] = $link;
+        }
+    });
+
+    expect($result['error'])->toBeNull()
+        ->and($result['owner'])->toBe('nvl/comments')
+        ->and($result['contract_owner'])->toBe('nvl/comments')
+        ->and($result['leaf_roots']['psr4']['Nvl\\Comments\\'])->toBe([$result['leaf_roots']['path'].'/src', $result['leaf_roots']['path'].'/contracts-src'])
+        ->and($result['core_roots']['psr4']['Nvl\\Support\\'])->toBe([$result['core_roots']['path'].'/support/src'])
+        ->and($result['core_roots']['psr4']['Nvl\\Data\\'])->toBe([$result['core_roots']['path'].'/data/src'])
+        ->and($result['loaded'])->toBe([])
+        ->and($result['fixture_loaded'])->toBeFalse();
+})->with([false, true]);
+
+it('rejects invalid multi-root lists and duplicate root identities', function (string $scenario, string $reason): void {
+    $result = consumerCatalogProbe(consumerCatalogFixtures(), function (array $roots) use ($scenario): void {
+        $path = $roots['nvl/comments'].'/resources/consumer-api.json';
+        $catalog = json_decode(file_get_contents($path), flags: JSON_THROW_ON_ERROR);
+        $prefix = 'Nvl\\Comments\\';
+        $catalog->psr4->{$prefix} = match ($scenario) {
+            'missing' => null,
+            'empty' => [],
+            'object' => new stdClass,
+            'number' => ['src/', 12],
+            'nested' => ['src/', ['nested/']],
+            'non-list' => (object) ['first' => 'src/'],
+            'missing directory' => ['src/', 'missing/'],
+            'escaping' => ['src/', '../outside/'],
+            'escaping symlink' => ['src/', 'escape-src/'],
+            'duplicate' => ['src/', 'src/'],
+            'duplicate spelling' => ['src/', 'src'],
+            'duplicate canonical' => ['src/', 'alias-src/'],
+            'duplicate prefix root' => 'src/',
+        };
+        if ($scenario === 'duplicate canonical') {
+            symlink($roots['nvl/comments'].'/src', $roots['nvl/comments'].'/alias-src');
+        }
+        if ($scenario === 'escaping symlink') {
+            $outside = dirname($roots['nvl/comments']).'/outside-src';
+            mkdir($outside);
+            symlink($outside, $roots['nvl/comments'].'/escape-src');
+        }
+        if ($scenario === 'duplicate prefix root') {
+            $catalog->psr4->{'Nvl\\Comments\\Other\\'} = 'src/';
+        }
+        file_put_contents($path, json_encode($catalog, JSON_THROW_ON_ERROR));
+    });
+
+    expect($result['exception'] ?? null)->toBe('RuntimeException')
+        ->and($result['error'])->toContain($reason);
+})->with([
+    'missing value' => ['missing', 'nonempty list'],
+    'empty list' => ['empty', 'nonempty list'],
+    'object value' => ['object', 'nonempty list'],
+    'non-string root' => ['number', 'relative source directory'],
+    'nested list' => ['nested', 'relative source directory'],
+    'non-list value' => ['non-list', 'nonempty list'],
+    'missing directory' => ['missing directory', 'unavailable'],
+    'escaping directory' => ['escaping', 'nonescaping'],
+    'escaping unselected root symlink' => ['escaping symlink', 'outside its installed package'],
+    'duplicate relative root' => ['duplicate', 'Duplicate'],
+    'duplicate normalized relative root' => ['duplicate spelling', 'Duplicate'],
+    'duplicate canonical root' => ['duplicate canonical', 'Duplicate'],
+    'duplicate prefix root' => ['duplicate prefix root', 'Duplicate'],
+]);
+
+it('matches the longest prefix to its specific ordered source root', function (bool $correct): void {
+    $catalogs = consumerMultiRootFixtures();
+    $catalogs['nvl/comments']['psr4']['Nvl\\Comments\\Models\\'] = ['models-src/', 'alternate-models/'];
+    if ($correct) {
+        $catalogs['nvl/comments']['symbols']['Nvl\\Comments\\Models\\Comment']['file'] = 'alternate-models/Comment.php';
+    }
+    $result = consumerCatalogProbe($catalogs);
+
+    if ($correct) {
+        expect($result['error'])->toBeNull()
+            ->and($result['owner'])->toBe('nvl/comments')
+            ->and($result['loaded'])->toBe([]);
+    } else {
+        expect($result['exception'] ?? null)->toBe('RuntimeException')
+            ->and($result['error'])->toContain('file does not match');
+    }
+})->with([true, false]);
+
+it('rejects a selected declaration duplicated across ordered source roots', function (): void {
+    $result = consumerCatalogProbe(consumerMultiRootFixtures(), function (array $roots): void {
+        $other = $roots['nvl/comments'].'/contracts-src/Models/Comment.php';
+        mkdir(dirname($other), 0700, true);
+        copy($roots['nvl/comments'].'/src/Models/Comment.php', $other);
+    });
+
+    expect($result['exception'] ?? null)->toBe('RuntimeException')
+        ->and($result['error'])->toContain('Duplicate', 'Nvl\\Comments\\Models\\Comment');
+});
+
+it('rejects a source symlink into another listed root instead of its matching root', function (): void {
+    $result = consumerCatalogProbe(consumerMultiRootFixtures(), function (array $roots): void {
+        $source = $roots['nvl/comments'].'/src/Models/Comment.php';
+        $other = $roots['nvl/comments'].'/contracts-src/rogue.php';
+        rename($source, $other);
+        symlink($other, $source);
+    });
+
+    expect($result['exception'] ?? null)->toBe('RuntimeException')
+        ->and($result['error'])->toContain('outside its declared PSR-4 source root');
+});
+
+it('rejects a symbol file outside every matching prefix root', function (): void {
+    $catalogs = consumerMultiRootFixtures();
+    $catalogs['nvl/comments']['symbols']['Nvl\\Comments\\Models\\Comment']['file'] = 'unlisted/Models/Comment.php';
+    $result = consumerCatalogProbe($catalogs);
+
+    expect($result['exception'] ?? null)->toBe('RuntimeException')
+        ->and($result['error'])->toContain('file does not match');
+});
+
+it('rejects overlapping ownership from any root of independently installed packages', function (): void {
+    $result = consumerCatalogProbe(consumerMultiRootFixtures(), function (array $roots, array &$versions): void {
+        $nested = $roots['nvl/comments'].'/contracts-src/nested';
+        mkdir($nested.'/src', 0700, true);
+        mkdir($nested.'/resources', 0700, true);
+        $catalog = ['schema_version' => 1, 'package' => 'nvl/forms', 'psr4' => ['Nvl\\Forms\\' => ['src/']], 'symbols' => new stdClass, 'models' => new stdClass, 'capability_relations' => new stdClass, 'tables' => new stdClass];
+        file_put_contents($nested.'/resources/consumer-api.json', json_encode($catalog, JSON_THROW_ON_ERROR));
+        $versions['nvl/forms'] = ['install_path' => $nested, 'type' => 'library'];
+    });
+
+    expect($result['exception'] ?? null)->toBe('RuntimeException')
+        ->and($result['error'])->toContain('Conflicting source ownership', 'nvl/comments');
 });
 
 it('keeps empty JSON objects distinct from lists at every catalog boundary', function (string $field, bool $objectInsteadOfList): void {

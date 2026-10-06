@@ -14,7 +14,7 @@ use stdClass;
  *
  * @api
  *
- * @phpstan-type InstalledPackage array{path: string, psr4: array<string, string>}
+ * @phpstan-type InstalledPackage array{path: string, psr4: array<string, list<string>>}
  */
 final readonly class ConsumerApiCatalog
 {
@@ -67,22 +67,35 @@ final readonly class ConsumerApiCatalog
                 throw self::invalid($package, 'package identity does not match its Composer installation.');
             }
 
-            $relativeRoots = self::map($catalog['psr4'] ?? null, $package, 'psr4');
-            if ($relativeRoots === []) {
+            $declaredRoots = self::map($catalog['psr4'] ?? null, $package, 'psr4');
+            if ($declaredRoots === []) {
                 throw self::invalid($package, 'psr4 must declare its runtime source roots.');
             }
+            $relativeRoots = [];
             $sourceRoots = [];
-            foreach ($relativeRoots as $prefix => $relative) {
-                if (! str_ends_with($prefix, '\\') || ! self::className(substr($prefix, 0, -1)) || ! is_string($relative)) {
+            $claimedRoots = [];
+            foreach ($declaredRoots as $prefix => $directories) {
+                if (! str_ends_with($prefix, '\\') || ! self::className(substr($prefix, 0, -1))) {
                     throw self::invalid($package, 'psr4 requires namespace prefixes and relative source directories.');
                 }
-                $sourceRoots[$prefix] = self::ownedPath($package, $root, $relative, true);
-                foreach ($packages as $previousPackage => $previous) {
-                    foreach ($previous['psr4'] as $previousRoot) {
-                        if (self::within($sourceRoots[$prefix], $previousRoot) || self::within($previousRoot, $sourceRoots[$prefix])) {
-                            throw self::invalid($package, "Conflicting source ownership with [{$previousPackage}].");
+                $relativeRoots[$prefix] = self::sourceDirectories($directories, $package);
+                $sourceRoots[$prefix] = [];
+                foreach ($relativeRoots[$prefix] as $relative) {
+                    $canonical = self::ownedPath($package, $root, $relative, true);
+                    if (isset($claimedRoots[$canonical])) {
+                        throw self::invalid($package, "Duplicate canonical source root [{$relative}].");
+                    }
+                    $claimedRoots[$canonical] = true;
+                    foreach ($packages as $previousPackage => $previous) {
+                        foreach ($previous['psr4'] as $previousRoots) {
+                            foreach ($previousRoots as $previousRoot) {
+                                if (self::within($canonical, $previousRoot) || self::within($previousRoot, $canonical)) {
+                                    throw self::invalid($package, "Conflicting source ownership with [{$previousPackage}].");
+                                }
+                            }
                         }
                     }
+                    $sourceRoots[$prefix][] = $canonical;
                 }
             }
             $packages[$package] = ['path' => $root, 'psr4' => $sourceRoots];
@@ -100,13 +113,23 @@ final readonly class ConsumerApiCatalog
                     throw self::invalid($package, "Invalid kind for symbol [{$class}].");
                 }
                 $file = $declaration['file'] ?? null;
-                $location = self::symbolLocation($class, $relativeRoots);
-                if (! is_string($file) || $location === null || $file !== $location['file']) {
+                $location = is_string($file) ? self::symbolLocation($class, $file, $relativeRoots) : null;
+                if (! is_string($file) || $location === null) {
                     throw self::invalid($package, "Symbol [{$class}] file does not match its declared PSR-4 identity.");
                 }
                 $sourcePath = self::ownedPath($package, $root, $file, false);
-                if (! self::within($sourcePath, $sourceRoots[$location['prefix']])) {
+                if (! self::within($sourcePath, $sourceRoots[$location['prefix']][$location['index']])) {
                     throw self::invalid($package, "Symbol [{$class}] file resolves outside its declared PSR-4 source root.");
+                }
+                $suffix = str_replace('\\', '/', substr($class, strlen($location['prefix']))).'.php';
+                $declarations = 0;
+                foreach ($relativeRoots[$location['prefix']] as $relative) {
+                    if (is_file($root.'/'.$relative.'/'.$suffix)) {
+                        $declarations++;
+                    }
+                }
+                if ($declarations > 1) {
+                    throw self::invalid($package, "Duplicate source declaration for selected symbol [{$class}].");
                 }
                 $aliasOf = null;
                 if (array_key_exists('alias_of', $declaration)) {
@@ -224,9 +247,11 @@ final readonly class ConsumerApiCatalog
         }
         $path = self::normalizePath($path);
         foreach ($this->packages as $package => $installed) {
-            foreach ($installed['psr4'] as $sourceRoot) {
-                if (self::within($path, $sourceRoot)) {
-                    return $package;
+            foreach ($installed['psr4'] as $sourceRoots) {
+                foreach ($sourceRoots as $sourceRoot) {
+                    if (self::within($path, $sourceRoot)) {
+                        return $package;
+                    }
                 }
             }
         }
@@ -381,20 +406,55 @@ final readonly class ConsumerApiCatalog
     }
 
     /**
-     * Match a symbol to the longest declared PSR-4 namespace prefix.
+     * Normalize one prefix's ordered directories without changing string catalogs.
      *
-     * @param  array<string, mixed>  $roots
-     * @return array{file: string, prefix: string}|null
+     * @return list<string>
      */
-    private static function symbolLocation(string $class, array $roots): ?array
+    private static function sourceDirectories(mixed $directories, string $package): array
+    {
+        if (is_string($directories)) {
+            $directories = [$directories];
+        }
+        if (! is_array($directories) || ! array_is_list($directories) || $directories === []) {
+            throw self::invalid($package, 'psr4 requires a string or nonempty list of relative source directories.');
+        }
+        $roots = [];
+        foreach ($directories as $relative) {
+            if (! is_string($relative)) {
+                throw self::invalid($package, 'Each psr4 root requires a relative source directory string.');
+            }
+            $relative = rtrim($relative, '/');
+            if (in_array($relative, $roots, true)) {
+                throw self::invalid($package, "Duplicate relative source root [{$relative}].");
+            }
+            $roots[] = $relative;
+        }
+
+        return $roots;
+    }
+
+    /**
+     * Match the file to one root under the longest declared namespace prefix.
+     *
+     * @param  array<string, list<string>>  $roots
+     * @return array{prefix: string, index: int}|null
+     */
+    private static function symbolLocation(string $class, string $file, array $roots): ?array
     {
         $prefixes = array_keys($roots);
         usort($prefixes, static fn (string $left, string $right): int => strlen($right) <=> strlen($left));
         foreach ($prefixes as $prefix) {
-            $relative = $roots[$prefix];
-            if (str_starts_with($class, $prefix) && is_string($relative)) {
-                return ['file' => rtrim($relative, '/').'/'.str_replace('\\', '/', substr($class, strlen($prefix))).'.php', 'prefix' => $prefix];
+            if (! str_starts_with($class, $prefix)) {
+                continue;
             }
+            $suffix = str_replace('\\', '/', substr($class, strlen($prefix))).'.php';
+            foreach ($roots[$prefix] as $index => $relative) {
+                if ($file === $relative.'/'.$suffix) {
+                    return ['prefix' => $prefix, 'index' => $index];
+                }
+            }
+
+            return null;
         }
 
         return null;

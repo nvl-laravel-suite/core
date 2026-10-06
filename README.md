@@ -108,6 +108,8 @@ Constructing an exception with a suggested status outside 100–599 throws `Supp
 
 Call `Nvl\Support\Consumer\ConsumerApiCatalog::installed()` explicitly to inspect supported symbols, model-handle declarations and default table ownership from installed package catalogs. Discovery reads Composer installation metadata and validated JSON without booting Laravel, providers, database connections or sibling packages. Providers do not activate discovery automatically. Every installed NVL code library must ship a matching catalog; missing or invalid catalogs fail with regeneration or upgrade guidance. Protocol-1 maps use JSON objects, including `{}` when empty, and member/permission lists use JSON arrays, including `[]` when empty.
 
+Each `psr4` prefix accepts one relative source directory or an ordered nonempty list of directories. A symbol file must match its longest declared prefix and its exact source root. Duplicate roots or selected symbol files across those roots are rejected.
+
 ## Non-goals
 
 - HTTP exception rendering
