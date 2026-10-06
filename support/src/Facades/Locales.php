@@ -17,6 +17,8 @@ use Nvl\Support\Contracts\LocaleCatalog;
  * @method static bool supports(string $locale)
  * @method static string assertSupported(string $locale)
  * @method static list<string> chain(string $requestedLocale, list<mixed> $additionalFallbacks = [])
+ *
+ * @api
  */
 final class Locales extends Facade
 {

@@ -10,7 +10,11 @@ use Illuminate\Contracts\Config\Repository;
 use InvalidArgumentException;
 use Nvl\Support\Contracts\LocaleCatalog;
 
-/** Reports legacy locale configuration and conflicts without changing stored content. */
+/**
+ * Reports legacy locale configuration and conflicts without changing stored content.
+ *
+ * @api
+ */
 final readonly class LocaleCatalogDiagnostics
 {
     /** Create read-only locale compatibility diagnostics. */

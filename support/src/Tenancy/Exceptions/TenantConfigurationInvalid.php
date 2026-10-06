@@ -9,6 +9,8 @@ use Nvl\Support\Tenancy\Enums\TenancyResponseCode;
 
 /**
  * Reports invalid deployment-level tenancy configuration.
+ *
+ * @api
  */
 final class TenantConfigurationInvalid extends TenancyException
 {

@@ -10,7 +10,11 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use InvalidArgumentException;
 use Nvl\Support\Globals\GlobalNames;
 
-/** Declares owner capabilities while retaining Laravel's host-owned morph identity. */
+/**
+ * Declares owner capabilities while retaining Laravel's host-owned morph identity.
+ *
+ * @api
+ */
 final class OwnerRegistry
 {
     /** @var array<string, array{model: class-string<Model>, alias: string|null}> */
@@ -70,6 +74,8 @@ final class OwnerRegistry
      * Declare a package capability using a model class or a historical reference.
      *
      * @return class-string<Model>
+     *
+     * @internal
      */
     public function reference(string $reference, string $source, ?string $legacyAlias = null, bool $legacyMorphMap = false): string
     {
@@ -149,6 +155,8 @@ final class OwnerRegistry
      *
      * @param  string  $model  Package-owned class validated at this public boundary
      * @param  list<string>  $legacy  Read-compatible package aliases
+     *
+     * @internal
      */
     public function registerPackage(string $alias, string $model, array $legacy = []): void
     {

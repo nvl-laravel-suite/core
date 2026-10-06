@@ -10,6 +10,8 @@ use InvalidArgumentException;
 
 /**
  * Resolves shared infrastructure from explicit package settings, Core, and Laravel.
+ *
+ * @api
  */
 final class PackageOptions
 {
@@ -18,6 +20,8 @@ final class PackageOptions
      *
      * @param  array<string, mixed>  $host
      * @return array<string, mixed>
+     *
+     * @internal
      */
     public static function normalize(string $package, array $host, bool $reportDeprecated = true): array
     {
@@ -55,6 +59,8 @@ final class PackageOptions
      * Return explicit compatibility mappings without changing operation lifetimes or capabilities.
      *
      * @return array<string, string>
+     *
+     * @internal
      */
     public static function aliases(string $package): array
     {
@@ -198,6 +204,8 @@ final class PackageOptions
      * Store a compatibility report in serializable configuration for cached applications.
      *
      * @param  mixed  $value  Effective canonical value before inheritance
+     *
+     * @internal
      */
     public static function recordDeprecation(string $package, string $old, string $canonical, mixed $value, bool $conflict): void
     {
