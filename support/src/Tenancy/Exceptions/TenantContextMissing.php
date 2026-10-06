@@ -8,6 +8,8 @@ use Illuminate\Http\Response;
 use Nvl\Support\Tenancy\Enums\TenancyResponseCode;
 
 /**
+ * @api
+
  * Reports tenant work attempted without an active tenant scope.
  */
 final class TenantContextMissing extends TenancyException

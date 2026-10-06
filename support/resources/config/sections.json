@@ -1,0 +1,30 @@
+{
+    "schema_version": 1,
+    "configs": {
+        "nvl-core": {
+            "required": [],
+            "common": [
+                "authorization.guard",
+                "connection",
+                "locales.default",
+                "locales.fallback",
+                "locales.supported",
+                "locks.store",
+                "logging.channel",
+                "logging.packages.csv.verbosity",
+                "logging.verbosity",
+                "migrations.published",
+                "owners",
+                "queue.connection",
+                "queue.name",
+                "routes.middleware"
+            ],
+            "advanced": [
+                "compatibility.global_aliases",
+                "compatibility.legacy_config",
+                "compatibility.legacy_env",
+                "compatibility.legacy_routes"
+            ]
+        }
+    }
+}

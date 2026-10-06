@@ -1,10 +1,24 @@
 # Changelog
 
+## Unreleased — consumer runtime integration
+
+- Added focused consumer contract/testing guidance and shipped-factory usage limits.
+- Versioned committed event payloads and documented canonical aliases, source connections, failure metadata and optional safe rendering.
+- Added explicit first-use/installer and deployment guidance; new acceptance checks remain pending.
+
+
 All notable changes to `nvl/core` are documented here. Earlier Support history is retained below; Data history is in `data/CHANGELOG.md`.
 
 ## [Unreleased]
 
+### Added
+
+- Add instance-owned FIFO fake recording, immutable named call records and framework-independent script/expectation failures under the runtime Support Testing namespace, with the pure PackageException marker.
+- Document injection through existing Core extension contracts and direct testing of pure Data/value APIs.
+
 ### Changed
+
+- Preserve a host OwnerRegistry binding with a conditional singleton default while retaining existing locale and neutral Tenancy lifetimes.
 
 - Ship an explicit PHPStan consumer extension with five stable identifiers, exact host options, inferred model/capability/table enforcement and catalog-aware result cache invalidation. Runtime discovery remains independent of PHPStan.
 

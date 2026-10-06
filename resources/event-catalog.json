@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "package": "nvl/core",
+  "documentation": "docs/events.md",
+  "implementation_status": "implemented; executable acceptance proof pending",
+  "events": [],
+  "value_types": [],
+  "aliases": [],
+  "publication": {
+    "publication": "The native host dispatcher receives the captured event after the supplied source connection outer commit, or immediately when that connection has no active transaction.",
+    "rollback": "Callbacks attach to the matching native connection and current nesting record; native outer/savepoint rollback discards the corresponding callbacks.",
+    "registration_failure": "Missing source transaction records fail before commit; Mail Notifications reports and drops unusable observations.",
+    "host_policy": "Host after-commit listeners and queue after_commit policies can add their own deferral after publication. Host transaction infrastructure and dispatcher bindings are preserved.",
+    "delivery_limit": "Local callbacks are not an outbox. Process exit between commit and callback can lose delivery; no crash durability or exactly-once delivery is promised.",
+    "cardinality": "One canonical object is dispatched per qualifying producer call. This is local publication, not cross-process deduplication or a guarantee that repeated observations are unique.",
+    "manual_producers": "Use Nvl\\Support\\Events\\DomainEventDispatcher::dispatch($event, $writerConnection). Native Event::dispatch() is immediate and has no package interception."
+  },
+  "security_notes": [
+    "This package declares no domain events."
+  ],
+  "no_op_semantics": "No package domain events are declared.",
+  "notes": [
+    "Core declares no domain events. DomainEvent, ConnectionCommitCallbacks, DomainEventDispatcher and EventAliases are infrastructure for package producers; neutral Tenancy does not invent a domain fact."
+  ],
+  "no_events_reason": "Shared dispatch and failure infrastructure has no package-owned domain mutation event."
+}

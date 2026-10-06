@@ -1,5 +1,28 @@
 # NVL Core — API and usage
 
+## Quickstart
+
+```sh
+composer require nvl/core:^5.0
+php artisan nvl:install core --dry-run
+php artisan nvl:install core
+```
+
+Core combines Support and Data. Configure supported locales and native owner capabilities without replacing host locale/auth/tenant state.
+Review the published common config, select one migration owner, and run schema preflight before existing-table upgrades. The installer does not enable features or run migrations. Follow the detailed installation and capability sections below before invoking a storage/provider operation.
+
+Inject `Nvl\Support\Contracts\LocaleCatalog` in a host service. After supplying the trusted inputs described above, the first public call is:
+
+```php
+use Nvl\Support\Contracts\LocaleCatalog;
+
+/** @var LocaleCatalog $capability */
+$result = $capability->supported();
+```
+
+Use the [event catalog](docs/events.md) and [Testing your app](#testing-your-app) below. The suite [getting-started guide](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/getting-started.md) provides a complete Comments host fixture; package archives retain their own local references.
+
+
 [← NVL Laravel Suite](https://github.com/nvl-laravel-suite)
 
 For support, [open an issue](https://github.com/nvl-laravel-suite/core/issues). For vulnerabilities, use
@@ -14,7 +37,7 @@ See the [installation and publishing guide](https://github.com/nvl-laravel-suite
 | Installed through | `composer require nvl/core:^5.0` |
 | Package identifier | `nvl/core` |
 | PHP namespaces | `Nvl\Support`, `Nvl\Data` |
-| Service providers | `Nvl\Support\Providers\SupportServiceProvider`, `Nvl\Data\Providers\DataServiceProvider` |
+| Service providers | `Nvl\Support\Providers\SupportServiceProvider`, `Nvl\Data\Providers\DataServiceProvider`, `Nvl\Support\Providers\LocaleServiceProvider` (deferrable) |
 | Configuration | Packaged default: `data/config/nvl-data.php`; optional application copy: `config/nvl-data.php` |
 
 ## Purpose
@@ -29,10 +52,10 @@ The Support namespace provides transport-neutral contracts and exceptions. The D
 composer require nvl/core:^5.0
 ```
 
-Laravel auto-discovers the Support and Data providers. Defaults work without
-publishing configuration. Publish only what the application needs:
+Laravel auto-discovers the Support, Data, and deferrable Locale providers. The Locale provider registers when `LocaleCatalog` is first resolved. Defaults work without publishing configuration. Publish only what the application needs:
 
 ```bash
+php artisan vendor:publish --tag=nvl-core-translations
 php artisan vendor:publish --tag=nvl-core-config
 php artisan vendor:publish --tag=nvl-core-skills
 php artisan vendor:publish --tag=nvl-data-skills
@@ -188,9 +211,35 @@ The source `@api` declarations identify supported workflows, extension contracts
 
 A package model returned or accepted by a public workflow is an identity/result handle. Use its declared type and `getKey()`, `getKeyName()`, `getMorphClass()`, `getRouteKey()`, `getRouteKeyName()`, `is()`, `isNot()`, and `relationLoaded()`. Read only explicitly declared in-memory `@nvl-consumer-read` fields; ordinary model PHPDocs and fillable attributes do not grant consumer reads. Obtain display projections through public reads. Persistence, additional model queries, relation access/loading, and generic model serialization are outside this contract. Host-model queries remain available, while traversal or aggregates of package capability relations require the package public reader or authorized adapter.
 
-## License
+## Testing your app
 
-Released under the [MIT License](LICENSE).
+Inject the existing `Nvl\Support\Contracts\LocaleCatalog` or neutral `Nvl\Support\Tenancy\Contracts` interfaces into host services. Locale defaults are conditional singletons; `TenantContext` is scoped and the other disabled tenant adapters retain their conditional transient defaults. Register substitutes before resolving a host service; replacing a binding later affects newly constructed services. The public `OwnerRegistry` default also preserves a host instance or factory while retaining its singleton lifetime. Doctor extensions implement and tag `Nvl\Support\Doctor\DoctorContributor`; Core does not introduce a second diagnostics interface or fake facade.
+
+```php
+use Nvl\Support\Contracts\LocaleCatalog;
+
+final readonly class ArticleLocale
+{
+    public function __construct(private LocaleCatalog $locales) {}
+
+    public function contentLocale(string $requested): string
+    {
+        return $this->locales->assertSupported($requested);
+    }
+}
+
+$catalog = Mockery::mock(LocaleCatalog::class);
+$catalog->shouldReceive('assertSupported')->once()->with('bg')->andReturn('bg');
+$this->app->instance(LocaleCatalog::class, $catalog);
+
+expect($this->app->make(ArticleLocale::class)->contentLocale('bg'))->toBe('bg');
+```
+
+Pure owner identity, configuration and Data value APIs remain directly constructible. Core owns no persistent domain model and supplies no model factory. Construct DTOs in memory; use the owning leaf's schema and fixtures when testing its real persistence. Keep Laravel HTTP, storage, event and queue guards around the host invocation and measure effects after application/fixture setup. Interface substitution does not establish package authorization or lifecycle correctness. See [the opt-in PHPStan configuration](#opt-in-phpstan-consumer-boundary); `vendor/nvl/core/support/consumer-audit.neon` is explicitly included by the host.
+
+`Nvl\Support\Testing\FakeCalls` supports runtime leaf fakes with instance-owned scripts and `list<FakeCall>` records. Each fake declares its exact native method allowlist, installs through its supplied container, and requires a response for every call. `willReturn($method, $value)` and `willThrow($method, $exception)` append FIFO entries for that method; a Closure value is inert, a null script is valid for void, and an exception is rethrown unchanged. Calls are recorded before success, scripted failure, type failure or exhaustion. Records retain named arguments and object handles without serialization; immutable records do not deep-freeze the objects they reference.
+
+`calls($method)` returns matching attempts in invocation order; `calls()` returns all attempts. `assertCalled($method, $predicate, $times)` requires an exact matching count, including zero. The predicate receives the immutable `Nvl\Support\Testing\FakeCall` with public `method` and `arguments`. Negative counts and unsupported names fail with `FakeExpectationFailed`; an exhausted script raises `UnscriptedFakeCall`. Both are ordinary RuntimeExceptions implementing the marker-only `Nvl\Support\Contracts\PackageException`, with no testing-framework or HTTP-rendering dependency. No scripts or call history are stored globally. See the [Payments fake](https://github.com/nvl-laravel-suite/payments#testing-your-app) and [Billing fakes](https://github.com/nvl-laravel-suite/billing#testing-your-app) for concrete consumers.
 
 ## Shared owner identity
 
@@ -288,3 +337,61 @@ Package HTTP routes, view and translation namespaces, middleware, rate limiters,
 For major 5 migration only, select logical package IDs in `nvl-core.compatibility.global_aliases` for free legacy aliases and in `nvl-core.compatibility.legacy_routes` for legacy default URLs. Both default to `[]`, preserve occupied host names and paths, and emit strict Doctor warnings. Compatibility routes retain the same controllers, middleware, authorization, and signature checks. Retain legacy private asset URLs until issued signed links expire, then remove the selection, rebuild configuration and route caches, and restart workers. All legacy aliases and routes are removed in major 6. The complete owned-name inventory is `support/resources/global-names.json`.
 
 Run `nvl:schema:preflight` with the same selected paths and repository connection before native migrations. The automatic `MigrationStarted` guard checks an exact owned file before its own operation; it does not promise that an entire batch is checked before earlier DDL. Core preserves native and custom migrator objects. Follow [the owned-storage runbook](UPGRADING.md#existing-package-storage) for exact published declarations and manual vendor/published reconciliation; NVL never edits migration files.
+
+## Testing your app
+
+Inject the supported contract rather than constructing its concrete Action or querying package tables. Replace `Nvl\Support\Contracts\LocaleCatalog` in Laravel's native container for a host-workflow test:
+
+```php
+use Nvl\Support\Contracts\LocaleCatalog;
+
+$double = Mockery::mock(LocaleCatalog::class);
+$this->app->instance(LocaleCatalog::class, $double);
+// Configure the exact supported arguments and documented return value for your host case.
+```
+
+The package's conditional native binding preserves host substitutions. Production uses the real contract; test doubles do not prove its storage/authorization behavior.
+
+This package has no persistent fixture model in the supported factory inventory. Test value objects and contract inputs directly; do not invent a package model factory.
+
+Use Laravel `Event::fake()`, `Queue::fake()`, `Mail::fake()` or `Storage::fake()` only for the effects the host test intends to isolate. Use real commits/listeners for timing proof. Add the optional Core consumer boundary rules to host PHPStan:
+
+```neon
+includes:
+    - vendor/nvl/core/support/consumer-audit.neon
+parameters:
+    nvlConsumer:
+        testPaths: [tests]
+        tableNames: []
+        exceptions: []
+```
+
+Rules read installed public metadata without suite boot. They flag internal symbols, package model queries/writes, capability relations and owned tables; they cannot prove dynamic code or runtime authorization. Exact exceptions require `file`, `identifier`, `symbol`, and a documented `reason`. New C3/C4/E tests, archives and guide execution remain pending until the integration phase records results.
+
+## Error codes and events
+
+All recognized package failures implement `Nvl\Support\Contracts\PackageException`; only `RespondableException` opts into safe response metadata. Keep native PHP programmer errors and Laravel/SDK exceptions distinct. The optional `PackageExceptionRenderer` is registered by the host in `withExceptions`; it leaves unrelated, marker-only and non-JSON handling to the host. Its JSON envelope is `{message:string, code:string, context:object}`. Request locale is host-owned; diagnostics/previous exceptions are not public copy. Event schemas and source connections are documented in [events](docs/events.md).
+
+The table lists enum discriminators, including any successful codes retained for compatibility. A code is not itself an HTTP status; the throwing exception's `suggestedStatus()` is authoritative, especially legacy/custom constructors. Empty context renders as `{}`; only documented JSON-safe context is presented.
+
+| Code | Suggested status | Public context | Translation key |
+| --- | --- | --- | --- |
+| `operation_failed` | Exception-defined; see `suggestedStatus()` | Declared safe scalar/array map; otherwise `{}` | `nvl-core::responsecode.operation_failed` |
+| `binding_required` | 500 | {} | `nvl-core::responsecode.binding_required` |
+| `event_commit_unavailable` | 500 | {} | `nvl-core::responsecode.event_commit_unavailable` |
+| `operation_failed` | Exception-defined; see `suggestedStatus()` | Declared safe scalar/array map; otherwise `{}` | `nvl-core::responsecode.operation_failed` |
+| `tenant_context_missing` | Exception-defined; see `suggestedStatus()` | Declared safe scalar/array map; otherwise `{}` | `nvl-core::responsecode.tenant_context_missing` |
+| `tenant_not_found` | Exception-defined; see `suggestedStatus()` | Declared safe scalar/array map; otherwise `{}` | `nvl-core::responsecode.tenant_not_found` |
+| `tenant_inactive` | 409 | Declared safe scalar/array map; otherwise `{}` | `nvl-core::responsecode.tenant_inactive` |
+| `tenant_boundary_violation` | Exception-defined; see `suggestedStatus()` | Declared safe scalar/array map; otherwise `{}` | `nvl-core::responsecode.tenant_boundary_violation` |
+| `tenant_configuration_invalid` | Exception-defined; see `suggestedStatus()` | Declared safe scalar/array map; otherwise `{}` | `nvl-core::responsecode.tenant_configuration_invalid` |
+| `tenant_schema_not_ready` | Exception-defined; see `suggestedStatus()` | Declared safe scalar/array map; otherwise `{}` | `nvl-core::responsecode.tenant_schema_not_ready` |
+
+### Operational logging
+
+`nvl-core.logging` defaults to channel `nvl`, normal verbosity and a CSV quiet override. Configure package `channel`/`verbosity` overrides under `packages`; verbosity is `quiet`, `normal` or `verbose`. Warnings/errors survive every setting. The absent `nvl` channel becomes a stack of the host default; a configured host channel wins. Do not configure a self-referential stack. Doctor diagnoses missing/cyclic channels without logging to them. Stable `nvl.<package>.<operation>.<result>` keys carry bounded diagnostics, never retained tenant/job context. CSV logs one failed-row warning summary per chunk; row details require verbose mode and contain no raw row values.
+
+
+## License
+
+Released under the [MIT License](LICENSE).

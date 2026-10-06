@@ -4,6 +4,8 @@ This records changes to the Data component of `nvl/core`, including its history 
 
 ## [Unreleased]
 
+- Document direct in-memory Data/value testing and owning workflow contract substitution without adding a Data engine interface or model factory.
+
 - Publish the Data namespace through `nvl/core` while retaining its existing PHP API.
 
 ## [2.0.1] - 2026-09-22

@@ -1,0 +1,40 @@
+{
+    "schema_version": 1,
+    "configs": {
+        "nvl-data": {
+            "required": [],
+            "common": [
+                "typescript.adopt_global_config",
+                "typescript.allowed_roots",
+                "typescript.configure_transformer",
+                "typescript.enum_union_types",
+                "typescript.manifest_file",
+                "typescript.max_generated_files",
+                "typescript.max_source_files",
+                "typescript.memory_limit",
+                "typescript.model_type",
+                "typescript.output_directory",
+                "typescript.output_file",
+                "typescript.readonly_properties",
+                "typescript.routes.archive_enabled",
+                "typescript.routes.archive_max_files",
+                "typescript.routes.archive_name",
+                "typescript.routes.cache_control",
+                "typescript.routes.enabled",
+                "typescript.routes.headers_prefix",
+                "typescript.routes.middleware",
+                "typescript.routes.prefix",
+                "typescript.scope_mappings",
+                "typescript.source_paths",
+                "typescript.split_directory",
+                "typescript.type_replacements",
+                "typescript.writer"
+            ],
+            "advanced": [
+                "typescript.max_generated_bytes",
+                "typescript.max_manifest_bytes",
+                "typescript.routes.archive_max_bytes"
+            ]
+        }
+    }
+}

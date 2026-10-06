@@ -11,6 +11,7 @@ use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Config\PackageConfiguration;
 use Nvl\Support\Config\PackageConfigurationMerger;
 use Nvl\Support\Config\PackageStorage;
+use Nvl\Support\Installation\PackageInstallation;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Support\Schema\SchemaIdentities;
 use RuntimeException;
@@ -28,6 +29,14 @@ trait MergesPackageConfiguration
         if ($key !== 'nvl-core') {
             $this->app->register(SupportServiceProvider::class);
         }
+        $component = PackageConfiguration::logical($key);
+        PackageInstallation::register($this->app, 'nvl/'.($component === 'data' ? 'core' : $component), [
+            $key => [
+                'source' => dirname($path).'/../resources/config/'.basename($path),
+                'target' => $key.'.php',
+                'tag' => $key.'-config',
+            ],
+        ]);
         if ($this->app->configurationIsCached()) {
             return;
         }

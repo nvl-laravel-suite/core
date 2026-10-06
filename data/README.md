@@ -1,12 +1,18 @@
 # NVL Data — API and usage
 
+## Quickstart
+
+Install `nvl/core:^5.0`, register your supported DTO sources and keep routes/global Spatie adoption disabled unless explicitly required. Run `php artisan nvl:install core --dry-run` before publishing configuration. Generate with `php artisan nvl:data:types:generate --fail-on-warning` and detect stale artifacts with `php artisan nvl:data:types:check --fail-on-warning`. The default declaration entry point is resources/js/types/generated.d.ts; it contains ambient Nvl namespaces, not an npm runtime.
+
+Data and Support ship as one Core package. The host validates/authorizes requests and selects locale; generated types do not perform runtime validation. See [Core](../README.md) and the suite [frontend guide](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/frontend-consumption.md).
+
 [← NVL Core](../README.md)
 
 ## Quick reference
 
 | Item | Value |
 |---|---|
-| Installed through | `composer require nvl/core:^2.0` |
+| Installed through | `composer require nvl/core:^5.0` |
 | Package identifier | `nvl/core` |
 | PHP namespace | `Nvl\Data` |
 | Service provider | `Nvl\Data\Providers\DataServiceProvider` |
@@ -23,7 +29,7 @@ NVL generation uses isolated TypeScript configuration. Global Spatie transformer
 ## Requirements and installation
 
 ```bash
-composer require nvl/core:^2.0
+composer require nvl/core:^5.0
 ```
 
 Laravel auto-discovers `DataServiceProvider`. Optional publish tags are:
@@ -255,6 +261,26 @@ Source collisions must be resolved at registration; output collisions must be re
 Package tests cover transforms, pagination, Laravel 13 provider boot, config caching, multiple providers, invalid paths, symlinks, deterministic output, stale checks, manifest integrity, archive bounds, ETags, and route protection. Combined CI generation compiles all installed package declarations.
 
 See [UPGRADING.md](UPGRADING.md), [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), and [CHANGELOG.md](CHANGELOG.md).
+
+## Testing your app
+
+Construct public Data/value types directly in host unit tests. Core Data owns no Eloquent domain models and does not provide a model factory or a fake facade for pure transforms and pagination metadata.
+
+```php
+use Nvl\Data\Data\PaginationMeta;
+
+$meta = new PaginationMeta(currentPage: 1, lastPage: 3, perPage: 20, total: 45);
+
+expect($meta->currentPage)->toBe(1)
+    ->and($meta->total)->toBe(45);
+```
+
+Keep transform tests distinct from generation and HTTP artifact tests. Use Laravel storage/HTTP/queue guards when host orchestration can reach those effects, with fixtures prepared before effect counters. Inject the owning package's workflow contract to isolate host orchestration; Data result classes remain direct values. See [Core's runtime fake recorder](../README.md#testing-your-app) and explicitly include `vendor/nvl/core/support/consumer-audit.neon` in host development PHPStan configuration. DTO transformations do not authorize persistence or generic serialization of package model handles.
+
+
+## Testing your app
+
+Data has no persistent factory model. Construct real DTOs for serialization/validation tests and substitute public host capability contracts for orchestration tests. Include vendor/nvl/core/support/consumer-audit.neon in host PHPStan with explicit testPaths. Run the generated-type freshness check and compile the host frontend; no framework dependency is installed just for examples. Core's error/event catalogs apply to this component. New C3/C4/E guide acceptance remains pending until integration executes it.
 
 ## License
 

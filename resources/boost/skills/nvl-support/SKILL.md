@@ -22,6 +22,14 @@ Keep Support capability-neutral, transport-neutral, and independent of other NVL
 - Do not add dependencies on other NVL packages.
 - Do not serialize stack traces, SQL, storage paths, tokens, or arbitrary exception context.
 
+## Host injection and fake recording
+
+- Inject existing LocaleCatalog and neutral Tenancy contracts into host orchestration; tag host DoctorContributor implementations for diagnostics. Pure owner identity/configuration APIs stay direct classes. Core owns no domain model factory or fake facade.
+- Preserve host defaults: LocaleCatalog is a conditional singleton, TenantContext a conditional scoped service and neutral disabled adapters conditional transients. OwnerRegistry also retains its singleton lifetime with a conditional default. Late replacement affects freshly resolved host services.
+- Use runtime Testing\FakeCalls for a fake's exact native method allowlist. Scripts are per-instance, per-method FIFO values or exceptions; Closure values remain inert. Script null for native void. Record attempts before returning, throwing, type failure and exhaustion.
+- Predicates for assertCalled receive immutable Testing\FakeCall objects with method and named arguments. Count exact matches, including zero; negative counts and unsupported names raise FakeExpectationFailed, exhausted scripts UnscriptedFakeCall. Both are RuntimeExceptions implementing the pure Contracts\PackageException marker, with no HTTP behavior or testing-framework imports.
+- Install leaf fakes in the explicit container before resolving host services. Two installations own separate history/scripts. Keep real authorization, persistence and provider lifecycle coverage; prepare fixtures before effect guards. Do not serialize stored model handles to compare records.
+
 ## Verify
 
 Test code and status validation, exception chaining, serialization safety, enum completeness, standalone installation, and architecture constraints.
@@ -82,3 +90,14 @@ Use host development PHPStan/Larastan and explicitly include `vendor/nvl/core/su
 Use public DTO projections and declared identity/safe model fields. Do not serialize known package models/items through model, collection, paginator, JSON or inherited Data conversions. Host Filterable/Translatable scopes remain supported. Package path ownership comes from installed catalogs, never the namespace spelling; runtime discovery does not load the rules.
 
 For a reviewed Comments `CommentBatchQueryScope` implementation, bind the host implementation and allow only its supplied builder's exact `Nvl\Comments\Models\Comment::where` predicate with one existing file, `nvl.consumer.packageQuery`, exact symbol and nonempty reason in `nvlConsumer.exceptions`. No interface-wide exemption; writes, escapes and other members/files remain prohibited. Use the Core README example. Normal PHPStan baselines/identifier ignores work and require review. These checks do not prove authorization, dynamic SQL or unknown mixed provenance. Keep runtime Doctor/adoption checks; the Suite consumer command no longer scans source.
+
+
+## Consumer runtime and testing contracts
+
+Start with the package README Quickstart and Testing your app sections. Use `nvl:install <package>` for loaded-package common config publication; it does not enable features, run schema or refresh caches. Preserve native host owner keys/morph maps and selected auth/tenancy defaults. Read full runtime defaults and publish advanced config only deliberately.
+
+Inject the supported focused interfaces and preserve host bindings. Returned model handles do not permit package-table queries/writes outside documented capability/extension seams. Host tests may substitute contracts in Laravel's container, use shipped model factories (ordinary make may persist parents; withoutParents()->make is detached), and use Laravel effect fakes deliberately. Only Media/Stripe have dedicated provider/library fakes; do not invent a universal package fake. Settings InteractsWithSettings is definition-only. Host PHPStan may include vendor/nvl/core/support/consumer-audit.neon; no unpublished workbench command is a consumer requirement.
+
+Read docs/events.md and the package README error table. Domain events use schemaVersion=1, model-free facts and actual source-connection commit callbacks; only six declared old Event suffix aliases remain for major 5. Migrate exact listeners/fakes and suffix wildcards, drain old queued payloads, rebuild event cache and restart workers. Delivery is not a durable outbox. The Core exception renderer is opt-in, JSON-only for respondable failures, with exactly message/code/context and host-selected locale. Do not expose diagnostics or reinterpret missing bindings as authorization denial.
+
+Core package logging uses nvl/normal with CSV quiet by default, stable message keys and bounded context; incidents survive quiet. Do not mutate global logger context or log raw row/provider/content/credential payloads. Run only authorized project checks and report new acceptance as pending until actual output exists.

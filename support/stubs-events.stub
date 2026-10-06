@@ -1,0 +1,28 @@
+<?php
+
+namespace Illuminate\Contracts\Events;
+
+interface Dispatcher
+{
+    /**
+     * @param  string|array<array-key, mixed>  $events
+     * @param  string|array<array-key, mixed>|callable|null  $listener
+     * @return void
+     */
+    public function listen($events, $listener = null);
+}
+
+namespace Illuminate\Events;
+
+class Dispatcher
+{
+    /** @return array<string, list<mixed>> */
+    public function getRawListeners(): array {}
+
+    /**
+     * @param  mixed  $listener
+     * @param  bool  $wildcard
+     * @return \Closure
+     */
+    public function makeListener($listener, $wildcard = false) {}
+}

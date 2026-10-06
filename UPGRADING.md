@@ -1,5 +1,24 @@
 # Upgrading NVL Core
 
+## Consumer contracts, committed events and runtime policy (5.x)
+
+Prefer focused public interfaces in constructor injection; native implementations remain container defaults and host prebindings win. Returned models are documented identity/data handles: use package contracts for reads/writes and capability-specific batch readers instead of direct package queries. Enable the shipped Core PHPStan include in your host; do not invoke the suite workbench static audit command in a consumer.
+
+Events now carry immutable schemaVersion=1 and scalar/DTO snapshots. Replace model-bearing event fields with the IDs listed in [events](docs/events.md); load only through an authorized public reader when needed. Only six declared legacy `*Event` names are retained as PHP aliases for major 5, removal no earlier than major 6. Migrate exact imports/listeners/fakes to canonical names, replace suffix wildcard patterns explicitly, drain old queued payloads, rebuild event caches and restart workers. Framework Verified/PasswordReset remain native classes. Source-connection callbacks are process-local after-commit publication, not a durable outbox or exactly-once delivery.
+
+Package failures have a marker and optional response metadata. Opt into Core's JSON renderer deliberately; preserve existing host handlers and request-locale selection. Missing required host adapters produce `binding_required`/500; genuine configured authorization denial retains native handling. See the README error table and required-bindings section where applicable.
+
+Factories ship in runtime package mappings for host tests. Ordinary make may persist parents; withoutParents()->make creates detached fixtures. Supply persisted native owners/parents and active tenants explicitly, retain source revisions, and never treat a factory row as a real storage/provider/workflow effect. Core's optional installer publishes common config without enabling features; strict Doctor and explicit deployment cache/worker steps belong in the host release process. C3/C4/E executable acceptance is pending until recorded by integration.
+
+
+## Major 5: host bindings and runtime fake recording
+
+Continue injecting the existing `LocaleCatalog`, Doctor contributor and neutral Tenancy contracts. Pure Data and owner identity APIs remain direct classes; no new Core workflow interface or model factory is required. `OwnerRegistry` retains its singleton default but now preserves a host instance or factory installed before provider registration. Locale and neutral Tenancy conditional defaults keep their native lifetimes. Resolve fresh host services after replacing their bindings.
+
+Core now ships `Nvl\Support\Testing\FakeCall`, `FakeCalls`, `FakeExpectationFailed` and `UnscriptedFakeCall` through its existing runtime namespace. Leaf fakes require this prepared Core major 5 artifact. Scripts and records belong to each instance; script all calls explicitly, including null results for native void methods. Assertion predicates receive immutable FakeCall records, and requested counts must be non-negative. Closures passed as result values are not invoked. Wrong scripted types fail at typed fake boundaries rather than creating synthetic successful results.
+
+`Nvl\Support\Contracts\PackageException` is an empty Throwable marker. The recorder failures extend RuntimeException and implement only that marker; this addition does not classify other package exceptions or install an HTTP renderer. No schema, autoload or data migration is required. See [Testing your app](README.md#testing-your-app); keep real package lifecycle coverage separate from host substitution tests.
+
 ## Major 5: static consumer checks
 
 Install host PHPStan/Larastan development tools and explicitly include `vendor/nvl/core/support/consumer-audit.neon`; follow the [configuration and exact C1 adapter exception](README.md#opt-in-phpstan-consumer-boundary). Move static Suite suppressions to exact `nvlConsumer.exceptions` entries or reviewed PHPStan baselines. Suite's source scanner and inferred Composer/Modules roots are retired: choose analysis `paths` explicitly, and list fixture-only `testPaths` separately. Existing runtime/adoption suppressions remain in Suite configuration.

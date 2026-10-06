@@ -2,6 +2,10 @@
 
 This guide records historical Data 1.0 changes. Data now ships in `nvl/core`; see the [Core upgrade guide](../UPGRADING.md) for current installation.
 
+## Major 5: testing direct Data values
+
+Public Data and pagination/value APIs retain their constructors and transformation behavior. Construct them directly in host tests; no Data engine interface, fake facade or model factory is introduced. Isolate effectful host workflows through the owning leaf's contracts and runtime fakes, backed by Core's instance-owned recorder. See [Testing your app](README.md#testing-your-app) and [Core's upgrade guidance](../UPGRADING.md#major-5-host-bindings-and-runtime-fake-recording). Explicit host PHPStan inclusion remains development-only and independent of Data provider discovery.
+
 ## Upgrading to 1.0
 
 Version 1.0 removes application-specific source paths, old TypeScript namespaces, and speculative DTO doctrine.

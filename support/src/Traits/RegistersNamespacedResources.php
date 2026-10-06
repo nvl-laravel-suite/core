@@ -8,6 +8,8 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Nvl\Support\Globals\GlobalNames;
+use Nvl\Support\Installation\PackageInstallation;
+use RuntimeException;
 
 /** Publishes only package-owned tags and preserves existing host routes and aliases. @mixin ServiceProvider */
 trait RegistersNamespacedResources
@@ -30,6 +32,21 @@ trait RegistersNamespacedResources
     {
         $paths = $this->publicationPaths($paths);
         $package = $this->publicationPackage();
+        PackageInstallation::register($this->app, 'nvl/'.($package === 'data' ? 'core' : $package), []);
+        $configurationPaths = [];
+        foreach ($paths as $source => $target) {
+            $name = basename($source);
+            if (preg_match('/^nvl-[a-z][a-z0-9-]*\.php$/D', $name) === 1 && basename(dirname($source)) === 'config') {
+                $template = dirname($source).'/../resources/config/'.$name;
+                if (! is_file($template)) {
+                    throw new RuntimeException('The package common configuration template ['.$name.'] is missing.');
+                }
+                $configurationPaths[$template] = $target;
+            } else {
+                $configurationPaths[$source] = $target;
+            }
+        }
+        $paths = $configurationPaths;
         $groups = is_array($groups) ? $groups : ($groups === null ? [] : [$groups]);
         $names = $this->app->make(GlobalNames::class);
         $registered = [];

@@ -7,10 +7,12 @@ namespace Nvl\Support\Tenancy\Enums;
 use Nvl\Support\Contracts\ResponseCode;
 
 /**
+ * @api
  * Defines stable machine-readable codes for tenancy failures.
  */
 enum TenancyResponseCode: string implements ResponseCode
 {
+    case OperationFailed = 'operation_failed';
     case TenantContextMissing = 'tenant_context_missing';
     case TenantNotFound = 'tenant_not_found';
     case TenantInactive = 'tenant_inactive';

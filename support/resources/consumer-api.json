@@ -61,6 +61,50 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Bindings\\RequiredBindingDefinition": {
+            "kind": "class",
+            "file": "support/src/Bindings/RequiredBindingDefinition.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "capability",
+                "contract",
+                "documentation",
+                "enabledWhen",
+                "package",
+                "placeholder"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Bindings\\RequiredBindingStatus": {
+            "kind": "class",
+            "file": "support/src/Bindings/RequiredBindingStatus.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "capability",
+                "contract",
+                "documentation",
+                "message",
+                "package",
+                "status"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Bindings\\RequiredBindings": {
+            "kind": "class",
+            "file": "support/src/Bindings/RequiredBindings.php",
+            "methods": [
+                "__construct",
+                "all",
+                "inspect",
+                "register"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Config\\PackageOptions": {
             "kind": "class",
             "file": "support/src/Config/PackageOptions.php",
@@ -121,6 +165,15 @@
             ],
             "constants": []
         },
+        "Nvl\\Support\\Contracts\\DomainEvent": {
+            "kind": "interface",
+            "file": "support/src/Contracts/DomainEvent.php",
+            "methods": [
+                "schemaVersion"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Contracts\\LocaleCatalog": {
             "kind": "interface",
             "file": "support/src/Contracts/LocaleCatalog.php",
@@ -132,6 +185,28 @@
                 "normalize",
                 "supported",
                 "supports"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Contracts\\PackageException": {
+            "kind": "interface",
+            "file": "support/src/Contracts/PackageException.php",
+            "methods": [],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Contracts\\RespondableException": {
+            "kind": "interface",
+            "file": "support/src/Contracts/RespondableException.php",
+            "methods": [
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
             ],
             "properties": [],
             "constants": []
@@ -169,17 +244,133 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Doctor\\RequiredBindingsDoctor": {
+            "kind": "class",
+            "file": "support/src/Doctor/RequiredBindingsDoctor.php",
+            "methods": [
+                "__construct",
+                "inspect",
+                "package"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Enums\\CoreResponseCode": {
+            "kind": "enum",
+            "file": "support/src/Enums/CoreResponseCode.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "BindingRequired",
+                "EventCommitUnavailable",
+                "OperationFailed"
+            ]
+        },
+        "Nvl\\Support\\Events\\ConnectionCommitCallbacks": {
+            "kind": "class",
+            "file": "support/src/Events/ConnectionCommitCallbacks.php",
+            "methods": [
+                "__construct",
+                "afterCommit"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Events\\DomainEventDispatcher": {
+            "kind": "class",
+            "file": "support/src/Events/DomainEventDispatcher.php",
+            "methods": [
+                "__construct",
+                "dispatch"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Events\\EventAliases": {
+            "kind": "class",
+            "file": "support/src/Events/EventAliases.php",
+            "methods": [
+                "__construct",
+                "canonicalName",
+                "listen",
+                "register"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Exceptions\\BindingRequiredException": {
+            "kind": "class",
+            "file": "support/src/Exceptions/BindingRequiredException.php",
+            "methods": [
+                "__construct",
+                "context",
+                "for",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Exceptions\\BusinessException": {
             "kind": "class",
             "file": "support/src/Exceptions/BusinessException.php",
             "methods": [
                 "__construct",
                 "context",
+                "package",
                 "publicContext",
                 "responseCode",
-                "suggestedStatus"
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
             ],
             "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Exceptions\\EventCommitRegistrationException": {
+            "kind": "class",
+            "file": "support/src/Exceptions/EventCommitRegistrationException.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Exceptions\\ExceptionResponse": {
+            "kind": "class",
+            "file": "support/src/Exceptions/ExceptionResponse.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "code",
+                "headers",
+                "package",
+                "publicContext",
+                "status",
+                "translationParameters"
+            ],
             "constants": []
         },
         "Nvl\\Support\\Exceptions\\SupportException": {
@@ -204,12 +395,53 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Facades\\PackageLog": {
+            "kind": "class",
+            "file": "support/src/Facades/PackageLog.php",
+            "methods": [
+                "log"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Http\\PackageExceptionPayload": {
+            "kind": "class",
+            "file": "support/src/Http/PackageExceptionPayload.php",
+            "methods": [
+                "__construct",
+                "for",
+                "headers"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Http\\PackageExceptionRenderer": {
+            "kind": "class",
+            "file": "support/src/Http/PackageExceptionRenderer.php",
+            "methods": [
+                "__construct",
+                "render"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Locales\\LocaleCatalogDiagnostics": {
             "kind": "class",
             "file": "support/src/Locales/LocaleCatalogDiagnostics.php",
             "methods": [
                 "__construct",
                 "inspect"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Logging\\PackageLogger": {
+            "kind": "class",
+            "file": "support/src/Logging/PackageLogger.php",
+            "methods": [
+                "__construct",
+                "diagnostics",
+                "log"
             ],
             "properties": [],
             "constants": []
@@ -390,6 +622,28 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Tenancy\\Enums\\TenancyResponseCode": {
+            "kind": "enum",
+            "file": "support/src/Tenancy/Enums/TenancyResponseCode.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "OperationFailed",
+                "TenantBoundaryViolation",
+                "TenantConfigurationInvalid",
+                "TenantContextMissing",
+                "TenantInactive",
+                "TenantNotFound",
+                "TenantSchemaNotReady"
+            ]
+        },
         "Nvl\\Support\\Tenancy\\Enums\\TenantContextMode": {
             "kind": "enum",
             "file": "support/src/Tenancy/Enums/TenantContextMode.php",
@@ -445,15 +699,87 @@
                 "Suspended"
             ]
         },
+        "Nvl\\Support\\Tenancy\\Exceptions\\TenancyException": {
+            "kind": "class",
+            "file": "support/src/Tenancy/Exceptions/TenancyException.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Exceptions\\TenantBoundaryViolation": {
+            "kind": "class",
+            "file": "support/src/Tenancy/Exceptions/TenantBoundaryViolation.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Tenancy\\Exceptions\\TenantConfigurationInvalid": {
             "kind": "class",
             "file": "support/src/Tenancy/Exceptions/TenantConfigurationInvalid.php",
             "methods": [
                 "__construct",
                 "context",
+                "package",
                 "publicContext",
                 "responseCode",
-                "suggestedStatus"
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Exceptions\\TenantContextMissing": {
+            "kind": "class",
+            "file": "support/src/Tenancy/Exceptions/TenantContextMissing.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Exceptions\\TenantInactive": {
+            "kind": "class",
+            "file": "support/src/Tenancy/Exceptions/TenantInactive.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
             ],
             "properties": [],
             "constants": []
@@ -464,9 +790,30 @@
             "methods": [
                 "__construct",
                 "context",
+                "package",
                 "publicContext",
                 "responseCode",
-                "suggestedStatus"
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Exceptions\\TenantSchemaNotReady": {
+            "kind": "class",
+            "file": "support/src/Tenancy/Exceptions/TenantSchemaNotReady.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
             ],
             "properties": [],
             "constants": []
@@ -584,6 +931,59 @@
                 "site",
                 "tenantId"
             ],
+            "constants": []
+        },
+        "Nvl\\Support\\Testing\\FakeCall": {
+            "kind": "class",
+            "file": "support/src/Testing/FakeCall.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "arguments",
+                "method"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Testing\\FakeCalls": {
+            "kind": "trait",
+            "file": "support/src/Testing/FakeCalls.php",
+            "methods": [
+                "assertCalled",
+                "calls",
+                "willReturn",
+                "willThrow"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Testing\\FakeExpectationFailed": {
+            "kind": "class",
+            "file": "support/src/Testing/FakeExpectationFailed.php",
+            "methods": [],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Testing\\UnscriptedFakeCall": {
+            "kind": "class",
+            "file": "support/src/Testing/UnscriptedFakeCall.php",
+            "methods": [],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Traits\\InteractsWithPackageFailure": {
+            "kind": "trait",
+            "file": "support/src/Traits/InteractsWithPackageFailure.php",
+            "methods": [
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
             "constants": []
         }
     },

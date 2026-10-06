@@ -38,7 +38,7 @@ final readonly class CoreDoctor
      */
     public function inspect(): array
     {
-        $checks = [...$this->infrastructureChecks(), ...$this->queuePersistenceChecks()];
+        $checks = [...$this->infrastructureChecks(), ...$this->databasePlatformChecks(), ...$this->queuePersistenceChecks()];
         try {
             $checks = [...$checks, ...$this->globalNames->diagnostics()];
         } catch (Throwable $exception) {
@@ -134,6 +134,27 @@ final readonly class CoreDoctor
         }
 
         return $checks;
+    }
+
+    /**
+     * Reject unsupported selected database drivers without opening a connection.
+     *
+     * @return list<DoctorCheck>
+     */
+    private function databasePlatformChecks(): array
+    {
+        try {
+            $connection = PackageOptions::connection('nvl-core');
+            $driver = $this->config->get('database.connections.'.$connection.'.driver');
+            if ($driver === 'sqlsrv') {
+                return [new DoctorCheck('database.platform', 'error', false,
+                    'SQL Server is unsupported. Select SQLite for fast development, PostgreSQL 17, MySQL 8.4, or MariaDB 12.3 for a supported NVL database profile.')];
+            }
+
+            return [new DoctorCheck('database.platform', 'info', true, 'The selected database driver is not SQL Server.')];
+        } catch (Throwable $exception) {
+            return [new DoctorCheck('database.platform', 'error', false, $exception->getMessage())];
+        }
     }
 
     /** @return list<DoctorCheck> Explicit diagnostics for raw rejected-envelope persistence */

@@ -8,6 +8,8 @@ use Illuminate\Http\Response;
 use Nvl\Support\Tenancy\Enums\TenancyResponseCode;
 
 /**
+ * @api
+
  * Reports a record or operation outside the active ownership boundary.
  */
 final class TenantBoundaryViolation extends TenancyException

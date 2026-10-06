@@ -8,6 +8,8 @@ use Illuminate\Http\Response;
 use Nvl\Support\Tenancy\Enums\TenancyResponseCode;
 
 /**
+ * @api
+
  * Reports tenant work denied because its directory entry is inactive.
  */
 final class TenantInactive extends TenancyException

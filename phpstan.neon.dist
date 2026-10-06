@@ -3,6 +3,9 @@ includes:
     - vendor/nesbot/carbon/extension.neon
 
 parameters:
+    phpVersion: 80400
+    stubFiles:
+        - support/stubs-events.stub
     excludePaths:
         analyseAndScan:
             - .temp/*
@@ -11,6 +14,7 @@ parameters:
         - support/src
         - data/src
         - support/tests/Fixtures/ConfigurationServiceProvider.php
+        - support/tests/Fixtures/ScriptedFake.php
         - data/tests/Fixtures/DataTransformFixture.php
 
     level: max

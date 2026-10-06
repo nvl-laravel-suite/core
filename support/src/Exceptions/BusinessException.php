@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Exceptions;
 
+use Nvl\Support\Contracts\RespondableException;
 use Nvl\Support\Contracts\ResponseCode;
+use Nvl\Support\Enums\CoreResponseCode;
+use Nvl\Support\Traits\InteractsWithPackageFailure;
 use Throwable;
 
 /**
@@ -12,8 +15,27 @@ use Throwable;
  *
  * @api
  */
-class BusinessException extends SupportException
+class BusinessException extends SupportException implements RespondableException
 {
+    use InteractsWithPackageFailure;
+
+    /** Return the package that owns this transport-neutral failure. */
+    public function package(): string
+    {
+        return 'core';
+    }
+
+    /** Resolve safe fallback metadata without exposing diagnostic messages. */
+    protected function exceptionResponse(): ExceptionResponse
+    {
+        return new ExceptionResponse(
+            $this->package(),
+            $this->responseCode ?? CoreResponseCode::OperationFailed,
+            $this->suggestedStatus,
+            $this->publicContext,
+        );
+    }
+
     /**
      * Create a transport-neutral business failure with safe and diagnostic context.
      *

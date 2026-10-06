@@ -8,6 +8,8 @@ use Illuminate\Http\Response;
 use Nvl\Support\Tenancy\Enums\TenancyResponseCode;
 
 /**
+ * @api
+
  * Reports an unavailable or incomplete tenant ownership schema.
  */
 final class TenantSchemaNotReady extends TenancyException
