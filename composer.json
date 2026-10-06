@@ -30,7 +30,9 @@
         "symfony/console": "^8.0"
     },
     "suggest": {
-        "ext-zip": "Enables downloadable archives for the generated TypeScript declaration API."
+        "ext-zip": "Enables downloadable archives for the generated TypeScript declaration API.",
+        "phpstan/phpstan": "Enable optional consumer boundary analysis with PHPStan ^2.2.5 and support/consumer-audit.neon.",
+        "larastan/larastan": "Provide Laravel-aware receiver types for optional consumer boundary analysis (^3.10)."
     },
     "autoload": {
         "psr-4": {
@@ -46,7 +48,8 @@
         "exclude-from-classmap": [
             "support/tests/Feature/QueueEnvelopeIsolationTest.php",
             "support/tests/Feature/PackageStorageTest.php",
-            "support/tests/Feature/NamespacedPublicationsTest.php"
+            "support/tests/Feature/NamespacedPublicationsTest.php",
+            "support/tests/PHPStan/Fixtures/"
         ]
     },
     "scripts": {

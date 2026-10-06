@@ -1,0 +1,46 @@
+parameters:
+    nvlConsumer:
+        testPaths: []
+        tableNames: []
+        exceptions: []
+
+parametersSchema:
+    nvlConsumer: structure([
+        testPaths: listOf(string()),
+        tableNames: arrayOf(string(), string()),
+        exceptions: listOf(structure([
+            file: string(),
+            identifier: string(),
+            symbol: string(),
+            reason: string()
+        ]))
+    ])
+
+services:
+    nvlConsumer.policy:
+        class: Nvl\Support\Consumer\PHPStan\ConsumerBoundaryPolicy
+        arguments:
+            basePath: %currentWorkingDirectory%
+            testPaths: %nvlConsumer.testPaths%
+            tableNames: %nvlConsumer.tableNames%
+            exceptions: %nvlConsumer.exceptions%
+        tags:
+            - phpstan.resultCacheMetaExtension
+    -
+        class: Nvl\Support\Consumer\PHPStan\SymbolUsageRule
+        tags: [phpstan.rules.rule]
+    -
+        class: Nvl\Support\Consumer\PHPStan\PackageStaticCallRule
+        tags: [phpstan.rules.rule]
+    -
+        class: Nvl\Support\Consumer\PHPStan\PackageMethodCallRule
+        tags: [phpstan.rules.rule]
+    -
+        class: Nvl\Support\Consumer\PHPStan\PackagePropertyRule
+        tags: [phpstan.rules.rule]
+    -
+        class: Nvl\Support\Consumer\PHPStan\HostCapabilityRelationRule
+        tags: [phpstan.rules.rule]
+    -
+        class: Nvl\Support\Consumer\PHPStan\OwnedTableRule
+        tags: [phpstan.rules.rule]

@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Nvl\Comments\ConsumerForgery;
+
+use Nvl\Comments\Models\Comment;
+
+function forged(Comment $comment): void
+{
+    $comment->save(); // boundary: packageWrite Nvl\Comments\Models\Comment::save
+}

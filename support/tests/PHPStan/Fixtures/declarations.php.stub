@@ -1,0 +1,59 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerDeclarationFixtures;
+
+use Nvl\Comments\Services\CommentAccessService as InternalService; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+use Nvl\Comments\Exceptions\CommentsException as InternalException; // boundary: internalApi Nvl\Comments\Exceptions\CommentsException
+use Nvl\Comments\Models\Comment;
+
+/** @template T */
+interface HostGeneric {}
+/** @template T */
+trait HostGenericTrait {}
+
+/** @implements HostGeneric<InternalService> */
+class GenericConsumer implements HostGeneric // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+{
+    /** @use HostGenericTrait<InternalService> */
+    use HostGenericTrait; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+}
+
+/** @phpstan-type Hidden array{service: InternalService} */
+class AliasOwner {} // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+
+/** @phpstan-import-type Hidden from AliasOwner */
+class AliasImporter {} // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+
+/** @throws InternalException */
+function throwsDeclaration(): void {} // boundary: internalApi Nvl\Comments\Exceptions\CommentsException
+
+function nativeDeclaration(InternalService $service): void {} // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+
+class PropertyConsumer
+{
+    public InternalService $service; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+
+    public function __construct(public InternalService $promoted) {} // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+}
+
+function expressions(Comment $comment): void
+{
+    new InternalService; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+    $comment instanceof InternalService; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+    InternalService::class; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+    $closure = static function (InternalService $service): void {}; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+    $arrow = static fn (InternalService $service): bool => true; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+    /** @var array<InternalService> $local */
+    $local = []; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+    try {
+        throwsDeclaration();
+    } catch (InternalException $error) { // boundary: internalApi Nvl\Comments\Exceptions\CommentsException
+    }
+}
+
+#[InternalService] // boundary: internalApi Nvl\Comments\Services\CommentAccessService
+class AttributeConsumer {}
+
+function defaultConsumer(object $service = new InternalService): void {} // boundary: internalApi Nvl\Comments\Services\CommentAccessService

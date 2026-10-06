@@ -1,5 +1,13 @@
 # Upgrading NVL Core
 
+## Major 5: static consumer checks
+
+Install host PHPStan/Larastan development tools and explicitly include `vendor/nvl/core/support/consumer-audit.neon`; follow the [configuration and exact C1 adapter exception](README.md#opt-in-phpstan-consumer-boundary). Move static Suite suppressions to exact `nvlConsumer.exceptions` entries or reviewed PHPStan baselines. Suite's source scanner and inferred Composer/Modules roots are retired: choose analysis `paths` explicitly, and list fixture-only `testPaths` separately. Existing runtime/adoption suppressions remain in Suite configuration.
+
+Raw package-table reads, migration references and capability relations are now errors; old advisory or owner-trait exceptions do not carry forward. Use public readers and authorized adapters. Record configured physical table names in `nvlConsumer.tableNames`. Catalog metadata invalidates normal PHPStan result caches automatically. PHPStan remains optional and development-only; runtime providers never load its rules.
+
+Remove `nvl-suite.consumer_audit.paths` from published host configuration. Move its source directories to PHPStan `parameters.paths`, alongside any Composer or module source directories you need analysed; the runtime Suite command no longer discovers source roots. Keep fixture permissions separate in `nvlConsumer.testPaths`.
+
 ## Major 5: consumer declarations
 
 Catch `Nvl\Support\Exceptions\SupportException` for documented Support failures and `Nvl\Support\Tenancy\Exceptions\TenantNotFound` when `TenantDirectory::find()` cannot locate a tenant. These two failure types are supported consumer handles. The `TenantNotFound` implementation parent and response-code enum remain internal; no exception behavior or HTTP rendering changes are required.

@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerTransferFixtures;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Nvl\Comments\Actions\GetCommentAction;
+use Nvl\Comments\Data\CommentActorData;
+use Nvl\Comments\Models\Comment;
+use Nvl\Pages\Models\Page;
+
+/** @param Factory<Comment> $factory */
+function transfer(GetCommentAction $action, CommentActorData $actor, Factory $factory, Page $page): void
+{
+    $comment = $action->execute('comment-id', $actor);
+    $comment->refresh(); // boundary: packageQuery Nvl\Comments\Models\Comment::refresh
+    $arrow = static fn () => (static function () use ($comment): void {
+        $comment->saveQuietly(); // boundary: packageWrite Nvl\Comments\Models\Comment::saveQuietly
+    })();
+    $factory->create(); // boundary: packageWrite Nvl\Comments\Models\Comment::create
+    (new Comment)->saveQuietly(); // boundary: packageWrite Nvl\Comments\Models\Comment::saveQuietly
+    $page->metafields(); // boundary: packageQuery Nvl\Pages\Models\Page::metafields
+    $page->unknownOwnerRelation(); // boundary: packageQuery Nvl\Pages\Models\Page::unknownownerrelation
+    Page::query(); // boundary: packageQuery Nvl\Pages\Models\Page::query
+}
+
+/** @param \Illuminate\Database\Eloquent\Collection<int, Comment> $comments
+ * @param \Illuminate\Database\Eloquent\Relations\Relation<Comment, \Illuminate\Database\Eloquent\Model, mixed> $relation
+ */
+function mutators(Comment $comment, \Illuminate\Database\Eloquent\Collection $comments, \Illuminate\Database\Eloquent\Relations\Relation $relation): void
+{
+    Comment::forceDestroy(['id']); // boundary: packageWrite Nvl\Comments\Models\Comment::forceDestroy
+    $comment->push(); // boundary: packageWrite Nvl\Comments\Models\Comment::push
+    $comments->push($comment);
+    $comments->put(0, $comment);
+    $comments->forget(0);
+    $comments->offsetSet(0, $comment);
+    $comments->map(static fn (Comment $item) => $item->save()); // boundary: packageWrite Nvl\Comments\Models\Comment::save
+    $relation->rawUpdate(['body' => 'x']); // boundary: packageWrite Nvl\Comments\Models\Comment::rawUpdate
+}

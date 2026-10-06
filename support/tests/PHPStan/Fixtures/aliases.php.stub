@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerAliasFixtures;
+
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\{DB as Database, Schema as Tables};
+use Nvl\Comments\Models\{Comment as Note};
+
+const CommentsTable = 'nvl_comments_comments';
+
+function aliases(Note $note, comment $case): void
+{
+    Note::query(); // boundary: packageQuery Nvl\Comments\Models\Comment::query
+    Note::WhErE('status', 'published'); // boundary: packageQuery Nvl\Comments\Models\Comment::where
+    $note->SaVeQuIeTlY(); // boundary: packageWrite Nvl\Comments\Models\Comment::saveQuietly
+    $case->getKey();
+    Database::TaBlE(CommentsTable); // boundary: ownedTable nvl_comments_comments
+    Tables::hasTable(CommentsTable); // boundary: ownedTable nvl_comments_comments
+    $source = CommentsTable;
+    $nested = static fn () => Database::table($source)->update(['status' => 'x']); // boundary: ownedTable nvl_comments_comments
+    $shadowed = static fn (string $source) => Database::table($source)->update(['status' => 'x']);
+    $assign = static fn () => Database::table($inner = CommentsTable); // boundary: ownedTable nvl_comments_comments
+    $nestedShadow = static fn (string $source) => (static function () use ($source): void {
+        Database::table($source);
+    })();
+    $sibling = static fn (string $inner) => Database::table($inner);
+    Database::table('host_table')->whereExists(static function (Builder $query): void {
+        $query->from(CommentsTable); // boundary: ownedTable nvl_comments_comments
+    })->update(['status' => 'x']);
+}

@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerAdapterFixtures;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Nvl\Comments\Contracts\CommentBatchQueryScope;
+use Nvl\Comments\Data\CommentActorData;
+use Nvl\Comments\Enums\CommentAudience;
+use Nvl\Comments\Models\Comment;
+use Nvl\Support\Owners\OwnerBatch;
+
+final class VisibleCommentPolicy implements CommentBatchQueryScope
+{
+    public function authorizeOwners(OwnerBatch $owners, CommentActorData $actor, CommentAudience $audience): void {}
+
+    /** @param Builder<Comment> $query */
+    public function scopeBatchComments(Builder $query, OwnerBatch $owners, CommentActorData $actor, CommentAudience $audience): void
+    {
+        $query->where('visibility', 'public'); // boundary: packageQuery Nvl\Comments\Models\Comment::where
+    }
+
+    /** @param Builder<Comment> $query */
+    public function scopeHostComments(Builder $query, Model $ownerPrototype, CommentActorData $actor, CommentAudience $audience): void
+    {
+        $query->where('visibility', 'public'); // boundary: packageQuery Nvl\Comments\Models\Comment::where
+    }
+}
+
+/** @param Builder<Comment> $query */
+function forbiddenAdapterWrites(Builder $query): void
+{
+    $query->where('visibility', 'public')->update(['status' => 'hidden']); // boundary: packageQuery Nvl\Comments\Models\Comment::where; boundary: packageWrite Nvl\Comments\Models\Comment::update
+    $query->where('visibility', 'public')->delete(); // boundary: packageQuery Nvl\Comments\Models\Comment::where; boundary: packageWrite Nvl\Comments\Models\Comment::delete
+    $query->where(static function (Builder $nested): void { // boundary: packageQuery Nvl\Comments\Models\Comment::where
+        $nested->update(['status' => 'hidden']); // boundary: packageWrite Nvl\Comments\Models\Comment::update
+    });
+    $query->toBase(); // boundary: packageQuery Nvl\Comments\Models\Comment::toBase
+}

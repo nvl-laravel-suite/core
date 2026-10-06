@@ -6,6 +6,8 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ### Changed
 
+- Ship an explicit PHPStan consumer extension with five stable identifiers, exact host options, inferred model/capability/table enforcement and catalog-aware result cache invalidation. Runtime discovery remains independent of PHPStan.
+
 - Classify the supported consumer PHP surface with explicit source annotations and restrict package model handles to declared identity and in-memory read fields; preserve existing workflow behavior and concrete signatures.
 - Add bounded native owner batches and complete object-valued result maps for authorized package readers; these helpers perform no queries or authorization.
 - Admit same-storage model lineage through explicit disabled-tenancy resources while retaining exact host registration and storage/adoption guards.

@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerBoundaryFixtures;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Nvl\Comments\Contracts\CommentBatchQueryScope;
+use Nvl\Comments\Data\PublicCommentData;
+use Nvl\Comments\Enums\CommentAudience;
+use Nvl\Comments\Models\Comment;
+use Nvl\Filterable\Data\FilterSet;
+use Nvl\Filterable\Traits\Filterable;
+use Nvl\Translatable\Translatable;
+
+/** @param Collection<int, Comment> $comments */
+function allowed(Comment $comment, Collection $comments): void
+{
+    $comment->getKey();
+    $comment->getMorphClass();
+    $comment->relationLoaded('comments');
+    $comment->id;
+    $comment['id'];
+    $comments->pluck('id');
+    $comments->map(static fn (Comment $item) => $item->getKey());
+    DB::table('host_articles')->where('published', true)->get();
+}
+
+abstract class HostArticle extends Model
+{
+    use Filterable;
+    use Translatable;
+
+    public function __construct()
+    {
+        throw new \LogicException('Static consumer analysis must never instantiate host models.');
+    }
+}
+
+/** @param Builder<HostArticle> $articles */
+function hostScopes(Builder $articles, FilterSet $filters): void
+{
+    $articles->applyFilterSet($filters);
+    $articles->whereTranslated('title', 'test');
+    $articles->withResolvedTranslations();
+}
+
+function publicContracts(CommentBatchQueryScope $scope, PublicCommentData $data, CommentAudience $audience): void
+{
+    $data->id;
+    $data->toArray();
+    json_encode($data);
+    json_encode($audience);
+}

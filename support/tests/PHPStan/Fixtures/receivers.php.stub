@@ -1,0 +1,120 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerReceiverFixtures;
+
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
+use Nvl\Comments\Models\Comment;
+use Nvl\Comments\Traits\InteractsWithComments;
+use Nvl\Taxonomy\Concerns\HasTaxonomies;
+use Nvl\Taxonomy\Models\Term;
+
+class Article extends Model
+{
+    use HasTaxonomies;
+    use InteractsWithComments;
+
+    protected static array $taxonomies = ['tag', 'category'];
+}
+
+class CommentSubclass extends Term {}
+
+class Holder
+{
+    public Comment $comment;
+}
+
+/**
+ * @param  Builder<Comment>  $query
+ * @param  Collection<int, Comment>  $comments
+ * @param  LengthAwarePaginator<int, Comment>  $page
+ * @param  Builder<Article>  $articles
+ */
+function receivers(Comment $comment, Comment|Article $union, ?Comment $nullable, CommentSubclass $subclass, Holder $holder, Builder $query, Collection $comments, LengthAwarePaginator $page, Builder $articles, Article $article): void
+{
+    $holder->comment->save(); // boundary: packageWrite Nvl\Comments\Models\Comment::save
+    $subclass->refresh(); // boundary: packageQuery Nvl\Taxonomy\Models\Term::refresh
+    $union->delete(); // boundary: packageWrite Nvl\Comments\Models\Comment::delete
+    $nullable?->save(); // boundary: packageWrite Nvl\Comments\Models\Comment::save
+    $nullable?->body; // boundary: packageQuery Nvl\Comments\Models\Comment::$body
+    $comments->map(static fn (Comment $item) => $item->save()); // boundary: packageWrite Nvl\Comments\Models\Comment::save
+    $comments->map(static fn (Comment $item) => $item->getKey());
+    $comments->first()?->load('reactions'); // boundary: packageQuery Nvl\Comments\Models\Comment::load
+    $comments->load('reactions'); // boundary: packageQuery Nvl\Comments\Models\Comment::load
+    $comments->keyBy('body'); // boundary: packageQuery Nvl\Comments\Models\Comment::$body
+    $comments->keyBy('id');
+    $page->toArray(); // boundary: packageQuery Nvl\Comments\Models\Comment::toArray
+    foreach ($page->items() as $item) {
+        $item->save(); // boundary: packageWrite Nvl\Comments\Models\Comment::save
+    }
+    $query->where('visibility', 'public'); // boundary: packageQuery Nvl\Comments\Models\Comment::where
+    $query->delete(); // boundary: packageWrite Nvl\Comments\Models\Comment::delete
+    $article->comments; // boundary: capabilityRelation Nvl\Comments\Traits\InteractsWithComments::$comments
+    $article->comments(); // boundary: capabilityRelation Nvl\Comments\Traits\InteractsWithComments::comments
+    $articles->withCount('comments as visible'); // boundary: capabilityRelation Nvl\Comments\Traits\InteractsWithComments::comments
+    $articles->with(['comments:id']); // boundary: capabilityRelation Nvl\Comments\Traits\InteractsWithComments::comments
+    $article->tags; // boundary: capabilityRelation Nvl\Taxonomy\Concerns\HasTaxonomies::$tags
+    $article->categories(); // boundary: capabilityRelation Nvl\Taxonomy\Concerns\HasTaxonomies::categories
+    $article->hasTerm('tag', 'x'); // boundary: capabilityRelation Nvl\Taxonomy\Concerns\HasTaxonomies::hasTerm
+    $articles->withAnyTerms('tag', ['x']);
+    $articles->withAllTerms('tag', ['x']);
+    $articles->withoutTerms('tag', ['x']);
+    $articles->where('title', 'x');
+    $table = 'nvl_comments_comments';
+    DB::table($table); // boundary: ownedTable nvl_comments_comments
+    DB::table('host_articles')->join($table, 'id', '=', 'id'); // boundary: ownedTable nvl_comments_comments
+    $closure = static function () use ($table): void {
+        DB::table($table)->delete(); // boundary: ownedTable nvl_comments_comments
+    };
+    $shadow = static fn (string $table) => DB::table($table)->delete();
+}
+
+class OuterArticle extends Model
+{
+    /** @return BelongsTo<Article, $this> */
+    public function article(): BelongsTo
+    {
+        return $this->belongsTo(Article::class);
+    }
+}
+
+function nested(OuterArticle $outer): void
+{
+    $outer->load('article.comments'); // boundary: capabilityRelation Nvl\Comments\Traits\InteractsWithComments::comments
+}
+
+/**
+ * @param \Illuminate\Contracts\Pagination\CursorPaginator<int, Comment> $contract
+ * @param \Illuminate\Pagination\CursorPaginator<int, Comment> $concrete
+ */
+function cursorPages(\Illuminate\Contracts\Pagination\CursorPaginator $contract, \Illuminate\Pagination\CursorPaginator $concrete): void
+{
+    json_encode($contract); // boundary: packageQuery Nvl\Comments\Models\Comment::jsonSerialize
+    json_encode($concrete); // boundary: packageQuery Nvl\Comments\Models\Comment::jsonSerialize
+    $concrete->toArray(); // boundary: packageQuery Nvl\Comments\Models\Comment::toArray
+    \Nvl\Comments\Data\PublicCommentData::collect($contract); // boundary: packageQuery Nvl\Comments\Models\Comment::collect
+    \Nvl\Comments\Data\PublicCommentData::collect($concrete); // boundary: packageQuery Nvl\Comments\Models\Comment::collect
+    foreach ($contract->items() as $item) {
+        $item->getKey();
+        $item->save(); // boundary: packageWrite Nvl\Comments\Models\Comment::save
+    }
+    foreach ($concrete as $item) {
+        $item->id;
+        $item->delete(); // boundary: packageWrite Nvl\Comments\Models\Comment::delete
+    }
+}
+
+/** @param Builder<Article> $articles */
+function hostBuilderTables(Builder $articles): void
+{
+    $articles->from('nvl_comments_comments')->update(['status' => 'x']); // boundary: ownedTable nvl_comments_comments
+    $articles->join('nvl_comments_comments', 'a.id', '=', 'b.id'); // boundary: ownedTable nvl_comments_comments
+    $articles->from('host_articles')->update(['title' => 'x']);
+    $articles->join('host_categories', 'a.id', '=', 'b.id');
+}

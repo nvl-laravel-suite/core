@@ -125,6 +125,63 @@ The Support tests cover standalone boundaries and discovery, backed response-cod
 
 See [Data documentation](data/README.md), [upgrading](UPGRADING.md), [security](SECURITY.md), [contributing](CONTRIBUTING.md), and [changelog](CHANGELOG.md).
 
+## Opt-in PHPStan consumer boundary
+
+Install PHPStan and Larastan as host development tools, then include Core's shipped extension explicitly:
+
+```bash
+composer require --dev phpstan/phpstan:^2.2.5 larastan/larastan:^3.10
+```
+
+```neon
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/nvl/core/support/consumer-audit.neon
+parameters:
+    paths:
+        - app
+        - Modules
+        - database/migrations
+        - tests
+    nvlConsumer:
+        testPaths:
+            - tests
+        tableNames:
+            tenant_comments: nvl/comments
+        exceptions: []
+```
+
+List only directories that exist in your host. Run `vendor/bin/phpstan analyse`; these rules report errors at every analysis level. The five identifiers are `nvl.consumer.internalApi`, `nvl.consumer.packageQuery`, `nvl.consumer.packageWrite`, `nvl.consumer.capabilityRelation`, and `nvl.consumer.ownedTable`. Normal PHPStan identifier ignores and generated baselines work, but prefer a reviewed, narrow exception for intentional adapters. PHPStan 2.2.5 with Larastan 3.10.0 is the verified development profile; release compatibility matrices remain separate gates.
+
+The policy reads installed JSON catalogs and Composer filesystem ownership. A forged `Nvl\\` namespace grants nothing. Catalog bytes, versions/references, ordered source roots and normalized host options participate in PHPStan's normal result cache; missing or invalid catalogs fail closed. Runtime package discovery neither registers nor loads the rule classes and needs no PHPStan installation.
+
+Explicit `testPaths` permit package model query/write setup, including factory persistence, only under canonical listed directories. Internal types, package capability relations and raw owned-table access remain prohibited. `tableNames` adds exact physical names mapped to an installed package; default ownership remains enforced even if a Suite module is disabled. Both literal reads and writes, including migration `Schema` calls, are errors. This replaces the workbench's older advisory raw-read classifications.
+
+Model handles allow only catalogued identity methods and safe in-memory fields, including the same fields through array access and literal collection projections. Refresh/loading, persistence, package relation traversal, collection/paginator serialization and `json_encode` of known models/items are rejected. Inherited Data `from`/`collect` cannot turn known models/items into a projection; array/value DTO construction and DTO serialization remain supported. Host-only queries, public Filterable/Translatable scopes and documented taxonomy predicates remain supported. Static literal host `$taxonomies` declarations supply dynamic relation names without instantiating the host model.
+
+For a reviewed C1 Comments SQL adapter, bind your implementation of `CommentBatchQueryScope` through the host container:
+
+```php
+$this->app->bind(\Nvl\Comments\Contracts\CommentBatchQueryScope::class, \App\Policies\VisibleCommentPolicy::class);
+```
+
+Implement both SQL scoping methods and `authorizeOwners` according to the host authorization policy. Only the supplied `Builder<Comment>` read predicate needs the exact exception below; implementing the interface alone grants no query access:
+
+```neon
+parameters:
+    nvlConsumer:
+        exceptions:
+            -
+                file: app/Policies/VisibleCommentPolicy.php
+                identifier: nvl.consumer.packageQuery
+                symbol: 'Nvl\Comments\Models\Comment::where'
+                reason: 'Reviewed C1 SQL visibility predicate on the package-supplied builder.'
+```
+
+The file must exist; paths and symbols cannot contain patterns or traversal. Match the exact identifier, canonical symbol spelling and one file. Writes, query-builder escapes, other members and other files remain errors. Source metadata validates ordinary members and query/write kinds. Synthesized taxonomy capability members cannot all be proven when options are read: an exact exception only suppresses a matching diagnostic derived from the actual host declaration; a typo grants nothing.
+
+Static analysis does not prove authorization or cover dynamic SQL, unknown `mixed` receiver provenance, dynamic method/field names, or taxonomy names computed at runtime. Keep package Doctor, schema preflight, authorization and runtime adoption checks. The workbench `nvl:suite:consumer-audit` now covers runtime/adoption wiring only and reports `static_checked: false`; it does not replace this extension.
+
 ## Supported PHP usage
 
 The source `@api` declarations identify supported workflows, extension contracts, and value types. Public members marked `@internal` and untagged implementation types remain package-owned. Concrete Actions retain their existing constructors, qualifiers, and `execute()` signatures.

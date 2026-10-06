@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerTableFixtures;
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+function tables(): void
+{
+    Schema::create('nvl_comments_comments', static function (): void {}); // boundary: ownedTable nvl_comments_comments
+    Schema::table('nvl_comments_comments', static function (): void {}); // boundary: ownedTable nvl_comments_comments
+    DB::table('tenant_comments')->get(); // boundary: ownedTable tenant_comments
+    DB::table('nvl_comments_comments')->delete(); // boundary: ownedTable nvl_comments_comments
+    DB::table('host_articles')->get();
+}

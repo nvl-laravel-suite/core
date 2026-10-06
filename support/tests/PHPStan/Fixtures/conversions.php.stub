@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerConversionFixtures;
+
+use Illuminate\Database\Eloquent\Collection;
+use Nvl\Comments\Data\PublicCommentData;
+use Nvl\Comments\Models\Comment;
+use Nvl\Data\Services\TypeScriptSourceRegistry;
+
+/** @param Collection<int, Comment> $comments */
+function conversions(Comment $comment, Collection $comments, PublicCommentData $data): void
+{
+    PublicCommentData::from($comment); // boundary: packageQuery Nvl\Comments\Models\Comment::from
+    PublicCommentData::collect($comments); // boundary: packageQuery Nvl\Comments\Models\Comment::collect
+    $data->toArray();
+    $data->toJson();
+    PublicCommentData::from(['id' => $comment->id]);
+    PublicCommentData::collect([['id' => $comment->getKey()]]);
+}
+
+function arrayConversions(Comment $comment): void
+{
+    PublicCommentData::collect([$comment]); // boundary: packageQuery Nvl\Comments\Models\Comment::collect
+    json_encode([$comment]); // boundary: packageQuery Nvl\Comments\Models\Comment::jsonSerialize
+}
+
+function internalProperty(TypeScriptSourceRegistry $registry): void
+{
+    $registry->paths; // boundary: internalApi Nvl\Data\Services\TypeScriptSourceRegistry::$paths
+}
