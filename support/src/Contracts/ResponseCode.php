@@ -8,5 +8,7 @@ use BackedEnum;
 
 /**
  * Marker contract for backed enums used as stable machine-readable response codes.
+ *
+ * @api
  */
 interface ResponseCode extends BackedEnum {}

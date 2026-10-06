@@ -9,6 +9,8 @@ use Nvl\Support\Tenancy\ValueObjects\TenantId;
 
 /**
  * Exposes the current tenant scope without permitting callers to mutate it.
+ *
+ * @api
  */
 interface TenantContext
 {

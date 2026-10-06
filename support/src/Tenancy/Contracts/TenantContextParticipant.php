@@ -7,7 +7,11 @@ namespace Nvl\Support\Tenancy\Contracts;
 use Closure;
 use Nvl\Support\Tenancy\ValueObjects\TenantContextSnapshot;
 
-/** Installs scope-local integration state and provides its restoration. */
+/**
+ * Installs scope-local integration state and provides its restoration.
+ *
+ * @api
+ */
 interface TenantContextParticipant
 {
     /**

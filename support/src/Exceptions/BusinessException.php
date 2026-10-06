@@ -9,6 +9,8 @@ use Throwable;
 
 /**
  * Domain failure carrying optional transport-neutral response metadata.
+ *
+ * @api
  */
 class BusinessException extends SupportException
 {

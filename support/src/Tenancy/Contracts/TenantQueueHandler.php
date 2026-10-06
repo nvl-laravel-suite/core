@@ -6,7 +6,11 @@ namespace Nvl\Support\Tenancy\Contracts;
 
 use Illuminate\Contracts\Queue\Job;
 
-/** Admits tenant metadata before restoring native execution or terminal failure commands. */
+/**
+ * Admits tenant metadata before restoring native execution or terminal failure commands.
+ *
+ * @api
+ */
 interface TenantQueueHandler
 {
     /**

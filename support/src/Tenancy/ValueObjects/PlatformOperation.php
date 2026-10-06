@@ -6,6 +6,8 @@ namespace Nvl\Support\Tenancy\ValueObjects;
 
 /**
  * Identifies an explicit actor and purpose for privileged platform work.
+ *
+ * @api
  */
 final readonly class PlatformOperation
 {

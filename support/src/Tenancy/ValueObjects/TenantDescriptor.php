@@ -8,6 +8,8 @@ use Nvl\Support\Tenancy\Enums\TenantStatus;
 
 /**
  * Describes one immutable tenant directory entry.
+ *
+ * @api
  */
 final readonly class TenantDescriptor
 {

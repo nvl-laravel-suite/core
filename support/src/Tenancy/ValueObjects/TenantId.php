@@ -9,6 +9,8 @@ use InvalidArgumentException;
 
 /**
  * Carries a canonical tenant UUID across tenancy boundaries.
+ *
+ * @api
  */
 final readonly class TenantId
 {

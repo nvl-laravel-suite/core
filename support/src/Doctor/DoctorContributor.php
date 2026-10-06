@@ -6,6 +6,8 @@ namespace Nvl\Support\Doctor;
 
 /**
  * Supplies package-owned, read-only checks to the consumer Doctor.
+ *
+ * @api
  */
 interface DoctorContributor
 {

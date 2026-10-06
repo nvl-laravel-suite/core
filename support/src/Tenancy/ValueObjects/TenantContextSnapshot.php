@@ -9,6 +9,8 @@ use Nvl\Support\Tenancy\Enums\TenantContextMode;
 
 /**
  * Captures one immutable tenant context state.
+ *
+ * @api
  */
 final readonly class TenantContextSnapshot
 {

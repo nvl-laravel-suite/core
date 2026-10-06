@@ -8,7 +8,11 @@ use Closure;
 use Illuminate\Bus\PendingBatch;
 use Nvl\Support\Tenancy\ValueObjects\TenantJobEnvelope;
 
-/** Admits captured queued ownership before executing application callbacks. */
+/**
+ * Admits captured queued ownership before executing application callbacks.
+ *
+ * @api
+ */
 interface TenantQueueContext
 {
     /** Capture the current ownership for a native batch. */

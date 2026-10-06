@@ -9,7 +9,11 @@ use Nvl\Support\Tenancy\Enums\TenantResourceKind;
 use Nvl\Support\Tenancy\Exceptions\TenantConfigurationInvalid;
 use ReflectionClass;
 
-/** Immutable package-owned resource classification and canonical parent policy. */
+/**
+ * Immutable package-owned resource classification and canonical parent policy.
+ *
+ * @api
+ */
 final readonly class TenantResourceDefinition
 {
     /**

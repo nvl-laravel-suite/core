@@ -9,6 +9,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Describes stable length-aware pagination metadata for public NVL payloads.
+ *
+ * @api
  */
 #[TypeScript]
 final class PaginationMeta extends Data

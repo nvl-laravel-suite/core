@@ -6,7 +6,11 @@ namespace Nvl\Support\Tenancy\ValueObjects;
 
 use Nvl\Support\Tenancy\Contracts\TenantContext;
 
-/** Immutable context captured before queued execution crosses a process boundary. */
+/**
+ * Immutable context captured before queued execution crosses a process boundary.
+ *
+ * @api
+ */
 final readonly class TenantJobEnvelope
 {
     /** Preserve the producer context without serializing models or credentials. */

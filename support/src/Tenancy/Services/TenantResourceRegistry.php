@@ -10,7 +10,11 @@ use Nvl\Support\Tenancy\Exceptions\TenantConfigurationInvalid;
 use Nvl\Support\Tenancy\ValueObjects\TenantResourceDefinition;
 use ReflectionClass;
 
-/** Stores immutable package definitions without retaining models or tenant state. */
+/**
+ * Stores immutable package definitions without retaining models or tenant state.
+ *
+ * @api
+ */
 final class TenantResourceRegistry
 {
     /** @var array<string, TenantResourceDefinition> */

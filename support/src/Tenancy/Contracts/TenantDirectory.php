@@ -10,6 +10,8 @@ use Nvl\Support\Tenancy\ValueObjects\TenantId;
 
 /**
  * Resolves immutable tenant lifecycle descriptors by canonical identifier.
+ *
+ * @api
  */
 interface TenantDirectory
 {

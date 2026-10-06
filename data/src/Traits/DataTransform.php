@@ -16,6 +16,8 @@ use Spatie\LaravelData\Optional;
  * Maps Spatie Data objects between API-facing camelCase and model-facing snake_case shapes.
  *
  * @mixin Data
+ *
+ * @api
  */
 trait DataTransform
 {

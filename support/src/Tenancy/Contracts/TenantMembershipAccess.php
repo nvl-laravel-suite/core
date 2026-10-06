@@ -9,6 +9,8 @@ use Nvl\Support\Tenancy\ValueObjects\TenantId;
 
 /**
  * Authorizes an authenticated actor for one selected tenant.
+ *
+ * @api
  */
 interface TenantMembershipAccess
 {

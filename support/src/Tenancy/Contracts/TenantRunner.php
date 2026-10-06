@@ -9,7 +9,11 @@ use Nvl\Support\Tenancy\ValueObjects\PlatformOperation;
 use Nvl\Support\Tenancy\ValueObjects\TenantContextSnapshot;
 use Nvl\Support\Tenancy\ValueObjects\TenantId;
 
-/** Executes work inside an admitted immutable tenant scope. */
+/**
+ * Executes work inside an admitted immutable tenant scope.
+ *
+ * @api
+ */
 interface TenantRunner
 {
     /**

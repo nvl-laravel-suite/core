@@ -8,7 +8,11 @@ use Nvl\Support\Tenancy\Contracts\TenantContextParticipant;
 use Nvl\Support\Tenancy\Exceptions\TenantConfigurationInvalid;
 use ReflectionClass;
 
-/** Registers immutable participant class names without retaining scoped instances. */
+/**
+ * Registers immutable participant class names without retaining scoped instances.
+ *
+ * @api
+ */
 final class TenantContextParticipants
 {
     /** @var list<class-string<TenantContextParticipant>> */

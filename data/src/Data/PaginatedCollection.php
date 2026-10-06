@@ -10,6 +10,8 @@ use Spatie\LaravelData\Data;
 
 /**
  * Normalizes a Laravel paginator into the stable NVL pagination envelope.
+ *
+ * @api
  */
 final class PaginatedCollection extends Data
 {

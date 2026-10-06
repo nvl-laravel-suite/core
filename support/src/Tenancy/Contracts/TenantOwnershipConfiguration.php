@@ -7,7 +7,11 @@ namespace Nvl\Support\Tenancy\Contracts;
 use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Tenancy\ValueObjects\TenantResourceDefinition;
 
-/** Exposes structural ownership metadata without requiring the tenant runtime. */
+/**
+ * Exposes structural ownership metadata without requiring the tenant runtime.
+ *
+ * @api
+ */
 interface TenantOwnershipConfiguration
 {
     /** Validate configured structural ownership. */

@@ -6,6 +6,8 @@ namespace Nvl\Support\Contracts;
 
 /**
  * Defines the content locale catalog shared by independently installed capabilities.
+ *
+ * @api
  */
 interface LocaleCatalog
 {

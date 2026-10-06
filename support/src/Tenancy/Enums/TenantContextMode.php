@@ -6,6 +6,8 @@ namespace Nvl\Support\Tenancy\Enums;
 
 /**
  * Identifies the isolation scope currently installed for tenant-aware work.
+ *
+ * @api
  */
 enum TenantContextMode: string
 {

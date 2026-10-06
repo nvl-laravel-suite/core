@@ -9,6 +9,8 @@ use Nvl\Support\Tenancy\ValueObjects\TenantId;
 
 /**
  * Selects a candidate tenant from a trusted HTTP request boundary.
+ *
+ * @api
  */
 interface TenantHttpResolver
 {

@@ -6,6 +6,8 @@ namespace Nvl\Support\Tenancy\ValueObjects;
 
 /**
  * Carries a verified tenant, site, and canonical public origin.
+ *
+ * @api
  */
 final readonly class TenantSiteContext
 {

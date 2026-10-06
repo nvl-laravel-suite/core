@@ -8,6 +8,8 @@ use InvalidArgumentException;
 
 /**
  * Describes one immutable, read-only installation diagnostic.
+ *
+ * @api
  */
 final readonly class DoctorCheck
 {

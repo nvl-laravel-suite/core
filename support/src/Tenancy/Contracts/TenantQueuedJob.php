@@ -6,7 +6,11 @@ namespace Nvl\Support\Tenancy\Contracts;
 
 use Nvl\Support\Tenancy\ValueObjects\TenantJobEnvelope;
 
-/** A queued tenant command captures this immutable envelope before native dispatch scheduling. */
+/**
+ * A queued tenant command captures this immutable envelope before native dispatch scheduling.
+ *
+ * @api
+ */
 interface TenantQueuedJob
 {
     /** Return the envelope captured when the command was constructed in its producer scope. */

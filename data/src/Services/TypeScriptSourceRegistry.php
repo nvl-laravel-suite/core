@@ -9,6 +9,8 @@ use RuntimeException;
 
 /**
  * Collects validated application and package source directories for TypeScript discovery.
+ *
+ * @api
  */
 final class TypeScriptSourceRegistry
 {

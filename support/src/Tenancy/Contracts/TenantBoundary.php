@@ -7,7 +7,11 @@ namespace Nvl\Support\Tenancy\Contracts;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-/** Provides validated ownership access with or without the tenant runtime. */
+/**
+ * Provides validated ownership access with or without the tenant runtime.
+ *
+ * @api
+ */
 interface TenantBoundary
 {
     /**
