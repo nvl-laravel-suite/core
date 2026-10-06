@@ -8,5 +8,7 @@ use Exception;
 
 /**
  * Base exception for failures raised by shared NVL support primitives.
+ *
+ * @api
  */
 class SupportException extends Exception {}

@@ -8,6 +8,7 @@ use Closure;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
+use stdClass;
 use Symfony\Component\Process\Process;
 
 /**
@@ -26,9 +27,9 @@ function consumerCatalogFixtures(): array
                 'Nvl\\Support\\Contracts\\LocaleCatalog' => ['kind' => 'interface', 'file' => 'support/src/Contracts/LocaleCatalog.php', 'methods' => ['supported'], 'properties' => [], 'constants' => []],
                 'Nvl\\Data\\Data\\PaginationMeta' => ['kind' => 'class', 'file' => 'data/src/Data/PaginationMeta.php', 'methods' => ['__construct'], 'properties' => ['currentPage'], 'constants' => []],
             ],
-            'models' => [],
-            'capability_relations' => [],
-            'tables' => [],
+            'models' => new stdClass,
+            'capability_relations' => new stdClass,
+            'tables' => new stdClass,
         ],
         'nvl/comments' => [
             'schema_version' => 1,
@@ -177,6 +178,65 @@ it('retains immutable exact model permissions and internal ownership/trait metad
         ->and(array_keys($result['core_roots']['psr4']))->toBe(['Nvl\\Support\\', 'Nvl\\Data\\']);
 });
 
+it('keeps empty JSON objects distinct from lists at every catalog boundary', function (string $field, bool $objectInsteadOfList): void {
+    $result = consumerCatalogProbe(consumerCatalogFixtures(), function (array $roots) use ($field, $objectInsteadOfList): void {
+        $path = $roots['nvl/comments'].'/resources/consumer-api.json';
+        $catalog = json_decode(file_get_contents($path), flags: JSON_THROW_ON_ERROR);
+        $value = $objectInsteadOfList ? new stdClass : [];
+        $symbol = 'Nvl\\Comments\\Models\\Comment';
+        $trait = 'Nvl\\Comments\\Traits\\InteractsWithComments';
+        match ($field) {
+            'catalog' => $catalog = $value,
+            'symbol' => $catalog->symbols->{$symbol} = $value,
+            'model' => $catalog->models->{$symbol} = $value,
+            'methods', 'properties', 'constants' => $catalog->symbols->{$symbol}->{$field} = $value,
+            'read', 'identity_methods', 'model relations' => $catalog->models->{$symbol}->{$field === 'model relations' ? 'capability_relations' : $field} = $value,
+            'trait relations' => $catalog->capability_relations->{$trait} = $value,
+            default => $catalog->{$field} = $value,
+        };
+        if ($field === 'symbols') {
+            $catalog->models = new stdClass;
+            $catalog->capability_relations = new stdClass;
+        }
+        file_put_contents($path, json_encode($catalog, JSON_THROW_ON_ERROR));
+    });
+
+    expect($result['exception'] ?? null)->toBe('RuntimeException')
+        ->and($result['error'])->toContain($objectInsteadOfList ? 'must be a list of exact names' : 'must be an object map');
+})->with([
+    'catalog list' => ['catalog', false],
+    'psr4 list' => ['psr4', false],
+    'symbols list' => ['symbols', false],
+    'models list' => ['models', false],
+    'tables list' => ['tables', false],
+    'capability map list' => ['capability_relations', false],
+    'symbol declaration list' => ['symbol', false],
+    'model declaration list' => ['model', false],
+    'methods object' => ['methods', true],
+    'properties object' => ['properties', true],
+    'constants object' => ['constants', true],
+    'read object' => ['read', true],
+    'identity methods object' => ['identity_methods', true],
+    'model relations object' => ['model relations', true],
+    'trait relations object' => ['trait relations', true],
+]);
+
+it('accepts empty permission lists and empty object maps without executing source PHP', function (): void {
+    $catalogs = consumerCatalogFixtures();
+    $symbol = 'Nvl\\Comments\\Models\\Comment';
+    foreach (['methods', 'properties', 'constants'] as $field) {
+        $catalogs['nvl/comments']['symbols'][$symbol][$field] = [];
+    }
+    $catalogs['nvl/comments']['models'][$symbol] = ['read' => [], 'identity_methods' => [], 'capability_relations' => []];
+    $catalogs['nvl/comments']['capability_relations'] = new stdClass;
+    $result = consumerCatalogProbe($catalogs);
+
+    expect($result['error'])->toBeNull()
+        ->and($result['model'])->toBe([$symbol, [], [], []])
+        ->and($result['loaded'])->toBe([])
+        ->and($result['fixture_loaded'])->toBeFalse();
+});
+
 it('supports a symlinked Composer install path and skips only explicit workbench names and virtual packages', function (): void {
     $result = consumerCatalogProbe(consumerCatalogFixtures(), function (array $roots, array &$versions): void {
         symlink($roots['nvl/core'], $roots['nvl/core'].'-linked');
@@ -295,11 +355,11 @@ it('rejects conflicting symbol or table ownership across installed catalogs', fu
     $catalogs['nvl/forms'] = $catalogs['nvl/comments'];
     $catalogs['nvl/forms']['package'] = 'nvl/forms';
     if ($duplicateSymbol) {
-        $catalogs['nvl/forms']['tables'] = [];
+        $catalogs['nvl/forms']['tables'] = new stdClass;
     } else {
-        $catalogs['nvl/forms']['symbols'] = [];
-        $catalogs['nvl/forms']['models'] = [];
-        $catalogs['nvl/forms']['capability_relations'] = [];
+        $catalogs['nvl/forms']['symbols'] = new stdClass;
+        $catalogs['nvl/forms']['models'] = new stdClass;
+        $catalogs['nvl/forms']['capability_relations'] = new stdClass;
     }
     $result = consumerCatalogProbe($catalogs);
 
@@ -350,7 +410,8 @@ it('marks only the reviewed Core roots and retains declared internal integration
         'data/src/Services/TypeScriptSourceRegistry.php', 'data/src/Traits/DataTransform.php',
         'support/src/Contracts/LocaleCatalog.php', 'support/src/Contracts/ResponseCode.php',
         'support/src/Doctor/DoctorCheck.php', 'support/src/Doctor/DoctorContributor.php',
-        'support/src/Exceptions/BusinessException.php',
+        'support/src/Exceptions/BusinessException.php', 'support/src/Exceptions/SupportException.php',
+        'support/src/Tenancy/Exceptions/TenantNotFound.php',
         'support/src/Owners/OwnerBatch.php', 'support/src/Owners/OwnerIdentity.php', 'support/src/Owners/OwnerResultMap.php',
         'support/src/Tenancy/Contracts/TenantBoundary.php', 'support/src/Tenancy/Contracts/TenantContext.php',
         'support/src/Tenancy/Contracts/TenantContextParticipant.php', 'support/src/Tenancy/Contracts/TenantDirectory.php',
@@ -370,5 +431,7 @@ it('marks only the reviewed Core roots and retains declared internal integration
     }
     expect(file_get_contents($core.'/support/src/Tenancy/Contracts/TenantParentResolver.php'))->toContain('@internal')->not->toContain('@api')
         ->and(file_get_contents($core.'/data/src/Services/TypeScriptPathGuard.php'))->not->toContain('@api')
+        ->and(file_get_contents($core.'/support/src/Tenancy/Exceptions/TenancyException.php'))->not->toContain('@api')
+        ->and(file_get_contents($core.'/support/src/Tenancy/Enums/TenancyResponseCode.php'))->not->toContain('@api')
         ->and(file_get_contents($core.'/support/src/Tenancy/Services/TenantResourceRegistry.php'))->toContain('@internal');
 });

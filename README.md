@@ -102,6 +102,12 @@ Diagnostic context is never automatically safe to expose. Applications must keep
 
 Constructing an exception with a suggested status outside 100–599 throws `SupportException`. A missing response code is valid for failures that have no stable public machine contract. The original exception can be retained through `previous`.
 
+`Nvl\Support\Exceptions\SupportException` and the `TenantNotFound` failure documented by `Nvl\Support\Tenancy\Contracts\TenantDirectory::find()` are supported consumer failure types. Catch `Nvl\Support\Tenancy\Exceptions\TenantNotFound` for an unknown tenant; its implementation parent `TenancyException` and internal response-code enum are not separate consumer contracts.
+
+## Consumer catalog discovery
+
+Call `Nvl\Support\Consumer\ConsumerApiCatalog::installed()` explicitly to inspect supported symbols, model-handle declarations and default table ownership from installed package catalogs. Discovery reads Composer installation metadata and validated JSON without booting Laravel, providers, database connections or sibling packages. Providers do not activate discovery automatically. Every installed NVL code library must ship a matching catalog; missing or invalid catalogs fail with regeneration or upgrade guidance. Protocol-1 maps use JSON objects, including `{}` when empty, and member/permission lists use JSON arrays, including `[]` when empty.
+
 ## Non-goals
 
 - HTTP exception rendering

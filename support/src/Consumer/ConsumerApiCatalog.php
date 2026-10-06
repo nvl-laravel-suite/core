@@ -7,6 +7,7 @@ namespace Nvl\Support\Consumer;
 use Composer\InstalledVersions;
 use JsonException;
 use RuntimeException;
+use stdClass;
 
 /**
  * Discovers consumer declarations from independently installed NVL packages.
@@ -329,7 +330,7 @@ final readonly class ConsumerApiCatalog
             throw self::invalid($package, 'consumer-api.json is unreadable; reinstall or regenerate the package catalog.');
         }
         try {
-            $value = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+            $value = json_decode($contents, flags: JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
             throw new RuntimeException("Invalid consumer API catalog for [{$package}]: malformed JSON; regenerate the package catalog.", previous: $exception);
         }
@@ -344,11 +345,11 @@ final readonly class ConsumerApiCatalog
      */
     private static function map(mixed $value, string $package, string $field): array
     {
-        if (! is_array($value)) {
+        if (! $value instanceof stdClass) {
             throw self::invalid($package, "{$field} must be an object map.");
         }
         $map = [];
-        foreach ($value as $key => $item) {
+        foreach (get_object_vars($value) as $key => $item) {
             if (! is_string($key) || $key === '') {
                 throw self::invalid($package, "{$field} requires exact string keys.");
             }

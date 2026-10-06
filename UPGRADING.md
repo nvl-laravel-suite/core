@@ -1,5 +1,11 @@
 # Upgrading NVL Core
 
+## Major 5: consumer declarations
+
+Catch `Nvl\Support\Exceptions\SupportException` for documented Support failures and `Nvl\Support\Tenancy\Exceptions\TenantNotFound` when `TenantDirectory::find()` cannot locate a tenant. These two failure types are supported consumer handles. The `TenantNotFound` implementation parent and response-code enum remain internal; no exception behavior or HTTP rendering changes are required.
+
+Catalog discovery is opt-in through `Nvl\Support\Consumer\ConsumerApiCatalog::installed()`. Install matching releases with generated `consumer-api.json` catalogs for every installed NVL code library before using it. Protocol-1 object maps and array lists have distinct shapes even when empty: `{}` for maps and `[]` for lists. Discovery validates these declarations without Laravel/provider/database boot; it does not install PHPStan enforcement.
+
 ## Major 5: batched owner input
 
 Package many-owner readers consume the new `Nvl\Support\Owners` helpers. Supply a

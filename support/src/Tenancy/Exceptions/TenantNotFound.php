@@ -9,6 +9,8 @@ use Nvl\Support\Tenancy\Enums\TenancyResponseCode;
 
 /**
  * Reports a tenant identifier absent from the configured directory.
+ *
+ * @api
  */
 final class TenantNotFound extends TenancyException
 {
