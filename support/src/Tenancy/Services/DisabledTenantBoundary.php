@@ -38,12 +38,12 @@ final readonly class DisabledTenantBoundary implements TenantBoundary
         return $query;
     }
 
-    /** Validate exact concrete identity, table and connection before legacy access. */
+    /** Validate registered model lineage, canonical table and connection before legacy access. */
     public function assertRecord(Model $record, string $resource): void
     {
         $definition = $this->resources->get($resource);
         $canonical = new $definition->model;
-        if ($record::class !== $definition->model || $record->getTable() !== $canonical->getTable()
+        if (! is_a($record, $definition->model) || $record->getTable() !== $canonical->getTable()
             || $record->getConnection() !== $canonical->getConnection()) {
             throw new TenantBoundaryViolation('The record differs from its registered canonical storage.');
         }

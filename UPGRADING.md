@@ -10,6 +10,13 @@ if the caller later mutates the retained model references. Results carry object
 maps and a separate identity order; callers must not infer list order from JSON
 property enumeration.
 
+Core's disabled-tenancy boundary now admits registered model subclasses through
+an explicit resource key when they retain its canonical table and connection.
+This keeps Taxonomy's registered Tag/Category models usable without the optional
+Tenancy provider. Exact host-owner registration, altered SQL-source rejection and
+adopted-storage refusal still apply; no data migration or tenancy activation is
+required.
+
 ## Moving to Core 2.0
 
 Install `nvl/core` in place of `nvl/support` and `nvl/data`. The `Nvl\Support` and `Nvl\Data` PHP namespaces and their service providers remain available from Core.

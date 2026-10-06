@@ -29,6 +29,7 @@ Test code and status validation, exception chaining, serialization safety, enum 
 ## Configurable-tenancy release discipline
 
 - Preserve disabled compatibility and package independence; tenant support never creates an undeclared Auth or Suite dependency.
+- Explicit package resource keys admit the registered model lineage only on its canonical table and connection. Exact host-model registration remains required; altered SQL sources, unions and persisted adoption still fail without the runtime.
 - Use registered package-owned resources, adoption adapters, Actions, and lifecycle APIs. Never add a generic tenant delete-all path or raw cross-package cleanup.
 - Treat mapping/configuration hashes, interruption checkpoints, conservation evidence, worker context, tenant-leading queries, and standalone consumption as release contracts.
 

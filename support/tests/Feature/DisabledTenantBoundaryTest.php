@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Nvl\Support\Config\PackageStorage;
 use Nvl\Support\Providers\TenantServiceProvider;
@@ -15,11 +16,14 @@ use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
 use Nvl\Support\Tenancy\Exceptions\TenantConfigurationInvalid;
 use Nvl\Support\Tenancy\Exceptions\TenantContextMissing;
 use Nvl\Support\Tenancy\Exceptions\TenantSchemaNotReady;
+use Nvl\Support\Tenancy\Services\DisabledTenantBoundary;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 use Nvl\Support\Tenancy\ValueObjects\TenantContextSnapshot;
 use Nvl\Support\Tenancy\ValueObjects\TenantId;
 use Nvl\Support\Tenancy\ValueObjects\TenantJobEnvelope;
 use Nvl\Support\Tenancy\ValueObjects\TenantResourceDefinition;
+use Nvl\Support\Tests\Fixtures\DisabledBoundaryCanonicalRecord;
+use Nvl\Support\Tests\Fixtures\DisabledBoundaryChildRecord;
 use Nvl\Support\Tests\Fixtures\DisabledBoundaryRecord;
 
 beforeEach(function (): void {
@@ -91,3 +95,61 @@ it('rejects replaced SQL sources and unions even while tenancy is disabled', fun
     }
     expect(fn () => $this->app->make(TenantBoundary::class)->query($query, 'fixture.records'))->toThrow(TenantBoundaryViolation::class);
 })->with(['replacement', 'union']);
+
+it('admits same-storage model lineage through an explicit legacy resource without optional runtime', function (): void {
+    $this->app->make(TenantResourceRegistry::class)->register(new TenantResourceDefinition('fixture.lineage', 'fixture', DisabledBoundaryCanonicalRecord::class));
+    Schema::create('disabled_boundary_records', static function (Blueprint $table): void {
+        $table->id();
+        $table->string('name');
+    });
+    DB::table('disabled_boundary_records')->insert(['id' => 1, 'name' => 'Visible']);
+    $boundary = $this->app->make(TenantBoundary::class);
+    $query = DisabledBoundaryChildRecord::query()->select(['id', 'name'])->where('name', 'Visible');
+
+    expect($boundary)->toBeInstanceOf(DisabledTenantBoundary::class);
+    expect(fn () => $boundary->query($query, 'fixture.lineage'))->not->toThrow(TenantBoundaryViolation::class);
+    expect($boundary->query($query, 'fixture.lineage'))->toBe($query)
+        ->and($query->get()->map(static fn (DisabledBoundaryChildRecord $record): array => $record->getAttributes())->all())
+        ->toBe([['id' => 1, 'name' => 'Visible']]);
+    $boundary->assertRecord(new DisabledBoundaryChildRecord, 'fixture.lineage');
+
+    Schema::create(PackageStorage::resolveTable('tenancy', 'installation_state'), static function (Blueprint $table): void {
+        $table->string('resource');
+    });
+    DB::table(PackageStorage::resolveTable('tenancy', 'installation_state'))->insert(['resource' => 'fixture.lineage']);
+    $this->app->make(TenantInstallationState::class)->invalidate();
+    expect(fn () => $boundary->query(DisabledBoundaryChildRecord::query(), 'fixture.lineage'))->toThrow(TenantSchemaNotReady::class);
+});
+
+it('rejects forged lineage storage through explicit legacy resources', function (string $forgery): void {
+    $this->app->make(TenantResourceRegistry::class)->register(new TenantResourceDefinition('fixture.lineage', 'fixture', DisabledBoundaryCanonicalRecord::class));
+    $owner = $forgery === 'unrelated-model' ? new DisabledBoundaryRecord : new DisabledBoundaryChildRecord;
+    if ($forgery === 'model-table') {
+        $owner->setTable('private_records');
+    }
+    if (in_array($forgery, ['model-connection', 'actual-connection'], true)) {
+        config(['database.connections.lineage_foreign' => config('database.connections.testing')]);
+    }
+    if ($forgery === 'model-connection') {
+        $owner->setConnection('lineage_foreign');
+    }
+    $query = $owner->newQuery();
+    if ($forgery === 'actual-connection') {
+        $query->setQuery(DB::connection('lineage_foreign')->table('disabled_boundary_records'));
+    }
+    if ($forgery === 'actual-from') {
+        $query->from('private_records');
+    }
+    if ($forgery === 'union') {
+        $query->union($owner->getConnection()->table('private_records'));
+    }
+
+    expect(fn () => $this->app->make(TenantBoundary::class)->query($query, 'fixture.lineage'))->toThrow(TenantBoundaryViolation::class);
+})->with(['unrelated-model', 'model-table', 'model-connection', 'actual-connection', 'actual-from', 'union']);
+
+it('requires an exact host registration despite explicit package resource lineage', function (): void {
+    $resources = $this->app->make(TenantResourceRegistry::class);
+    $resources->register(new TenantResourceDefinition('fixture.lineage', 'fixture', DisabledBoundaryCanonicalRecord::class));
+
+    expect(fn () => $resources->forModel(new DisabledBoundaryChildRecord))->toThrow(TenantConfigurationInvalid::class);
+});

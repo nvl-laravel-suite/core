@@ -204,6 +204,8 @@ Core owns `Nvl\Support\Tenancy` contracts, immutable identifiers and snapshots, 
 
 Without `nvl/tenancy`, the disabled boundary preserves validated legacy queries and identity keys and supplies no ownership attributes. Tenant context is disabled, and requiring a tenant or privileged platform execution fails. The actual resource connection is checked for persisted adoption before access. Setting `nvl-tenancy.enabled=true` without the enforcing provider fails, and adopted storage cannot be reopened through disabled defaults. Queue admission runs before native command deserialization and rejects captured tenant work or adopted storage without the runtime.
 
+An explicit resource key admits its registered model lineage on the same canonical table and connection, including Taxonomy's Tag/Category subclasses. Host-owner lookup still requires the exact registered model. Altered query sources, connections, unions and adopted storage fail in both cases.
+
 `nvl/tenancy` is suggested by neutral packages and required for their tenancy test profiles. Select its provider through Laravel discovery or register it explicitly to activate the runtime implementations. Merely having its classes on disk does not register adoption adapters. Billing continues to require the runtime.
 
 ## Canonical configuration and deployment preflight

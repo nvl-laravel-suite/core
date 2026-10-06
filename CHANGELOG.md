@@ -7,6 +7,7 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 ### Changed
 
 - Add bounded native owner batches and complete object-valued result maps for authorized package readers; these helpers perform no queries or authorization.
+- Admit same-storage model lineage through explicit disabled-tenancy resources while retaining exact host registration and storage/adoption guards.
 - Prepare lockstep major 5 with required and development NVL peer floors of `^5.0`. This candidate has not been tagged or published.
 - Use canonical package config and env inputs with explicit one-major compatibility and collision diagnostics.
 - Preserve the host migrator; add exact migration ownership, explicit schema preflight and published-file reconciliation.
