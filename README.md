@@ -135,6 +135,24 @@ Legacy alias references remain read compatibility during major 5 and are removed
 
 `Nvl\Support\OwnerRegistry` declares capabilities and resolves classes and their native identities. The deprecated `register($alias, $modelClass)` interface remains for major 5, reports incompatible legacy declarations and never rewrites the host morph map. Package-owned Page and TemplateVersion aliases are separately collision-checked. Keep per-package allowlists, resolvers, scopes and mutation abilities.
 
+## Bounded owner batches
+
+`Nvl\Support\Owners\OwnerBatch::fromModels($owners)` accepts a list of at most
+100 persisted Eloquent models. It captures each native morph type and Laravel-cast
+scalar key, deduplicates exact pairs in first-request order, and rejects conflicting
+concrete classes, connections or raw attributes. Attribute column order is ignored;
+attribute values are compared strictly. No queries run in Core's batch helpers.
+
+`identities()` returns immutable snapshots; `owners()` retains live model references.
+A package reader must reload and admit the captured identities through its registered
+capabilities, host scopes and tenant boundary before reading package storage. A batch
+alone grants no authorization and does not verify persistence or tenant membership.
+
+`OwnerResultMap` requires one object value per requested identity and rejects missing
+or foreign results. Its JSON type/key levels remain objects, including numeric keys
+and an empty `{}` result. `order()` carries the original identity order separately.
+These helpers require the prepared Core major 5 artifact.
+
 ## Shared content locale catalog
 
 Depend on `Nvl\Support\Contracts\LocaleCatalog` for supported locales, the content default, configured fallbacks, normalization, and deterministic resolution chains. Core provides it without Translatable or Primitives. Its default catalog uses the distinct valid `app.locale` and `app.fallback_locale` values. Configure a standalone content catalog in `nvl-core.php` when content differs from application language defaults:

@@ -38,6 +38,8 @@ Test code and status validation, exception chaining, serialization safety, enum 
 - Keep identity distinct from package authorization, allowlists, resolvers, handlers, scopes, and mutation abilities.
 - Core declarations and capability registration never install or enforce host morph maps. Package-owned Page/TemplateVersion mappings are separately collision-checked.
 - Report incompatible legacy alias references and stored identity drift through Doctor. Legacy aliases last major 5 only; reviewed host morph-map changes need explicit data reconciliation, never an automatic conversion.
+- `Owners\OwnerBatch::fromModels()` bounds input to 100 persisted models, captures native morph/key identities and deduplicates exact pairs. It performs no queries or authorization. Models remain live references; admit the immutable identities through package capabilities, host scopes and tenant boundaries before package SQL.
+- `Owners\OwnerResultMap` requires a DTO object for every requested identity and rejects foreign results. Its JSON morph/key maps remain objects, including numeric keys and empty maps; retain `order()` separately.
 
 ## Shared diagnostics
 
@@ -63,7 +65,7 @@ Public tenant request compatibility goes through `TenantSiteAttributes`; canonic
 
 ### Quarantined native queue retries
 
-Native `queue:retry` selections are checked at `Illuminate\Console\Events\CommandStarting` against raw failed-job provider records before Laravel restores commands. Retry captured NVL payloads through `nvl:queue:retry <id...>` after repairing the boundary; native `Illuminate\Queue\Events\JobRetryRequested` alone occurs too late. Custom retry implementations must invoke `TenantQueueQuarantine::beforeNativeRetry()` before restoration. Preserve original raw bodies, captured attempts/deadlines and failed IDs until transport acceptance.
+Native Laravel 13 `queue:retry` dispatches `Illuminate\Queue\Events\JobRetryRequested` before command restoration. Core checks the event's raw failed-job record and rejects quarantined work at that boundary. Retry captured NVL payloads through `nvl:queue:retry <id...>` after repairing the boundary. Custom retry implementations must provide the same pre-restoration guard, using `TenantQueueQuarantine::beforeNativeRetry()` with the raw event. Preserve original raw bodies, captured attempts/deadlines and failed IDs until transport acceptance.
 
 ## Canonical configuration ownership
 

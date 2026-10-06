@@ -1,5 +1,15 @@
 # Upgrading NVL Core
 
+## Major 5: batched owner input
+
+Package many-owner readers consume the new `Nvl\Support\Owners` helpers. Supply a
+finite list of at most 100 persisted models and use each reader's authorization
+contract. Core captures native morph/key identity but performs no database reads or
+authorization. Reader admission must use the immutable captured identities, even
+if the caller later mutates the retained model references. Results carry object
+maps and a separate identity order; callers must not infer list order from JSON
+property enumeration.
+
 ## Moving to Core 2.0
 
 Install `nvl/core` in place of `nvl/support` and `nvl/data`. The `Nvl\Support` and `Nvl\Data` PHP namespaces and their service providers remain available from Core.
