@@ -1,0 +1,593 @@
+{
+    "schema_version": 1,
+    "package": "nvl/core",
+    "psr4": {
+        "Nvl\\Data\\": "data/src",
+        "Nvl\\Support\\": "support/src"
+    },
+    "symbols": {
+        "Nvl\\Data\\Data\\PaginatedCollection": {
+            "kind": "class",
+            "file": "data/src/Data/PaginatedCollection.php",
+            "methods": [
+                "__construct",
+                "fromPaginator"
+            ],
+            "properties": [
+                "items",
+                "meta"
+            ],
+            "constants": []
+        },
+        "Nvl\\Data\\Data\\PaginationMeta": {
+            "kind": "class",
+            "file": "data/src/Data/PaginationMeta.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "currentPage",
+                "lastPage",
+                "perPage",
+                "total"
+            ],
+            "constants": []
+        },
+        "Nvl\\Data\\Services\\TypeScriptSourceRegistry": {
+            "kind": "class",
+            "file": "data/src/Services/TypeScriptSourceRegistry.php",
+            "methods": [
+                "__construct",
+                "all",
+                "descriptors",
+                "register",
+                "registerMany"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Data\\Traits\\DataTransform": {
+            "kind": "trait",
+            "file": "data/src/Traits/DataTransform.php",
+            "methods": [
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Config\\PackageOptions": {
+            "kind": "class",
+            "file": "support/src/Config/PackageOptions.php",
+            "methods": [
+                "authGuard",
+                "connection",
+                "deprecations",
+                "lockStore",
+                "migrationsEnabled",
+                "queueConnection",
+                "queueName",
+                "routeMiddleware"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Consumer\\ConsumerApiCatalog": {
+            "kind": "class",
+            "file": "support/src/Consumer/ConsumerApiCatalog.php",
+            "methods": [
+                "installed",
+                "model",
+                "symbol",
+                "tableOwner"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Consumer\\ConsumerModelPolicy": {
+            "kind": "class",
+            "file": "support/src/Consumer/ConsumerModelPolicy.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "capabilityRelations",
+                "class",
+                "identityMethods",
+                "readableFields"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Consumer\\ConsumerSymbol": {
+            "kind": "class",
+            "file": "support/src/Consumer/ConsumerSymbol.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "aliasOf",
+                "class",
+                "constants",
+                "file",
+                "kind",
+                "methods",
+                "package",
+                "properties"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Contracts\\LocaleCatalog": {
+            "kind": "interface",
+            "file": "support/src/Contracts/LocaleCatalog.php",
+            "methods": [
+                "assertSupported",
+                "chain",
+                "default",
+                "fallbacks",
+                "normalize",
+                "supported",
+                "supports"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Contracts\\ResponseCode": {
+            "kind": "interface",
+            "file": "support/src/Contracts/ResponseCode.php",
+            "methods": [],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Doctor\\DoctorCheck": {
+            "kind": "class",
+            "file": "support/src/Doctor/DoctorCheck.php",
+            "methods": [
+                "__construct",
+                "fails",
+                "toArray"
+            ],
+            "properties": [
+                "key",
+                "message",
+                "passed",
+                "severity"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Doctor\\DoctorContributor": {
+            "kind": "interface",
+            "file": "support/src/Doctor/DoctorContributor.php",
+            "methods": [
+                "inspect",
+                "package"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Exceptions\\BusinessException": {
+            "kind": "class",
+            "file": "support/src/Exceptions/BusinessException.php",
+            "methods": [
+                "__construct",
+                "context",
+                "publicContext",
+                "responseCode",
+                "suggestedStatus"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Exceptions\\SupportException": {
+            "kind": "class",
+            "file": "support/src/Exceptions/SupportException.php",
+            "methods": [],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Facades\\Locales": {
+            "kind": "class",
+            "file": "support/src/Facades/Locales.php",
+            "methods": [
+                "assertSupported",
+                "chain",
+                "default",
+                "fallbacks",
+                "normalize",
+                "supported",
+                "supports"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Locales\\LocaleCatalogDiagnostics": {
+            "kind": "class",
+            "file": "support/src/Locales/LocaleCatalogDiagnostics.php",
+            "methods": [
+                "__construct",
+                "inspect"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\OwnerRegistry": {
+            "kind": "class",
+            "file": "support/src/OwnerRegistry.php",
+            "methods": [
+                "__construct",
+                "aliasFor",
+                "all",
+                "deprecations",
+                "errors",
+                "model",
+                "register"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Owners\\OwnerBatch": {
+            "kind": "class",
+            "file": "support/src/Owners/OwnerBatch.php",
+            "methods": [
+                "fromModels",
+                "identities",
+                "isEmpty",
+                "owners"
+            ],
+            "properties": [],
+            "constants": [
+                "MAXIMUM_OWNERS"
+            ]
+        },
+        "Nvl\\Support\\Owners\\OwnerIdentity": {
+            "kind": "class",
+            "file": "support/src/Owners/OwnerIdentity.php",
+            "methods": [
+                "fromModel"
+            ],
+            "properties": [
+                "connection",
+                "id",
+                "model",
+                "type"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Owners\\OwnerResultMap": {
+            "kind": "class",
+            "file": "support/src/Owners/OwnerResultMap.php",
+            "methods": [
+                "__construct",
+                "get",
+                "jsonSerialize",
+                "order"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantBoundary": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantBoundary.php",
+            "methods": [
+                "assertRecord",
+                "attributes",
+                "key",
+                "query"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantContext": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantContext.php",
+            "methods": [
+                "requireTenant",
+                "snapshot"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantContextParticipant": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantContextParticipant.php",
+            "methods": [
+                "enter"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantDirectory": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantDirectory.php",
+            "methods": [
+                "find"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantHttpResolver": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantHttpResolver.php",
+            "methods": [
+                "resolve"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantInstallationState": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantInstallationState.php",
+            "methods": [
+                "assertUnadopted",
+                "assertUsable",
+                "invalidate"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantMembershipAccess": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantMembershipAccess.php",
+            "methods": [
+                "assertMember"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantOwnershipConfiguration": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantOwnershipConfiguration.php",
+            "methods": [
+                "mode",
+                "parentTypes",
+                "validate"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantQueueContext": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantQueueContext.php",
+            "methods": [
+                "captureBatch",
+                "run"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantQueueHandler": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantQueueHandler.php",
+            "methods": [
+                "call",
+                "failed",
+                "validate"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantQueuedJob": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantQueuedJob.php",
+            "methods": [
+                "tenantJobEnvelope"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Contracts\\TenantRunner": {
+            "kind": "interface",
+            "file": "support/src/Tenancy/Contracts/TenantRunner.php",
+            "methods": [
+                "platform",
+                "run",
+                "withoutTenant"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Enums\\TenantContextMode": {
+            "kind": "enum",
+            "file": "support/src/Tenancy/Enums/TenantContextMode.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "Disabled",
+                "Platform",
+                "Tenant",
+                "Unresolved"
+            ]
+        },
+        "Nvl\\Support\\Tenancy\\Enums\\TenantResourceKind": {
+            "kind": "enum",
+            "file": "support/src/Tenancy/Enums/TenantResourceKind.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "Inherited",
+                "Platform",
+                "Root"
+            ]
+        },
+        "Nvl\\Support\\Tenancy\\Enums\\TenantStatus": {
+            "kind": "enum",
+            "file": "support/src/Tenancy/Enums/TenantStatus.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "Active",
+                "Deleted",
+                "Suspended"
+            ]
+        },
+        "Nvl\\Support\\Tenancy\\Exceptions\\TenantConfigurationInvalid": {
+            "kind": "class",
+            "file": "support/src/Tenancy/Exceptions/TenantConfigurationInvalid.php",
+            "methods": [
+                "__construct",
+                "context",
+                "publicContext",
+                "responseCode",
+                "suggestedStatus"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Exceptions\\TenantNotFound": {
+            "kind": "class",
+            "file": "support/src/Tenancy/Exceptions/TenantNotFound.php",
+            "methods": [
+                "__construct",
+                "context",
+                "publicContext",
+                "responseCode",
+                "suggestedStatus"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Services\\TenantContextParticipants": {
+            "kind": "class",
+            "file": "support/src/Tenancy/Services/TenantContextParticipants.php",
+            "methods": [
+                "register"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\Services\\TenantResourceRegistry": {
+            "kind": "class",
+            "file": "support/src/Tenancy/Services/TenantResourceRegistry.php",
+            "methods": [
+                "all",
+                "forModel",
+                "get",
+                "hasModel",
+                "register"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\ValueObjects\\PlatformOperation": {
+            "kind": "class",
+            "file": "support/src/Tenancy/ValueObjects/PlatformOperation.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "actorId",
+                "actorType",
+                "purpose"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\ValueObjects\\TenantContextSnapshot": {
+            "kind": "class",
+            "file": "support/src/Tenancy/ValueObjects/TenantContextSnapshot.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "mode",
+                "tenantId"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\ValueObjects\\TenantDescriptor": {
+            "kind": "class",
+            "file": "support/src/Tenancy/ValueObjects/TenantDescriptor.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "id",
+                "status"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\ValueObjects\\TenantId": {
+            "kind": "class",
+            "file": "support/src/Tenancy/ValueObjects/TenantId.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "value"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\ValueObjects\\TenantJobEnvelope": {
+            "kind": "class",
+            "file": "support/src/Tenancy/ValueObjects/TenantJobEnvelope.php",
+            "methods": [
+                "__construct",
+                "capture"
+            ],
+            "properties": [
+                "context",
+                "version"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\ValueObjects\\TenantResourceDefinition": {
+            "kind": "class",
+            "file": "support/src/Tenancy/ValueObjects/TenantResourceDefinition.php",
+            "methods": [
+                "__construct",
+                "usesOwnershipKey"
+            ],
+            "properties": [
+                "allowsPlatformCatalog",
+                "allowsPlatformRows",
+                "family",
+                "key",
+                "kind",
+                "model",
+                "parentRelation",
+                "parentResource"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Tenancy\\ValueObjects\\TenantSiteContext": {
+            "kind": "class",
+            "file": "support/src/Tenancy/ValueObjects/TenantSiteContext.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "canonicalOrigin",
+                "site",
+                "tenantId"
+            ],
+            "constants": []
+        }
+    },
+    "models": {},
+    "capability_relations": {},
+    "tables": {}
+}
