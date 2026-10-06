@@ -5,16 +5,16 @@ declare(strict_types=1);
 use Nvl\Support\Config\PackageStorage;
 
 it('resolves package table overrides without changing other tables', function (): void {
-    config(['forms.tables.forms' => 'host_form_builder']);
+    config(['nvl-forms.tables.forms' => 'host_form_builder']);
 
     expect(PackageStorage::table('forms', 'forms', 'nvl_forms_forms'))->toBe('host_form_builder')
         ->and(PackageStorage::table('forms', 'entries', 'nvl_forms_entries'))->toBe('nvl_forms_entries');
 });
 
 it('inherits Core connections and preserves package overrides', function (): void {
-    config(['nvl-core.connection' => 'suite', 'forms.connection' => null]);
+    config(['nvl-core.connection' => 'suite', 'nvl-forms.connection' => null]);
     expect(PackageStorage::connection('forms'))->toBe('suite');
-    config(['forms.connection' => 'forms_storage']);
+    config(['nvl-forms.connection' => 'forms_storage']);
     expect(PackageStorage::connection('forms'))->toBe('forms_storage');
 });
 
@@ -36,7 +36,7 @@ it('preserves an explicit canonical value when an old key is also configured', f
 });
 
 it('rejects malformed storage identifiers before executing SQL', function (mixed $value): void {
-    config(['forms.tables.forms' => $value]);
+    config(['nvl-forms.tables.forms' => $value]);
     expect(fn (): string => PackageStorage::table('forms', 'forms', 'nvl_forms_forms'))
         ->toThrow(InvalidArgumentException::class);
 })->with(['empty' => '', 'SQL fragment' => 'forms; DROP TABLE users', 'wrong type' => 42]);

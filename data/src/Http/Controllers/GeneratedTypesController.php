@@ -41,7 +41,7 @@ final class GeneratedTypesController extends Controller
                 'data' => array_map(
                     static fn (array $file): array => [
                         ...$file,
-                        'url' => route('nvl-data.types.show', ['scope' => $file['scope']], false),
+                        'url' => route('nvl.data.types.show', ['scope' => $file['scope']], false),
                     ],
                     $manifest['files'],
                 ),
@@ -56,13 +56,13 @@ final class GeneratedTypesController extends Controller
                     'symbols' => $manifest['symbols'],
                     'entrypoint' => [
                         ...$manifest['entrypoint'],
-                        'url' => route('nvl-data.types.entrypoint', absolute: false),
+                        'url' => route('nvl.data.types.entrypoint', absolute: false),
                     ],
                     'archive' => [
                         ...$manifest['archive'],
                         'path' => 'archive',
                         'url' => $manifest['archive']['enabled']
-                            ? route('nvl-data.types.archive', absolute: false)
+                            ? route('nvl.data.types.archive', absolute: false)
                             : null,
                     ],
                 ],

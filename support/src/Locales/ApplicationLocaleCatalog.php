@@ -22,14 +22,14 @@ final readonly class ApplicationLocaleCatalog implements LocaleCatalog
     public function supported(): array
     {
         $canonical = $this->config->get('nvl-core.locales.supported');
-        $legacy = $this->config->get('primitives.locales.supported');
+        $legacy = $this->config->get('nvl-primitives.locales.supported');
 
         if ($canonical !== null) {
             return $this->normalizeList($canonical, 'nvl-core.locales.supported');
         }
 
         if ($this->allowLegacyCatalog && $legacy !== null) {
-            return $this->normalizeList($legacy, 'primitives.locales.supported');
+            return $this->normalizeList($legacy, 'nvl-primitives.locales.supported');
         }
 
         $locales = $this->applicationLocales();

@@ -113,7 +113,7 @@ it('adapts package-owned object checks without changing their results', function
 });
 
 it('reports legacy locale configuration through the shared strict gate', function (): void {
-    config(['app.locale' => 'en', 'app.fallback_locale' => 'en', 'primitives.locales.supported' => ['en']]);
+    config(['app.locale' => 'en', 'app.fallback_locale' => 'en', 'nvl-primitives.locales.supported' => ['en']]);
 
     expect(Artisan::call('nvl:doctor', ['--strict' => true, '--format' => 'json']))->toBe(1);
     $report = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
@@ -124,7 +124,7 @@ it('reports legacy locale configuration through the shared strict gate', functio
 
 it('reports cached infrastructure deprecations once without disclosing host values', function (): void {
     config(['nvl-core.configuration.deprecations' => [
-        'media.mutation_lock.store' => ['replacement' => 'media.locks.mutation.store', 'value' => 'secret-host-value', 'conflict' => true],
+        'nvl-media.mutation_lock.store' => ['replacement' => 'nvl-media.locks.mutation.store', 'value' => 'secret-host-value', 'conflict' => true],
     ]]);
 
     expect(Artisan::call('nvl:doctor', ['--strict' => true, '--format' => 'json']))->toBe(1);
@@ -168,4 +168,20 @@ it('reports only effective infrastructure names and preserves an explicit sync q
     expect($checks['configuration.queue.connection'])->toMatchArray(['severity' => 'info', 'result' => 'pass'])
         ->and($checks['configuration.queue.connection']['message'])->toContain('[sync]')
         ->and($checks['configuration.queue.name']['message'])->toContain('[shared-work]');
+});
+
+it('diagnoses disabled native quarantine persistence without opening a connection', function (mixed $driver): void {
+    config(['queue.failed.driver' => $driver, 'database.default' => 'unavailable']);
+    expect(Artisan::call('nvl:doctor', ['--strict' => true, '--format' => 'json']))->toBe(1);
+    $checks = array_column(json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR)['checks'], null, 'key');
+    expect($checks['queue.quarantine.persistence'])->toMatchArray(['severity' => 'warning', 'result' => 'fail'])
+        ->and($checks['queue.quarantine.persistence']['message'])->toContain('deleted safely', 'raw retry');
+})->with(['native null' => null, 'null driver' => 'null']);
+
+it('reports an unavailable native failed-job store for an asynchronous queue', function (): void {
+    config(['nvl-core.queue.connection' => 'database', 'queue.failed.driver' => 'database-uuids', 'queue.failed.table' => 'missing_native_failed_jobs']);
+    expect(Artisan::call('nvl:doctor', ['--format' => 'json']))->toBe(1);
+    $checks = array_column(json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR)['checks'], null, 'key');
+    expect($checks['queue.quarantine.persistence'])->toMatchArray(['severity' => 'error', 'result' => 'fail'])
+        ->and($checks['queue.quarantine.persistence']['message'])->toContain('missing_native_failed_jobs');
 });

@@ -81,7 +81,7 @@ it('loads defaults for absent host config and applies exact list overrides', fun
 return [
     'routes' => [
         'middleware' => ['api', 'auth', 'throttle'],
-        'prefix' => 'api/v1',
+        'prefix' => 'nvl/api/v1',
     ],
 ];
 PHP);
@@ -95,22 +95,22 @@ PHP);
 
         $provider->mergeConfiguration($path, 'example');
 
-        expect($configuration->get('example'))->toBe([
+        expect($configuration->get('nvl-example'))->toBe([
             'routes' => [
                 'middleware' => ['api', 'auth', 'throttle'],
-                'prefix' => 'api/v1',
+                'prefix' => 'nvl/api/v1',
             ],
         ]);
 
-        $configuration->set('example', [
+        $configuration->set('nvl-example', [
             'routes' => ['middleware' => ['web']],
         ]);
         $provider->mergeConfiguration($path, 'example');
 
-        expect($configuration->get('example'))->toBe([
+        expect($configuration->get('nvl-example'))->toBe([
             'routes' => [
                 'middleware' => ['web'],
-                'prefix' => 'api/v1',
+                'prefix' => 'nvl/api/v1',
             ],
         ]);
     } finally {

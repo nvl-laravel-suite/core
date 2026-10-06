@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'typescript' => [
+        'adopt_global_config' => false,
         /*
         |--------------------------------------------------------------------------
         | Transformer Configuration
@@ -46,7 +47,7 @@ return [
         */
         'routes' => [
             'enabled' => false,
-            'prefix' => 'api/v1/nvl/types',
+            'prefix' => 'nvl/api/v1/data/types',
             'middleware' => ['web', 'auth', 'throttle:60,1'],
             'cache_control' => 'private, no-store',
             'headers_prefix' => 'NVL',

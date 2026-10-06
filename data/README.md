@@ -18,6 +18,8 @@
 
 It has no internal NVL dependency. It does not own Eloquent models, database transactions, domain validation policy, content localization, or frontend build tooling.
 
+NVL generation uses isolated TypeScript configuration. Global Spatie transformer configuration remains host-owned unless `nvl-data.typescript.adopt_global_config` is explicitly `true`; its default is `false`. The compatibility `configure_transformer` switch alone does not activate global adoption. Doctor reports the active adoption.
+
 ## Requirements and installation
 
 ```bash
@@ -27,8 +29,8 @@ composer require nvl/core:^2.0
 Laravel auto-discovers `DataServiceProvider`. Optional publish tags are:
 
 ```bash
-php artisan vendor:publish --tag=data-config
-php artisan vendor:publish --tag=data-skills
+php artisan vendor:publish --tag=nvl-data-config
+php artisan vendor:publish --tag=nvl-data-skills
 php artisan vendor:publish --tag=nvl-data-generated-types-tooling
 ```
 

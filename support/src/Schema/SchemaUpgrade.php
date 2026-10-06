@@ -6,6 +6,7 @@ namespace Nvl\Support\Schema;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Migrations\Migrator;
 use LogicException;
 use Nvl\Support\Config\PackageStorage;
 
@@ -13,12 +14,13 @@ use Nvl\Support\Config\PackageStorage;
  * Plans verified legacy renames before making any database changes.
  *
  * @phpstan-type UpgradeStep array{kind: 'table'|'migration', package: string, connection: string|null, from: string, to: string}
- * @phpstan-type UpgradePlan array{schema_version: int, packages: list<string>, steps: list<UpgradeStep>, warnings: list<string>}
+ * @phpstan-type MigrationFilePlan array{package: string, path: string, migration: string, recorded: string|null, action: 'archive'|'archived'|'published'}
+ * @phpstan-type UpgradePlan array{schema_version: int, packages: list<string>, migration_owner: 'vendor'|'published', files: list<MigrationFilePlan>, steps: list<UpgradeStep>, warnings: list<string>}
  */
 final readonly class SchemaUpgrade
 {
     /** Retain the host database resolver for explicitly selected packages. */
-    public function __construct(private DatabaseManager $database) {}
+    public function __construct(private DatabaseManager $database, private SchemaMigrationPaths $paths, private Migrator $migrator) {}
 
     /**
      * Validate all selected packages before returning a reviewable plan.
@@ -26,13 +28,24 @@ final readonly class SchemaUpgrade
      * @param  list<string>  $packages
      * @return UpgradePlan
      */
-    public function plan(array $packages, bool $claimLegacy): array
+    public function plan(array $packages, bool $claimLegacy, string $migrationOwner = 'vendor'): array
     {
         if (! $claimLegacy) {
             throw new LogicException('Legacy schema ownership requires --claim-legacy. Inspect nvl:doctor and use --dry-run before applying the plan.');
         }
         if ($packages === []) {
             throw new LogicException('Select at least one --package; upgrades never claim every installed package implicitly.');
+        }
+        if (! in_array($migrationOwner, ['vendor', 'published'], true)) {
+            throw new LogicException('The migration owner must be vendor or published.');
+        }
+        $declared = array_values(array_filter($this->paths->declared(), static fn (array $file): bool => in_array($file['package'], $packages, true)));
+        $files = [];
+        foreach ($declared as $file) {
+            $files[] = ['package' => $file['package'], 'path' => $file['path'], 'migration' => $file['name'], 'recorded' => $file['recorded'], 'action' => $migrationOwner === 'published' ? 'published' : ($this->executable($file['path']) ? 'archive' : 'archived')];
+            if ($migrationOwner === 'published' && ! $file['current']) {
+                throw new LogicException('Published ownership requires installing the current package migration code before reconciling history. Old down() code must not remain executable.');
+            }
         }
         $repository = $this->database->connection();
         $migrationTable = $this->migrationTable();
@@ -47,12 +60,28 @@ final readonly class SchemaUpgrade
             if ($manifest === [] || ! is_array(config($manifest['config']))) {
                 throw new LogicException("Schema package [{$package}] is unknown or not loaded in this application.");
             }
+            if ($migrationOwner === 'published' && config($manifest['config'].'.migrations.enabled', true) !== false) {
+                throw new LogicException("Published ownership requires disabling vendor migrations with [{$manifest['config']}.migrations.enabled=false].");
+            }
             $connectionName = PackageStorage::connection($package);
             $connection = $this->database->connection($connectionName);
             $schema = $connection->getSchemaBuilder();
             $claimed = [];
             foreach ($manifest['migrations'] as $old => $migration) {
-                $candidates = array_values(array_filter($rows, static fn (mixed $row): bool => is_string($row) && ($row === $old || substr($row, 18) === substr($old, 18))));
+                $copies = array_values(array_filter($declared, static fn (array $file): bool => $file['package'] === $package && $file['name'] === $migration['name']));
+                if (count($copies) > 1) {
+                    throw new LogicException("Migration [{$migration['name']}] has duplicate declared owners; select one exact file before upgrading.");
+                }
+                $mapped = array_values(array_filter(array_column($copies, 'recorded'), static fn (mixed $name): bool => is_string($name)));
+                foreach ($rows as $row) {
+                    $nativeFiles = array_map(static fn (array $file): string => pathinfo($file['path'], PATHINFO_FILENAME), $copies);
+                    if (is_string($row) && $row !== $old && $row !== $migration['name']
+                        && (substr($row, 18) === substr($old, 18) || substr($row, 18) === substr($migration['name'], 18))
+                        && ! in_array($row, $mapped, true) && ! in_array($row, $nativeFiles, true)) {
+                        throw new LogicException("Retimestamped migration [{$row}] requires an explicit mapping in nvl-core.migrations.published; a familiar suffix is not ownership.");
+                    }
+                }
+                $candidates = array_values(array_filter($rows, static fn (mixed $row): bool => is_string($row) && ($row === $old || in_array($row, $mapped, true))));
                 if (count($candidates) > 1) {
                     throw new LogicException("Migration identity [{$old}] is ambiguous; resolve the duplicate published records before upgrading.");
                 }
@@ -70,20 +99,23 @@ final readonly class SchemaUpgrade
                     }
                 }
                 $from = $candidates[0];
-                if ($from !== $old) {
-                    $published = database_path('migrations/'.$from.'.php');
-                    if (! is_file($published) || hash_file('sha256', $published) !== $migration['legacy_checksum']) {
-                        throw new LogicException("Published migration [{$from}] cannot be verified against the released checksum. Preserve the file and resolve its ownership before upgrading.");
-                    }
+                $nativeLegacy = database_path('migrations/'.$from.'.php');
+                if (is_file($nativeLegacy) && $this->paths->identity($nativeLegacy) === null) {
+                    throw new LogicException("Executable migration [{$nativeLegacy}] is unclaimed. Declare and reconcile its exact file before upgrading; the command will not hash or mutate host code.");
                 }
-                $to = $migration['name'];
-                if (in_array($to, $rows, true)) {
+                if ($migrationOwner === 'published' && $copies === []) {
+                    throw new LogicException("Published ownership of [{$migration['name']}] requires an exact current-code file declaration.");
+                }
+                $to = $migrationOwner === 'published' ? pathinfo($copies[0]['path'], PATHINFO_FILENAME) : $migration['name'];
+                if ($from !== $to && in_array($to, $rows, true)) {
                     throw new LogicException("Both legacy and canonical migration records exist for [{$from}]; the command will not remove either record.");
                 }
                 foreach ($migration['creates'] as $key) {
                     $claimed[$key] = true;
                 }
-                $steps[] = ['kind' => 'migration', 'package' => $package, 'connection' => null, 'from' => $from, 'to' => $to];
+                if ($from !== $to) {
+                    $steps[] = ['kind' => 'migration', 'package' => $package, 'connection' => null, 'from' => $from, 'to' => $to];
+                }
             }
             $verifiedTables = 0;
             foreach ($manifest['tables'] as $key => $table) {
@@ -140,7 +172,7 @@ final readonly class SchemaUpgrade
             $warnings[] = 'Selected storage spans connections; transactions are per connection, not atomic across databases.';
         }
 
-        return ['schema_version' => 1, 'packages' => array_values(array_unique($packages)), 'steps' => $steps, 'warnings' => array_values(array_unique($warnings))];
+        return ['schema_version' => 2, 'packages' => array_values(array_unique($packages)), 'migration_owner' => $migrationOwner, 'files' => $files, 'steps' => $steps, 'warnings' => array_values(array_unique($warnings))];
     }
 
     /**
@@ -150,7 +182,10 @@ final readonly class SchemaUpgrade
      */
     public function execute(array $plan): void
     {
-        if ($this->plan($plan['packages'], true) !== $plan) {
+        if (array_any($plan['files'], static fn (array $file): bool => $file['action'] === 'archive')) {
+            throw new LogicException('Manually archive the declared published files outside executable migration paths, update their exact declarations and generate a fresh dry run before applying vendor ownership. No files or storage have changed.');
+        }
+        if ($this->plan($plan['packages'], true, $plan['migration_owner']) !== $plan) {
             throw new LogicException('Storage changed after the upgrade plan was prepared. Generate a fresh dry run before applying it.');
         }
         $groups = [];
@@ -178,6 +213,19 @@ final readonly class SchemaUpgrade
                 $apply();
             }
         }
+    }
+
+    /** Determine whether a declared copy is still inside a native loaded migration path. */
+    private function executable(string $path): bool
+    {
+        foreach (array_merge($this->migrator->paths(), [database_path('migrations')]) as $loaded) {
+            $real = realpath($loaded);
+            if ($real !== false && ($path === $real || (is_dir($real) && str_starts_with($path, $real.DIRECTORY_SEPARATOR)))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** SQLite can transact these rename statements despite Laravel's general schema grammar flag. */

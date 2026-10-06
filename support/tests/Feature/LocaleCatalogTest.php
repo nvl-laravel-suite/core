@@ -37,16 +37,16 @@ it('shares regional normalization and validates locale shape', function (): void
 it('uses the deprecated primitives catalog only for the standalone default', function (): void {
     $configuration = new Repository([
         'app' => ['locale' => 'fr', 'fallback_locale' => 'en'],
-        'primitives' => ['locales' => ['supported' => ['BG_bg', 'en']]],
+        'nvl-primitives' => ['locales' => ['supported' => ['BG_bg', 'en']]],
     ]);
     $catalog = new ApplicationLocaleCatalog($configuration);
 
     expect($catalog->supported())->toBe(['bg-BG', 'en'])
         ->and($catalog->default())->toBe('en')
         ->and((new LocaleCatalogDiagnostics($configuration, $catalog))->inspect()['warnings'])
-        ->toContain('primitives.locales is deprecated; bind LocaleCatalog or configure translatable.locales.');
+        ->toContain('nvl-primitives.locales is deprecated; bind LocaleCatalog or configure nvl-translatable.locales.');
 
-    $configuration->set('primitives.locales.supported', ['en', 'EN']);
+    $configuration->set('nvl-primitives.locales.supported', ['en', 'EN']);
     expect(fn () => $catalog->supported())->toThrow(InvalidArgumentException::class);
 });
 
@@ -65,7 +65,7 @@ it('uses an explicit Core catalog before legacy primitive configuration and pres
     $configuration = new Repository([
         'app' => ['locale' => 'fr', 'fallback_locale' => 'de'],
         'nvl-core' => ['locales' => ['supported' => ['zh', 'zh_hant_tw', 'en'], 'default' => 'zh', 'fallback' => ['en']]],
-        'primitives' => ['locales' => ['supported' => ['fr']]],
+        'nvl-primitives' => ['locales' => ['supported' => ['fr']]],
     ]);
     $catalog = new ApplicationLocaleCatalog($configuration);
 

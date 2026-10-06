@@ -7,6 +7,7 @@ namespace Nvl\Support\Integrations;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use InvalidArgumentException;
+use Nvl\Support\Config\PackageConfiguration;
 
 /** Resolves optional capabilities from explicit switches and loaded providers. */
 final readonly class OptionalIntegration
@@ -17,6 +18,7 @@ final readonly class OptionalIntegration
     /** Determine whether a loaded adapter is selected for the capability. */
     public function enabled(string $key, string $provider, bool $requested = false): bool
     {
+        $key = PackageConfiguration::key($key);
         $flag = $this->config->get($key);
 
         if ($flag !== null && ! is_bool($flag)) {

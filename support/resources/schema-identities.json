@@ -1,6 +1,6 @@
 {
     "activity": {
-        "config": "activity",
+        "config": "nvl-activity",
         "tables": {
             "log": {
                 "constant": "ActivityLog",
@@ -1153,7 +1153,7 @@
         }
     },
     "billing": {
-        "config": "billing",
+        "config": "nvl-billing",
         "tables": {
             "accounts": {
                 "constant": "Accounts",
@@ -1351,7 +1351,7 @@
         }
     },
     "comments": {
-        "config": "comments",
+        "config": "nvl-comments",
         "tables": {
             "comments": {
                 "constant": "Comments",
@@ -1885,7 +1885,7 @@
         }
     },
     "content": {
-        "config": "content",
+        "config": "nvl-content",
         "tables": {
             "definitions": {
                 "constant": "Definitions",
@@ -2327,7 +2327,7 @@
         }
     },
     "forms": {
-        "config": "forms",
+        "config": "nvl-forms",
         "tables": {
             "forms": {
                 "constant": "Forms",
@@ -2965,7 +2965,7 @@
         }
     },
     "mail-notifications": {
-        "config": "mail-notifications",
+        "config": "nvl-mail-notifications",
         "tables": {
             "notifications": {
                 "constant": "Notifications",
@@ -3282,7 +3282,7 @@
         }
     },
     "media": {
-        "config": "media",
+        "config": "nvl-media",
         "tables": {
             "media": {
                 "constant": "Media",
@@ -3981,7 +3981,7 @@
         }
     },
     "metafields": {
-        "config": "metafields",
+        "config": "nvl-metafields",
         "tables": {
             "metafields": {
                 "constant": "Metafields",
@@ -4443,7 +4443,7 @@
         }
     },
     "pages": {
-        "config": "pages",
+        "config": "nvl-pages",
         "tables": {
             "pages": {
                 "constant": "Pages",
@@ -4662,7 +4662,7 @@
         }
     },
     "payments": {
-        "config": "payments",
+        "config": "nvl-payments",
         "tables": {
             "attempts": {
                 "constant": "Attempts",
@@ -4926,7 +4926,7 @@
         }
     },
     "seo": {
-        "config": "seo",
+        "config": "nvl-seo",
         "tables": {
             "profiles": {
                 "constant": "Profiles",
@@ -5203,7 +5203,7 @@
         }
     },
     "settings": {
-        "config": "settings",
+        "config": "nvl-settings",
         "tables": {
             "settings": {
                 "constant": "Settings",
@@ -5291,7 +5291,7 @@
         }
     },
     "tasks": {
-        "config": "tasks",
+        "config": "nvl-tasks",
         "tables": {
             "tasks": {
                 "constant": "Tasks",
@@ -5820,7 +5820,7 @@
         }
     },
     "taxonomy": {
-        "config": "taxonomy",
+        "config": "nvl-taxonomy",
         "tables": {
             "terms": {
                 "constant": "Terms",
@@ -6088,7 +6088,7 @@
         }
     },
     "templates": {
-        "config": "templates",
+        "config": "nvl-templates",
         "tables": {
             "templates": {
                 "constant": "Templates",
@@ -6580,7 +6580,7 @@
         }
     },
     "tenancy": {
-        "config": "tenancy",
+        "config": "nvl-tenancy",
         "tables": {
             "tenants": {
                 "constant": "Tenants",
@@ -6820,7 +6820,7 @@
         }
     },
     "translations": {
-        "config": "translations",
+        "config": "nvl-translations",
         "tables": {
             "entries": {
                 "constant": "Entries",

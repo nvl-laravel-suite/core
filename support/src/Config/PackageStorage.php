@@ -35,7 +35,7 @@ final class PackageStorage
     /** Return one validated effective table name. */
     public static function table(string $package, string $key, string $default): string
     {
-        $namespace = $package === 'auth' ? 'nvl-auth' : $package;
+        $namespace = PackageConfiguration::key($package);
         $host = self::configuration(Config::get($namespace, []));
         $definition = SchemaIdentities::package($package)['tables'][$key] ?? null;
         if ($definition !== null) {
@@ -63,7 +63,7 @@ final class PackageStorage
     /** Return the package connection, inheriting the suite default when omitted. */
     public static function connection(string $package): ?string
     {
-        $namespace = $package === 'auth' ? 'nvl-auth' : $package;
+        $namespace = PackageConfiguration::key($package);
         $host = self::configuration(Config::get($namespace, []));
         $host = self::runtimeAlias($package, $host, 'connection', null, ['storage.connection']);
         $value = $host['connection'] ?? Config::get('nvl-core.connection');
@@ -81,7 +81,7 @@ final class PackageStorage
         if ($package !== 'media' || $key !== 'owner_slot_operations') {
             return self::connection($package);
         }
-        $host = self::configuration(Config::get('media', []));
+        $host = self::configuration(Config::get('nvl-media', []));
         $canonical = 'connections.owner_slot_operations';
         $host = self::runtimeAlias($package, $host, $canonical, null, ['owner_slots.idempotency.connection']);
         $value = Arr::get($host, $canonical);
@@ -100,7 +100,7 @@ final class PackageStorage
      */
     public static function normalize(string $package, array $host, bool $reportDeprecated = false): array
     {
-        $package = $package === 'nvl-auth' ? 'auth' : $package;
+        $package = PackageConfiguration::logical($package);
         $host = PackageOptions::normalize($package, $host, $reportDeprecated);
         $host = self::alias($host, 'storage.connection', 'connection');
         if ($package === 'media') {
@@ -130,6 +130,55 @@ final class PackageStorage
     }
 
     /**
+     * Add only declared historical shapes for validating explicit legacy roots.
+     *
+     * @param  array<string, mixed>  $defaults  Canonical defaults
+     * @return array<string, mixed> Accepted canonical and historical shapes
+     */
+    public static function legacyDefaults(string $package, array $defaults): array
+    {
+        $package = PackageConfiguration::logical($package);
+        $aliases = PackageOptions::aliases($package);
+        $aliases['storage.connection'] = 'connection';
+        if ($package === 'media') {
+            $aliases['owner_slots.idempotency.connection'] = 'connections.owner_slot_operations';
+        }
+        foreach (SchemaIdentities::package($package)['tables'] ?? [] as $key => $definition) {
+            foreach (self::tableAliases($package, $key, $definition) as $old) {
+                $aliases[$old] = "tables.{$key}";
+            }
+        }
+        foreach ($aliases as $old => $canonical) {
+            if (! Arr::has($defaults, $old)) {
+                self::addLegacyDefault($defaults, $old, Arr::get($defaults, $canonical));
+            }
+        }
+
+        return $defaults;
+    }
+
+    /** @param array<string, mixed> $defaults Preserve the root option-map type while adding a declared dotted alias. */
+    private static function addLegacyDefault(array &$defaults, string $path, mixed $value): void
+    {
+        $segments = explode('.', $path);
+        $root = array_shift($segments);
+        if ($root === '' || ctype_digit($root)) {
+            throw new InvalidArgumentException('Legacy option aliases must begin with a named configuration group.');
+        }
+        if ($segments === []) {
+            $defaults[$root] = $value;
+
+            return;
+        }
+        $group = $defaults[$root] ?? [];
+        if (! is_array($group)) {
+            throw new InvalidArgumentException("Legacy option group [{$root}] must be a map.");
+        }
+        Arr::set($group, implode('.', $segments), $value);
+        $defaults[$root] = $group;
+    }
+
+    /**
      * Keep deprecated readers aligned with normalized canonical settings.
      *
      * @param  array<string, mixed>  $configuration
@@ -137,7 +186,7 @@ final class PackageStorage
      */
     public static function mirror(string $package, array $configuration): array
     {
-        $package = $package === 'nvl-auth' ? 'auth' : $package;
+        $package = PackageConfiguration::logical($package);
         foreach (SchemaIdentities::package($package)['tables'] ?? [] as $key => $definition) {
             foreach (self::tableAliases($package, $key, $definition) as $alias) {
                 if ($alias !== "tables.{$key}" && (Arr::has($configuration, $alias) || str_starts_with($alias, 'table_names.') && Arr::has($configuration, 'table_names'))) {

@@ -3,10 +3,17 @@
     "description": "Shared NVL support contracts and data transformation infrastructure for Laravel",
     "type": "library",
     "license": "MIT",
-    "keywords": ["laravel", "support", "data-transfer-object", "typescript"],
+    "keywords": [
+        "laravel",
+        "support",
+        "data-transfer-object",
+        "typescript"
+    ],
     "require": {
         "php": "^8.3",
         "composer-runtime-api": "^2.2",
+        "ext-ctype": "*",
+        "ext-mbstring": "*",
         "laravel/framework": "^13.0",
         "spatie/laravel-data": "^4.23",
         "spatie/laravel-typescript-transformer": "^3.3",
@@ -16,9 +23,11 @@
     "require-dev": {
         "larastan/larastan": "^3.10",
         "laravel/pint": "^1.27",
+        "mockery/mockery": "^1.6",
         "orchestra/testbench": "^11.0",
         "pestphp/pest": "^4.0",
-        "pestphp/pest-plugin-laravel": "^4.0"
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "symfony/console": "^8.0"
     },
     "suggest": {
         "ext-zip": "Enables downloadable archives for the generated TypeScript declaration API."
@@ -33,7 +42,12 @@
         "psr-4": {
             "Nvl\\Support\\Tests\\": "support/tests/",
             "Nvl\\Data\\Tests\\": "data/tests/"
-        }
+        },
+        "exclude-from-classmap": [
+            "support/tests/Feature/QueueEnvelopeIsolationTest.php",
+            "support/tests/Feature/PackageStorageTest.php",
+            "support/tests/Feature/NamespacedPublicationsTest.php"
+        ]
     },
     "scripts": {
         "analyse": "phpstan analyse --memory-limit=2G",
@@ -48,7 +62,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "2.x-dev"
+            "dev-main": "5.x-dev"
         },
         "laravel": {
             "providers": [
@@ -87,9 +101,15 @@
             "/data/tests",
             "/data/phpstan.neon.dist",
             "/data/phpunit.xml.dist",
-            "/data/composer.json"
+            "/data/composer.json",
+            "/.DS_Store",
+            "/**/.DS_Store"
         ]
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "conflict": {
+        "nvl/support": "*",
+        "nvl/data": "*"
+    }
 }

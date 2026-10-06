@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Schema;
 
-use Composer\InstalledVersions;
 use RuntimeException;
 
 /**
@@ -109,29 +108,11 @@ final class SchemaIdentities
      */
     public static function publishedMigration(string $path): ?array
     {
-        if (! is_file($path)) {
-            return null;
-        }
-        $name = pathinfo($path, PATHINFO_FILENAME);
-        foreach (self::all() as $package => $definition) {
-            foreach ($definition['migrations'] as $old => $migration) {
-                if (substr($name, 18) !== substr($old, 18) && substr($name, 18) !== substr($migration['name'], 18)) {
-                    continue;
-                }
-                $packagePath = InstalledVersions::isInstalled('nvl/'.$package) ? InstalledVersions::getInstallPath('nvl/'.$package) : null;
-                $canonical = $packagePath === null ? null : $packagePath.'/'.$migration['path'];
-                if ($canonical === null || ! is_file($canonical)) {
-                    continue;
-                }
-                $checksum = hash_file('sha256', $path);
-                if ((substr($name, 18) === substr($old, 18) && $checksum === $migration['legacy_checksum'])
-                    || (substr($name, 18) === substr($migration['name'], 18) && $checksum === hash_file('sha256', $canonical))) {
-                    return ['name' => $migration['name'], 'path' => $canonical];
-                }
-            }
-        }
+        $identity = (new SchemaMigrationPaths)->identity($path);
 
-        return null;
+        return $identity !== null && $identity['published']
+            ? ['name' => $identity['name'], 'path' => $identity['canonical']]
+            : null;
     }
 
     /** @return list<SchemaKey> */

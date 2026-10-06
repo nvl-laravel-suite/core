@@ -11,7 +11,7 @@ use Nvl\Support\Schema\SchemaShape;
 use Nvl\Support\Schema\SchemaUpgrade;
 
 beforeEach(function (): void {
-    config(['forms' => []]);
+    config(['nvl-forms' => []]);
 });
 
 it('rejects a familiar foreign column referencing an unrelated host parent', function (): void {
@@ -26,7 +26,7 @@ it('rejects a familiar foreign column referencing an unrelated host parent', fun
 
 it('refuses a complete recorded legacy package before any rename when its parent target is unrelated', function (): void {
     $manifest = SchemaIdentities::package('forms');
-    config(['forms.tables' => array_map(static fn (array $table): string => $table['legacy'], $manifest['tables'])]);
+    config(['nvl-forms.tables' => array_map(static fn (array $table): string => $table['legacy'], $manifest['tables'])]);
     $creators = [];
     foreach ($manifest['tables'] as $table) {
         foreach ($table['create_migrations'] as $old) {
@@ -38,7 +38,7 @@ it('refuses a complete recorded legacy package before any rename when its parent
             $creators[$old] = true;
         }
     }
-    config(['forms' => []]);
+    config(['nvl-forms' => []]);
     Schema::create('migrations', function (Blueprint $table): void {
         $table->increments('id');
         $table->string('migration');
@@ -87,7 +87,7 @@ it('rejects the correct parent table when a foreign key references the wrong col
 });
 
 it('accepts the legacy and effective configured parent through resumed table renames', function (): void {
-    config(['forms.tables.forms' => 'configured_forms']);
+    config(['nvl-forms.tables.forms' => 'configured_forms']);
     Schema::create('forms', fn (Blueprint $table) => $table->uuid('id')->primary());
     Schema::create('legacy_child', function (Blueprint $table): void {
         $table->foreignUuid('form_id')->constrained('forms');
@@ -133,7 +133,7 @@ it('rejects tenant composites whose referenced partition differs from the local 
 });
 
 it('rejects a package parent configured on a different database connection', function (): void {
-    config(['database.connections.other_forms' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => ''], 'forms.connection' => 'other_forms']);
+    config(['database.connections.other_forms' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => ''], 'nvl-forms.connection' => 'other_forms']);
     Schema::create('forms', fn (Blueprint $table) => $table->uuid('id')->primary());
     Schema::create('legacy_child', function (Blueprint $table): void {
         $table->foreignUuid('form_id')->constrained('forms');
@@ -195,7 +195,7 @@ it('rejects a matching parent name in another schema unless that schema is expli
         expect(fn () => SchemaShape::assertCompatible($schema, 'legacy_child', ['form_id' => 'uuid'], [], nvlFormForeignIdentity()))
             ->toThrow(LogicException::class, 'released foreign key');
 
-        config(['forms.tables.forms' => 'nvl_foreign_target_fixture.forms']);
+        config(['nvl-forms.tables.forms' => 'nvl_foreign_target_fixture.forms']);
         SchemaShape::assertCompatible($schema, 'legacy_child', ['form_id' => 'uuid'], [], nvlFormForeignIdentity());
         expect($schema->getForeignKeys('legacy_child')[0]['foreign_schema'])->toBe('nvl_foreign_target_fixture');
     } finally {

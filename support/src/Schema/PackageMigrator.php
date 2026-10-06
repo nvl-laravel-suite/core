@@ -11,7 +11,11 @@ use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Filesystem\Filesystem;
 use LogicException;
 
-/** Adds a batch-wide ownership preflight to Laravel's normal migration lifecycle. */
+/**
+ * Retains the former opt-in migrator surface for consumers migrating to native Laravel.
+ *
+ * @deprecated Use Laravel's migrator and the explicit nvl:schema:preflight deployment gate.
+ */
 class PackageMigrator extends Migrator
 {
     /** Construct Laravel's migrator with its required ownership preflight. */
@@ -21,20 +25,9 @@ class PackageMigrator extends Migrator
     }
 
     /** Preserve Laravel's configured state and require custom migrators to retain the safety boundary. */
-    public static function guard(Migrator $migrator, SchemaPreflight $preflight): self
+    public static function guard(Migrator $migrator, SchemaPreflight $preflight): Migrator
     {
-        if ($migrator instanceof self) {
-            return $migrator;
-        }
-        if ($migrator::class !== Migrator::class) {
-            throw new LogicException('NVL cannot replace a custom host migrator safely. Make the host migrator extend Nvl\\Support\\Schema\\PackageMigrator and retain its preflight before running migrations.');
-        }
-        $guarded = new self($migrator->repository, $migrator->resolver, $migrator->files, $migrator->events, $preflight);
-        $guarded->connection = $migrator->connection;
-        $guarded->paths = $migrator->paths;
-        $guarded->output = $migrator->output;
-
-        return $guarded;
+        return $migrator;
     }
 
     /**

@@ -1,0 +1,3023 @@
+{
+    "version": 5,
+    "config": {
+        "activity": "nvl-activity",
+        "billing": "nvl-billing",
+        "comments": "nvl-comments",
+        "content": "nvl-content",
+        "forms": "nvl-forms",
+        "mail-notifications": "nvl-mail-notifications",
+        "media": "nvl-media",
+        "metafields": "nvl-metafields",
+        "pages": "nvl-pages",
+        "payments": "nvl-payments",
+        "primitives": "nvl-primitives",
+        "seo": "nvl-seo",
+        "settings": "nvl-settings",
+        "tasks": "nvl-tasks",
+        "taxonomy": "nvl-taxonomy",
+        "templates": "nvl-templates",
+        "tenancy": "nvl-tenancy",
+        "translatable": "nvl-translatable",
+        "translations": "nvl-translations"
+    },
+    "env": {
+        "NVL_COMMENTS_IDEMPOTENCY_DIGEST_KEY": "COMMENTS_IDEMPOTENCY_DIGEST_KEY",
+        "NVL_COMMENTS_METADATA_DIGEST_KEY": "COMMENTS_METADATA_DIGEST_KEY",
+        "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_BATCH_SIZE": "MAIL_NOTIFICATIONS_ANONYMIZATION_BATCH_SIZE",
+        "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_DAYS": "MAIL_NOTIFICATIONS_ANONYMIZATION_DAYS",
+        "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_ENABLED": "MAIL_NOTIFICATIONS_ANONYMIZATION_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_LIMIT": "MAIL_NOTIFICATIONS_ANONYMIZATION_LIMIT",
+        "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_STATUSES": "MAIL_NOTIFICATIONS_ANONYMIZATION_STATUSES",
+        "NVL_MAIL_NOTIFICATIONS_BRAND_FOOTER_ENABLED": "MAIL_BRAND_FOOTER_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_BRAND_FOOTER_TEXT": "MAIL_BRAND_FOOTER_TEXT",
+        "NVL_MAIL_NOTIFICATIONS_BRAND_HEADER_ENABLED": "MAIL_BRAND_HEADER_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_BRAND_LOGO_ALT": "MAIL_BRAND_LOGO_ALT",
+        "NVL_MAIL_NOTIFICATIONS_BRAND_LOGO_URL": "MAIL_BRAND_LOGO_URL",
+        "NVL_MAIL_NOTIFICATIONS_BRAND_NAME": "MAIL_BRAND_NAME",
+        "NVL_MAIL_NOTIFICATIONS_BRAND_SUPPORT_TEXT": "MAIL_BRAND_SUPPORT_TEXT",
+        "NVL_MAIL_NOTIFICATIONS_BRAND_URL": "MAIL_BRAND_URL",
+        "NVL_MAIL_NOTIFICATIONS_DB_CONNECTION": "MAIL_NOTIFICATIONS_DB_CONNECTION",
+        "NVL_MAIL_NOTIFICATIONS_ENABLED": "MAIL_NOTIFICATIONS_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_EVENTS_TABLE": "MAIL_NOTIFICATION_EVENTS_TABLE",
+        "NVL_MAIL_NOTIFICATIONS_EXCLUDED_MAILERS": "MAIL_NOTIFICATIONS_EXCLUDED_MAILERS",
+        "NVL_MAIL_NOTIFICATIONS_FAILURE_POLICY": "MAIL_NOTIFICATIONS_FAILURE_POLICY",
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_API_TOKEN": "MAIL_NOTIFICATIONS_MAILERSEND_API_TOKEN",
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_API_URL": "MAIL_NOTIFICATIONS_MAILERSEND_API_URL",
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_CONNECT_TIMEOUT_SECONDS": "MAIL_NOTIFICATIONS_MAILERSEND_CONNECT_TIMEOUT_SECONDS",
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_DOMAIN_ID": "MAIL_NOTIFICATIONS_MAILERSEND_DOMAIN_ID",
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_MANAGEMENT_ENABLED": "MAIL_NOTIFICATIONS_MAILERSEND_MANAGEMENT_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_SIGNING_SECRET": "MAIL_NOTIFICATIONS_MAILERSEND_SIGNING_SECRET",
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_TIMEOUT_SECONDS": "MAIL_NOTIFICATIONS_MAILERSEND_TIMEOUT_SECONDS",
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_WEBHOOK_NAME": "MAIL_NOTIFICATIONS_MAILERSEND_WEBHOOK_NAME",
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_WEBHOOK_URL": "MAIL_NOTIFICATIONS_MAILERSEND_WEBHOOK_URL",
+        "NVL_MAIL_NOTIFICATIONS_METADATA_MAX_DEPTH": "MAIL_NOTIFICATIONS_METADATA_MAX_DEPTH",
+        "NVL_MAIL_NOTIFICATIONS_METADATA_MAX_ITEMS": "MAIL_NOTIFICATIONS_METADATA_MAX_ITEMS",
+        "NVL_MAIL_NOTIFICATIONS_METADATA_MAX_STRING_BYTES": "MAIL_NOTIFICATIONS_METADATA_MAX_STRING_BYTES",
+        "NVL_MAIL_NOTIFICATIONS_METADATA_MAX_TOTAL_BYTES": "MAIL_NOTIFICATIONS_METADATA_MAX_TOTAL_BYTES",
+        "NVL_MAIL_NOTIFICATIONS_PRESENTATION_AUTO_LOAD": "MAIL_NOTIFICATIONS_PRESENTATION_AUTO_LOAD",
+        "NVL_MAIL_NOTIFICATIONS_PRESENTATION_ENABLED": "MAIL_NOTIFICATIONS_PRESENTATION_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_PROVIDER": "MAIL_NOTIFICATIONS_PROVIDER",
+        "NVL_MAIL_NOTIFICATIONS_PRUNE_BATCH_SIZE": "MAIL_NOTIFICATIONS_PRUNE_BATCH_SIZE",
+        "NVL_MAIL_NOTIFICATIONS_PRUNE_LIMIT": "MAIL_NOTIFICATIONS_PRUNE_LIMIT",
+        "NVL_MAIL_NOTIFICATIONS_REDACTED_KEYS": "MAIL_NOTIFICATIONS_REDACTED_KEYS",
+        "NVL_MAIL_NOTIFICATIONS_RETENTION_DAYS": "MAIL_NOTIFICATIONS_RETENTION_DAYS",
+        "NVL_MAIL_NOTIFICATIONS_RETENTION_STATUSES": "MAIL_NOTIFICATIONS_RETENTION_STATUSES",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_DAYS": "MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_DAYS",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_ENABLED": "MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_STATUSES": "MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_STATUSES",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULED_MESSAGES_TABLE": "MAIL_NOTIFICATIONS_SCHEDULED_MESSAGES_TABLE",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_DAYS": "MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_DAYS",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_ENABLED": "MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_STATUSES": "MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_STATUSES",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULING_BATCH_SIZE": "MAIL_NOTIFICATIONS_SCHEDULING_BATCH_SIZE",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULING_CLAIM_TTL_SECONDS": "MAIL_NOTIFICATIONS_SCHEDULING_CLAIM_TTL_SECONDS",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULING_ENABLED": "MAIL_NOTIFICATIONS_SCHEDULING_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULING_MAX_ATTEMPTS": "MAIL_NOTIFICATIONS_SCHEDULING_MAX_ATTEMPTS",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULING_MAX_PAYLOAD_BYTES": "MAIL_NOTIFICATIONS_SCHEDULING_MAX_PAYLOAD_BYTES",
+        "NVL_MAIL_NOTIFICATIONS_SCHEDULING_MAX_RECIPIENTS": "MAIL_NOTIFICATIONS_SCHEDULING_MAX_RECIPIENTS",
+        "NVL_MAIL_NOTIFICATIONS_SENSITIVE_STORAGE_ENABLED": "MAIL_NOTIFICATIONS_SENSITIVE_STORAGE_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_SENSITIVE_STORAGE_MAX_TRANSFORMED_BYTES": "MAIL_NOTIFICATIONS_SENSITIVE_STORAGE_MAX_TRANSFORMED_BYTES",
+        "NVL_MAIL_NOTIFICATIONS_STORE_SUBJECT": "MAIL_NOTIFICATIONS_STORE_SUBJECT",
+        "NVL_MAIL_NOTIFICATIONS_TABLE": "MAIL_NOTIFICATIONS_TABLE",
+        "NVL_MAIL_NOTIFICATIONS_TESTING_ENABLED": "MAIL_TESTING_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_TESTING_ENVIRONMENTS": "MAIL_TESTING_ENVIRONMENTS",
+        "NVL_MAIL_NOTIFICATIONS_TESTING_RESPECT_ENV": "MAIL_TESTING_RESPECT_ENV",
+        "NVL_MAIL_NOTIFICATIONS_TESTING_TO_ADDRESS": "MAIL_TESTING_TO_ADDRESS",
+        "NVL_MAIL_NOTIFICATIONS_TESTING_TO_NAME": "MAIL_TESTING_TO_NAME",
+        "NVL_MAIL_NOTIFICATIONS_TRACKING_ENABLED": "MAIL_NOTIFICATIONS_TRACKING_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_WEBHOOKS_ENABLED": "MAIL_NOTIFICATIONS_WEBHOOKS_ENABLED",
+        "NVL_MAIL_NOTIFICATIONS_WEBHOOK_MAX_PAYLOAD_BYTES": "MAIL_NOTIFICATIONS_WEBHOOK_MAX_PAYLOAD_BYTES",
+        "NVL_MAIL_NOTIFICATIONS_WEBHOOK_UNKNOWN_EVENT_POLICY": "MAIL_NOTIFICATIONS_WEBHOOK_UNKNOWN_EVENT_POLICY",
+        "NVL_MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_EVENT_POLICY": "MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_EVENT_POLICY",
+        "NVL_MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_RETRY_GRACE_SECONDS": "MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_RETRY_GRACE_SECONDS",
+        "NVL_MEDIA_ALLOW_NOOP_SCANNER": "MEDIA_ALLOW_NOOP_SCANNER",
+        "NVL_MEDIA_ASSET_SIGNED_URL_LIFETIME": "MEDIA_ASSET_SIGNED_URL_LIFETIME",
+        "NVL_MEDIA_AVIF_QUALITY": "MEDIA_AVIF_QUALITY",
+        "NVL_MEDIA_DEDUPLICATION_LOCK_ENABLED": "MEDIA_DEDUPLICATION_LOCK_ENABLED",
+        "NVL_MEDIA_DEDUPLICATION_LOCK_SECONDS": "MEDIA_DEDUPLICATION_LOCK_SECONDS",
+        "NVL_MEDIA_DEDUPLICATION_LOCK_STORE": "MEDIA_DEDUPLICATION_LOCK_STORE",
+        "NVL_MEDIA_DEDUPLICATION_LOCK_WAIT_SECONDS": "MEDIA_DEDUPLICATION_LOCK_WAIT_SECONDS",
+        "NVL_MEDIA_FILESYSTEM_DISK": "MEDIA_FILESYSTEM_DISK",
+        "NVL_MEDIA_GLOBAL_ROLES": "MEDIA_GLOBAL_ROLES",
+        "NVL_MEDIA_IMAGE_DRIVER": "MEDIA_IMAGE_DRIVER",
+        "NVL_MEDIA_IMAGE_MAX_SIZE": "MEDIA_IMAGE_MAX_SIZE",
+        "NVL_MEDIA_JPEG_QUALITY": "MEDIA_JPEG_QUALITY",
+        "NVL_MEDIA_MULTIPART_ENABLED": "MEDIA_MULTIPART_ENABLED",
+        "NVL_MEDIA_MULTIPART_LOCK_SECONDS": "MEDIA_MULTIPART_LOCK_SECONDS",
+        "NVL_MEDIA_MULTIPART_LOCK_STORE": "MEDIA_MULTIPART_LOCK_STORE",
+        "NVL_MEDIA_MULTIPART_LOCK_WAIT_SECONDS": "MEDIA_MULTIPART_LOCK_WAIT_SECONDS",
+        "NVL_MEDIA_MULTI_NODE": "MEDIA_MULTI_NODE",
+        "NVL_MEDIA_MUTATION_LOCK_ENABLED": "MEDIA_MUTATION_LOCK_ENABLED",
+        "NVL_MEDIA_MUTATION_LOCK_SECONDS": "MEDIA_MUTATION_LOCK_SECONDS",
+        "NVL_MEDIA_MUTATION_LOCK_STORE": "MEDIA_MUTATION_LOCK_STORE",
+        "NVL_MEDIA_MUTATION_LOCK_WAIT_SECONDS": "MEDIA_MUTATION_LOCK_WAIT_SECONDS",
+        "NVL_MEDIA_OPTIMIZED_IMAGE_ENABLED": "MEDIA_OPTIMIZED_IMAGE_ENABLED",
+        "NVL_MEDIA_QUEUE": "MEDIA_QUEUE",
+        "NVL_MEDIA_QUEUE_CONNECTION": "MEDIA_QUEUE_CONNECTION",
+        "NVL_MEDIA_QUEUE_ENABLED": "MEDIA_QUEUE_ENABLED",
+        "NVL_MEDIA_REMOTE_CONNECT_TIMEOUT": "MEDIA_REMOTE_CONNECT_TIMEOUT",
+        "NVL_MEDIA_REMOTE_MAXIMUM_BYTES": "MEDIA_REMOTE_MAXIMUM_BYTES",
+        "NVL_MEDIA_REMOTE_PUBLIC_DELIVERY": "MEDIA_REMOTE_PUBLIC_DELIVERY",
+        "NVL_MEDIA_REMOTE_REDIRECTS": "MEDIA_REMOTE_REDIRECTS",
+        "NVL_MEDIA_REMOTE_SOURCES_ENABLED": "MEDIA_REMOTE_SOURCES_ENABLED",
+        "NVL_MEDIA_REMOTE_TOTAL_TIMEOUT": "MEDIA_REMOTE_TOTAL_TIMEOUT",
+        "NVL_MEDIA_REMOTE_VERIFY_CONNECTED_IP": "MEDIA_REMOTE_VERIFY_CONNECTED_IP",
+        "NVL_MEDIA_ROOT_FOLDER": "MEDIA_ROOT_FOLDER",
+        "NVL_MEDIA_S3_USE_ACL_VISIBILITY": "MEDIA_S3_USE_ACL_VISIBILITY",
+        "NVL_MEDIA_SCANNER_REQUIRED": "MEDIA_SCANNER_REQUIRED",
+        "NVL_MEDIA_SPATIE_PERMISSION_ENABLED": "MEDIA_SPATIE_PERMISSION_ENABLED",
+        "NVL_MEDIA_UNTRUSTED_UPLOADS": "MEDIA_UNTRUSTED_UPLOADS",
+        "NVL_MEDIA_WEBP_QUALITY": "MEDIA_WEBP_QUALITY",
+        "NVL_PAGES_BASE_URL": "PAGES_BASE_URL",
+        "NVL_PAYMENTS_STRIPE_ACCOUNT_ID": "PAYMENTS_STRIPE_ACCOUNT_ID",
+        "NVL_PAYMENTS_STRIPE_SECRET": "PAYMENTS_STRIPE_SECRET",
+        "NVL_PAYMENTS_STRIPE_WEBHOOK_SECRET": "PAYMENTS_STRIPE_WEBHOOK_SECRET",
+        "NVL_PRIMITIVES_DEFAULT_LOCALE": "PRIMITIVES_DEFAULT_LOCALE",
+        "NVL_PRIMITIVES_PHONE_REGION": "PRIMITIVES_PHONE_REGION",
+        "NVL_SEO_BASE_URL": "SEO_BASE_URL",
+        "NVL_SEO_DEFAULT_IMAGE_URL": "SEO_DEFAULT_IMAGE_URL",
+        "NVL_SEO_SITE_NAME": "SEO_SITE_NAME",
+        "NVL_SEO_SITE_SCOPE": "SEO_SITE_SCOPE",
+        "NVL_SETTINGS_CACHE": "SETTINGS_CACHE",
+        "NVL_SETTINGS_CONFIG_OVERRIDES": "SETTINGS_CONFIG_OVERRIDES",
+        "NVL_SETTINGS_DISCOVERY_CACHE": "SETTINGS_DISCOVERY_CACHE"
+    },
+    "surfaces": [
+        {
+            "surface": "blade",
+            "owner": "nvl/seo",
+            "current": "seo",
+            "canonical": "nvlSeo",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "cache",
+            "owner": "nvl/forms",
+            "current": "export_progress_",
+            "canonical": "nvl:forms:export-progress:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "cache",
+            "owner": "nvl/media",
+            "current": "media_exists:",
+            "canonical": "nvl:media:file-existence:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "cache",
+            "owner": "nvl/seo",
+            "current": "nvl-seo:sitemap",
+            "canonical": "nvl:seo:sitemap",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/activity",
+            "current": "activity",
+            "canonical": "nvl-activity",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/billing",
+            "current": "billing",
+            "canonical": "nvl-billing",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/comments",
+            "current": "comments",
+            "canonical": "nvl-comments",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/content",
+            "current": "content",
+            "canonical": "nvl-content",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/forms",
+            "current": "forms",
+            "canonical": "nvl-forms",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/mail-notifications",
+            "current": "mail-notifications",
+            "canonical": "nvl-mail-notifications",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/media",
+            "current": "media",
+            "canonical": "nvl-media",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/metafields",
+            "current": "metafields",
+            "canonical": "nvl-metafields",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/pages",
+            "current": "pages",
+            "canonical": "nvl-pages",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/payments",
+            "current": "payments",
+            "canonical": "nvl-payments",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/primitives",
+            "current": "primitives",
+            "canonical": "nvl-primitives",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/seo",
+            "current": "seo",
+            "canonical": "nvl-seo",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/settings",
+            "current": "settings",
+            "canonical": "nvl-settings",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/tasks",
+            "current": "tasks",
+            "canonical": "nvl-tasks",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/taxonomy",
+            "current": "taxonomy",
+            "canonical": "nvl-taxonomy",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/templates",
+            "current": "templates",
+            "canonical": "nvl-templates",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/tenancy",
+            "current": "tenancy",
+            "canonical": "nvl-tenancy",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/translatable",
+            "current": "translatable",
+            "canonical": "nvl-translatable",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/translations",
+            "current": "translations",
+            "canonical": "nvl-translations",
+            "compatibility": "legacy_config",
+            "removal": 6
+        },
+        {
+            "surface": "container",
+            "owner": "nvl/settings",
+            "current": "settings",
+            "canonical": "nvl.settings",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_API_TOKENS_ENABLED",
+            "canonical": "NVL_AUTH_API_TOKENS_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_AUDIT_ENABLED",
+            "canonical": "NVL_AUTH_AUDIT_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_AUTHENTICATION_ENABLED",
+            "canonical": "NVL_AUTH_AUTHENTICATION_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_CLIENTS_ENABLED",
+            "canonical": "NVL_AUTH_CLIENTS_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_DB_CONNECTION",
+            "canonical": "NVL_AUTH_DB_CONNECTION",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_EMAIL_VERIFICATION_ENABLED",
+            "canonical": "NVL_AUTH_EMAIL_VERIFICATION_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_ENABLED",
+            "canonical": "NVL_AUTH_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_GUARD",
+            "canonical": "NVL_AUTH_GUARD",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_IDENTIFIER",
+            "canonical": "NVL_AUTH_IDENTIFIER",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_INVITATIONS_ENABLED",
+            "canonical": "NVL_AUTH_INVITATIONS_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_MAGIC_LINKS_ENABLED",
+            "canonical": "NVL_AUTH_MAGIC_LINKS_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PASSKEYS_ENABLED",
+            "canonical": "NVL_AUTH_PASSKEYS_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PASSKEY_DISPLAY_NAME_ATTRIBUTE",
+            "canonical": "NVL_AUTH_PASSKEY_DISPLAY_NAME_ATTRIBUTE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PASSKEY_ORIGINS",
+            "canonical": "NVL_AUTH_PASSKEY_ORIGINS",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PASSKEY_RP_ID",
+            "canonical": "NVL_AUTH_PASSKEY_RP_ID",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PASSKEY_RP_NAME",
+            "canonical": "NVL_AUTH_PASSKEY_RP_NAME",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PASSKEY_USERNAME_ATTRIBUTE",
+            "canonical": "NVL_AUTH_PASSKEY_USERNAME_ATTRIBUTE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PASSKEY_USER_HANDLE_KEY",
+            "canonical": "NVL_AUTH_PASSKEY_USER_HANDLE_KEY",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PASSWORD_BROKER",
+            "canonical": "NVL_AUTH_PASSWORD_BROKER",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PASSWORD_ENABLED",
+            "canonical": "NVL_AUTH_PASSWORD_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_PRINCIPAL_MANAGEMENT_ENABLED",
+            "canonical": "NVL_AUTH_PRINCIPAL_MANAGEMENT_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_RBAC_ENABLED",
+            "canonical": "NVL_AUTH_RBAC_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_RBAC_GUARD",
+            "canonical": "NVL_AUTH_RBAC_GUARD",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_RECOVERY_CODES_ENABLED",
+            "canonical": "NVL_AUTH_RECOVERY_CODES_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_RETENTION_DAYS",
+            "canonical": "NVL_AUTH_RETENTION_DAYS",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_ROUTES_ENABLED",
+            "canonical": "NVL_AUTH_ROUTES_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_ROUTES_PREFIX",
+            "canonical": "NVL_AUTH_ROUTES_PREFIX",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_SECURITY_CODES_ENABLED",
+            "canonical": "NVL_AUTH_SECURITY_CODES_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_SESSIONS_ENABLED",
+            "canonical": "NVL_AUTH_SESSIONS_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_SOCIAL_IDENTITIES_ENABLED",
+            "canonical": "NVL_AUTH_SOCIAL_IDENTITIES_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_SUPER_ADMIN_ROLE",
+            "canonical": "NVL_AUTH_SUPER_ADMIN_ROLE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/auth",
+            "current": "NVL_AUTH_TOTP_ENABLED",
+            "canonical": "NVL_AUTH_TOTP_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/comments",
+            "current": "COMMENTS_IDEMPOTENCY_DIGEST_KEY",
+            "canonical": "NVL_COMMENTS_IDEMPOTENCY_DIGEST_KEY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/comments",
+            "current": "COMMENTS_METADATA_DIGEST_KEY",
+            "canonical": "NVL_COMMENTS_METADATA_DIGEST_KEY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/core",
+            "current": "NVL_CORE_LEGACY_ENV",
+            "canonical": "NVL_CORE_LEGACY_ENV",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_ANONYMIZATION_BATCH_SIZE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_BATCH_SIZE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_ANONYMIZATION_DAYS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_DAYS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_ANONYMIZATION_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_ANONYMIZATION_LIMIT",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_LIMIT",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_ANONYMIZATION_STATUSES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_STATUSES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_BRAND_FOOTER_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_BRAND_FOOTER_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_BRAND_FOOTER_TEXT",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_BRAND_FOOTER_TEXT",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_BRAND_HEADER_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_BRAND_HEADER_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_BRAND_LOGO_ALT",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_BRAND_LOGO_ALT",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_BRAND_LOGO_URL",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_BRAND_LOGO_URL",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_BRAND_NAME",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_BRAND_NAME",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_BRAND_SUPPORT_TEXT",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_BRAND_SUPPORT_TEXT",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_BRAND_URL",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_BRAND_URL",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_DB_CONNECTION",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_DB_CONNECTION",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATION_EVENTS_TABLE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_EVENTS_TABLE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_EXCLUDED_MAILERS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_EXCLUDED_MAILERS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_FAILURE_POLICY",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_FAILURE_POLICY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_MAILERSEND_API_TOKEN",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_API_TOKEN",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_MAILERSEND_API_URL",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_API_URL",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_MAILERSEND_CONNECT_TIMEOUT_SECONDS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_CONNECT_TIMEOUT_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_MAILERSEND_DOMAIN_ID",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_DOMAIN_ID",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_MAILERSEND_MANAGEMENT_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_MANAGEMENT_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_MAILERSEND_SIGNING_SECRET",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_SIGNING_SECRET",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_MAILERSEND_TIMEOUT_SECONDS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_TIMEOUT_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_MAILERSEND_WEBHOOK_NAME",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_WEBHOOK_NAME",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_MAILERSEND_WEBHOOK_URL",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_WEBHOOK_URL",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_METADATA_MAX_DEPTH",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_METADATA_MAX_DEPTH",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_METADATA_MAX_ITEMS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_METADATA_MAX_ITEMS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_METADATA_MAX_STRING_BYTES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_METADATA_MAX_STRING_BYTES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_METADATA_MAX_TOTAL_BYTES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_METADATA_MAX_TOTAL_BYTES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_PRESENTATION_AUTO_LOAD",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_PRESENTATION_AUTO_LOAD",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_PRESENTATION_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_PRESENTATION_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_PROVIDER",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_PROVIDER",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_PRUNE_BATCH_SIZE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_PRUNE_BATCH_SIZE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_PRUNE_LIMIT",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_PRUNE_LIMIT",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_REDACTED_KEYS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_REDACTED_KEYS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_RETENTION_DAYS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_RETENTION_DAYS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_RETENTION_STATUSES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_RETENTION_STATUSES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_DAYS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_DAYS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_STATUSES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULED_ANONYMIZATION_STATUSES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULED_MESSAGES_TABLE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULED_MESSAGES_TABLE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_DAYS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_DAYS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_STATUSES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULED_RETENTION_STATUSES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULING_BATCH_SIZE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULING_BATCH_SIZE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULING_CLAIM_TTL_SECONDS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULING_CLAIM_TTL_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULING_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULING_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULING_MAX_ATTEMPTS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULING_MAX_ATTEMPTS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULING_MAX_PAYLOAD_BYTES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULING_MAX_PAYLOAD_BYTES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SCHEDULING_MAX_RECIPIENTS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SCHEDULING_MAX_RECIPIENTS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SENSITIVE_STORAGE_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SENSITIVE_STORAGE_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_SENSITIVE_STORAGE_MAX_TRANSFORMED_BYTES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SENSITIVE_STORAGE_MAX_TRANSFORMED_BYTES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_STORE_SUBJECT",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_STORE_SUBJECT",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_TABLE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_TABLE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_TESTING_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_TESTING_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_TESTING_ENVIRONMENTS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_TESTING_ENVIRONMENTS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_TESTING_RESPECT_ENV",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_TESTING_RESPECT_ENV",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_TESTING_TO_ADDRESS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_TESTING_TO_ADDRESS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_TESTING_TO_NAME",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_TESTING_TO_NAME",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_TRACKING_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_TRACKING_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_WEBHOOKS_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_WEBHOOKS_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_WEBHOOK_MAX_PAYLOAD_BYTES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_MAX_PAYLOAD_BYTES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_WEBHOOK_UNKNOWN_EVENT_POLICY",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_UNKNOWN_EVENT_POLICY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_EVENT_POLICY",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_EVENT_POLICY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/mail-notifications",
+            "current": "MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_RETRY_GRACE_SECONDS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_RETRY_GRACE_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_ALLOW_NOOP_SCANNER",
+            "canonical": "NVL_MEDIA_ALLOW_NOOP_SCANNER",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_ASSET_SIGNED_URL_LIFETIME",
+            "canonical": "NVL_MEDIA_ASSET_SIGNED_URL_LIFETIME",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_AVIF_QUALITY",
+            "canonical": "NVL_MEDIA_AVIF_QUALITY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_DEDUPLICATION_LOCK_ENABLED",
+            "canonical": "NVL_MEDIA_DEDUPLICATION_LOCK_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_DEDUPLICATION_LOCK_SECONDS",
+            "canonical": "NVL_MEDIA_DEDUPLICATION_LOCK_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_DEDUPLICATION_LOCK_STORE",
+            "canonical": "NVL_MEDIA_DEDUPLICATION_LOCK_STORE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_DEDUPLICATION_LOCK_WAIT_SECONDS",
+            "canonical": "NVL_MEDIA_DEDUPLICATION_LOCK_WAIT_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_FILESYSTEM_DISK",
+            "canonical": "NVL_MEDIA_FILESYSTEM_DISK",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_GLOBAL_ROLES",
+            "canonical": "NVL_MEDIA_GLOBAL_ROLES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_IMAGE_DRIVER",
+            "canonical": "NVL_MEDIA_IMAGE_DRIVER",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_IMAGE_MAX_SIZE",
+            "canonical": "NVL_MEDIA_IMAGE_MAX_SIZE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_JPEG_QUALITY",
+            "canonical": "NVL_MEDIA_JPEG_QUALITY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_MULTIPART_ENABLED",
+            "canonical": "NVL_MEDIA_MULTIPART_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_MULTIPART_LOCK_SECONDS",
+            "canonical": "NVL_MEDIA_MULTIPART_LOCK_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_MULTIPART_LOCK_STORE",
+            "canonical": "NVL_MEDIA_MULTIPART_LOCK_STORE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_MULTIPART_LOCK_WAIT_SECONDS",
+            "canonical": "NVL_MEDIA_MULTIPART_LOCK_WAIT_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_MULTI_NODE",
+            "canonical": "NVL_MEDIA_MULTI_NODE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_MUTATION_LOCK_ENABLED",
+            "canonical": "NVL_MEDIA_MUTATION_LOCK_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_MUTATION_LOCK_SECONDS",
+            "canonical": "NVL_MEDIA_MUTATION_LOCK_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_MUTATION_LOCK_STORE",
+            "canonical": "NVL_MEDIA_MUTATION_LOCK_STORE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_MUTATION_LOCK_WAIT_SECONDS",
+            "canonical": "NVL_MEDIA_MUTATION_LOCK_WAIT_SECONDS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_OPTIMIZED_IMAGE_ENABLED",
+            "canonical": "NVL_MEDIA_OPTIMIZED_IMAGE_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_QUEUE",
+            "canonical": "NVL_MEDIA_QUEUE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_QUEUE_CONNECTION",
+            "canonical": "NVL_MEDIA_QUEUE_CONNECTION",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_QUEUE_ENABLED",
+            "canonical": "NVL_MEDIA_QUEUE_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_REMOTE_CONNECT_TIMEOUT",
+            "canonical": "NVL_MEDIA_REMOTE_CONNECT_TIMEOUT",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_REMOTE_MAXIMUM_BYTES",
+            "canonical": "NVL_MEDIA_REMOTE_MAXIMUM_BYTES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_REMOTE_PUBLIC_DELIVERY",
+            "canonical": "NVL_MEDIA_REMOTE_PUBLIC_DELIVERY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_REMOTE_REDIRECTS",
+            "canonical": "NVL_MEDIA_REMOTE_REDIRECTS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_REMOTE_SOURCES_ENABLED",
+            "canonical": "NVL_MEDIA_REMOTE_SOURCES_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_REMOTE_TOTAL_TIMEOUT",
+            "canonical": "NVL_MEDIA_REMOTE_TOTAL_TIMEOUT",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_REMOTE_VERIFY_CONNECTED_IP",
+            "canonical": "NVL_MEDIA_REMOTE_VERIFY_CONNECTED_IP",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_ROOT_FOLDER",
+            "canonical": "NVL_MEDIA_ROOT_FOLDER",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_S3_USE_ACL_VISIBILITY",
+            "canonical": "NVL_MEDIA_S3_USE_ACL_VISIBILITY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_SCANNER_REQUIRED",
+            "canonical": "NVL_MEDIA_SCANNER_REQUIRED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_SPATIE_PERMISSION_ENABLED",
+            "canonical": "NVL_MEDIA_SPATIE_PERMISSION_ENABLED",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_UNTRUSTED_UPLOADS",
+            "canonical": "NVL_MEDIA_UNTRUSTED_UPLOADS",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/media",
+            "current": "MEDIA_WEBP_QUALITY",
+            "canonical": "NVL_MEDIA_WEBP_QUALITY",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/pages",
+            "current": "PAGES_BASE_URL",
+            "canonical": "NVL_PAGES_BASE_URL",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/payments",
+            "current": "PAYMENTS_STRIPE_ACCOUNT_ID",
+            "canonical": "NVL_PAYMENTS_STRIPE_ACCOUNT_ID",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/payments",
+            "current": "PAYMENTS_STRIPE_SECRET",
+            "canonical": "NVL_PAYMENTS_STRIPE_SECRET",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/payments",
+            "current": "PAYMENTS_STRIPE_WEBHOOK_SECRET",
+            "canonical": "NVL_PAYMENTS_STRIPE_WEBHOOK_SECRET",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/primitives",
+            "current": "PRIMITIVES_DEFAULT_LOCALE",
+            "canonical": "NVL_PRIMITIVES_DEFAULT_LOCALE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/primitives",
+            "current": "PRIMITIVES_PHONE_REGION",
+            "canonical": "NVL_PRIMITIVES_PHONE_REGION",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/seo",
+            "current": "SEO_BASE_URL",
+            "canonical": "NVL_SEO_BASE_URL",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/seo",
+            "current": "SEO_DEFAULT_IMAGE_URL",
+            "canonical": "NVL_SEO_DEFAULT_IMAGE_URL",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/seo",
+            "current": "SEO_SITE_NAME",
+            "canonical": "NVL_SEO_SITE_NAME",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/seo",
+            "current": "SEO_SITE_SCOPE",
+            "canonical": "NVL_SEO_SITE_SCOPE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/settings",
+            "current": "SETTINGS_CACHE",
+            "canonical": "NVL_SETTINGS_CACHE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/settings",
+            "current": "SETTINGS_CONFIG_OVERRIDES",
+            "canonical": "NVL_SETTINGS_CONFIG_OVERRIDES",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/settings",
+            "current": "SETTINGS_DISCOVERY_CACHE",
+            "canonical": "NVL_SETTINGS_DISCOVERY_CACHE",
+            "compatibility": "legacy_env",
+            "removal": 6
+        },
+        {
+            "surface": "limiter",
+            "owner": "nvl/auth",
+            "current": "nvl-auth-account",
+            "canonical": "nvl.auth.account",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "limiter",
+            "owner": "nvl/auth",
+            "current": "nvl-auth-management",
+            "canonical": "nvl.auth.management",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "limiter",
+            "owner": "nvl/auth",
+            "current": "nvl-auth-public",
+            "canonical": "nvl.auth.public",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "limiter",
+            "owner": "nvl/forms",
+            "current": "forms-public",
+            "canonical": "nvl.forms.public",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "limiter",
+            "owner": "nvl/metafields",
+            "current": "metafields-management",
+            "canonical": "nvl.metafields.management",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/activity",
+            "current": "purge",
+            "canonical": "nvl:activity:purge:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/comments",
+            "current": "comments:mutation:",
+            "canonical": "nvl:comments:mutation:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/content",
+            "current": "nvl:tenant:",
+            "canonical": "nvl:content:placement-owner:nvl:tenant:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/media",
+            "current": "media:deduplication:",
+            "canonical": "nvl:media:deduplication:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/media",
+            "current": "media:multipart:",
+            "canonical": "nvl:media:multipart:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/media",
+            "current": "media:mutation:",
+            "canonical": "nvl:media:mutation:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/taxonomy",
+            "current": "attachments:",
+            "canonical": "nvl:taxonomy:attachments:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/taxonomy",
+            "current": "nvl:tenant:",
+            "canonical": "nvl:taxonomy:prune:nvl:tenant:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/taxonomy",
+            "current": "nvl:tenant:",
+            "canonical": "nvl:taxonomy:rebuild:nvl:tenant:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "lock",
+            "owner": "nvl/templates",
+            "current": "laravel-queue-overlap:",
+            "canonical": "nvl:templates:render-overlap:",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/auth",
+            "current": "nvl-auth.feature",
+            "canonical": "nvl.auth.feature",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/auth",
+            "current": "nvl-auth.guard",
+            "canonical": "nvl.auth.guard",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/forms",
+            "current": "form-available",
+            "canonical": "nvl.forms.available",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/forms",
+            "current": "forms-locale",
+            "canonical": "nvl.forms.locale",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/forms",
+            "current": "validate-form-host",
+            "canonical": "nvl.forms.validate-host",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/auth",
+            "current": "nvl-auth.audits.*",
+            "canonical": "nvl.auth.audits.*",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/auth",
+            "current": "nvl-auth.clients.*",
+            "canonical": "nvl.auth.clients.*",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/auth",
+            "current": "nvl-auth.invitations.*",
+            "canonical": "nvl.auth.invitations.*",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/auth",
+            "current": "nvl-auth.memberships.*",
+            "canonical": "nvl.auth.memberships.*",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/auth",
+            "current": "nvl-auth.rbac.*",
+            "canonical": "nvl.auth.rbac.*",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/auth",
+            "current": "nvl-auth.users.*",
+            "canonical": "nvl.auth.users.*",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/media",
+            "current": "media.associate-any",
+            "canonical": "nvl.media.associate-any",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/media",
+            "current": "media.delete-any",
+            "canonical": "nvl.media.delete-any",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/media",
+            "current": "media.download-any",
+            "canonical": "nvl.media.download-any",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/media",
+            "current": "media.manage",
+            "canonical": "nvl.media.manage",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/media",
+            "current": "media.manage-staging",
+            "canonical": "nvl.media.manage-staging",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/media",
+            "current": "media.reuse-any",
+            "canonical": "nvl.media.reuse-any",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/media",
+            "current": "media.update-any",
+            "canonical": "nvl.media.update-any",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "permission",
+            "owner": "nvl/media",
+            "current": "media.view-any",
+            "canonical": "nvl.media.view-any",
+            "compatibility": "explicit_permission_mapping",
+            "removal": 6
+        },
+        {
+            "surface": "queue",
+            "owner": "nvl/activity",
+            "current": "maintenance",
+            "canonical": "package.queue \u2192 nvl-core.queue \u2192 effective queue configuration",
+            "compatibility": "explicit_package_option",
+            "removal": 6
+        },
+        {
+            "surface": "queue",
+            "owner": "nvl/csv",
+            "current": "csv-processing",
+            "canonical": "package.queue \u2192 nvl-core.queue \u2192 effective queue configuration",
+            "compatibility": "explicit_package_option",
+            "removal": 6
+        },
+        {
+            "surface": "queue",
+            "owner": "nvl/tasks",
+            "current": "maintenance",
+            "canonical": "package.queue \u2192 nvl-core.queue \u2192 effective queue configuration",
+            "compatibility": "explicit_package_option",
+            "removal": 6
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/activity",
+            "current": "nvl.activity.*",
+            "canonical": "nvl.activity.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/auth",
+            "current": "nvl.auth.*",
+            "canonical": "nvl.auth.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/comments",
+            "current": "nvl.comments.attachments.*",
+            "canonical": "nvl.comments.attachments.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/comments",
+            "current": "nvl.comments.management.*",
+            "canonical": "nvl.comments.management.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/comments",
+            "current": "nvl.comments.member.*",
+            "canonical": "nvl.comments.member.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/comments",
+            "current": "nvl.comments.public.*",
+            "canonical": "nvl.comments.public.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/content",
+            "current": "nvl.content.*",
+            "canonical": "nvl.content.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/core",
+            "current": "nvl-data.types.*",
+            "canonical": "nvl.data.types.*",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/forms",
+            "current": "nvl.forms.*",
+            "canonical": "nvl.forms.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/media",
+            "current": "media.*",
+            "canonical": "nvl.media.*",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/media",
+            "current": "nvl.media.*",
+            "canonical": "nvl.media.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/metafields",
+            "current": "nvl.metafields.*",
+            "canonical": "nvl.metafields.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/pages",
+            "current": "nvl.pages.*",
+            "canonical": "nvl.pages.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/seo",
+            "current": "nvl.seo.*",
+            "canonical": "nvl.seo.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/seo",
+            "current": "nvl.seo.management.*",
+            "canonical": "nvl.seo.management.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/settings",
+            "current": "nvl.settings.*",
+            "canonical": "nvl.settings.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/tasks",
+            "current": "nvl.tasks.*",
+            "canonical": "nvl.tasks.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/templates",
+            "current": "nvl.templates.*",
+            "canonical": "nvl.templates.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-name",
+            "owner": "nvl/translations",
+            "current": "nvl.translations.*",
+            "canonical": "nvl.translations.*",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/activity",
+            "current": "api/v1/activities",
+            "canonical": "nvl/api/v1/activity",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/auth",
+            "current": "api/v1/auth",
+            "canonical": "nvl/api/v1/auth",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/billing",
+            "current": "nvl/billing/stripe/webhook",
+            "canonical": "nvl/billing/stripe/webhook",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/comments",
+            "current": "api/v1/comments",
+            "canonical": "nvl/api/v1/comments",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/comments",
+            "current": "api/v1/comment-attachments",
+            "canonical": "nvl/api/v1/comments/attachments",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/comments",
+            "current": "api/v1/member/discussions",
+            "canonical": "nvl/api/v1/comments/member",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/comments",
+            "current": "api/v1/discussions",
+            "canonical": "nvl/api/v1/comments/public",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/content",
+            "current": "api/v1/content",
+            "canonical": "nvl/api/v1/content",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/core",
+            "current": "api/v1/nvl/types",
+            "canonical": "nvl/api/v1/data/types",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/forms",
+            "current": "api/v1/forms",
+            "canonical": "nvl/api/v1/forms",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/media",
+            "current": "api/v1/media",
+            "canonical": "nvl/api/v1/media",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/media",
+            "current": "media",
+            "canonical": "nvl/media",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/metafields",
+            "current": "api/v1/metafields",
+            "canonical": "nvl/api/v1/metafields",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/pages",
+            "current": "api/v1/pages",
+            "canonical": "nvl/api/v1/pages",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/payments",
+            "current": "nvl/payments/stripe/webhook",
+            "canonical": "nvl/payments/stripe/webhook",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/seo",
+            "current": "api/v1/seo",
+            "canonical": "nvl/api/v1/seo",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/seo",
+            "current": "",
+            "canonical": "nvl/seo",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/settings",
+            "current": "api/v1/settings",
+            "canonical": "nvl/api/v1/settings",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/tasks",
+            "current": "api/v1/tasks",
+            "canonical": "nvl/api/v1/tasks",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/templates",
+            "current": "api/v1/templates",
+            "canonical": "nvl/api/v1/templates",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "route-uri",
+            "owner": "nvl/translations",
+            "current": "api/v1/translations",
+            "canonical": "nvl/api/v1/translations",
+            "compatibility": "legacy_routes",
+            "removal": 6
+        },
+        {
+            "surface": "translation",
+            "owner": "nvl/activity",
+            "current": "activity::",
+            "canonical": "nvl-activity::",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "translation",
+            "owner": "nvl/forms",
+            "current": "forms::",
+            "canonical": "nvl-forms::",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "translation",
+            "owner": "nvl/media",
+            "current": "media::",
+            "canonical": "nvl-media::",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "translation",
+            "owner": "nvl/metafields",
+            "current": "metafields::",
+            "canonical": "nvl-metafields::",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "translation",
+            "owner": "nvl/primitives",
+            "current": "primitives::",
+            "canonical": "nvl-primitives::",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "translation",
+            "owner": "nvl/translations",
+            "current": "translations::",
+            "canonical": "nvl-translations::",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "view",
+            "owner": "nvl/content",
+            "current": "nvl-content::",
+            "canonical": "nvl-content::",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "view",
+            "owner": "nvl/mail-notifications",
+            "current": "nvl-mail-notifications::",
+            "canonical": "nvl-mail-notifications::",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "view",
+            "owner": "nvl/templates",
+            "current": "nvl-templates::",
+            "canonical": "nvl-templates::",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/activity",
+            "current": "activity-config",
+            "canonical": "nvl-activity-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/activity",
+            "current": "activity-migrations",
+            "canonical": "nvl-activity-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/activity",
+            "current": "activity-skills",
+            "canonical": "nvl-activity-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/activity",
+            "current": "activity-translations",
+            "canonical": "nvl-activity-translations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth",
+            "current": "auth-adoption",
+            "canonical": "nvl-auth-adoption",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth",
+            "current": "auth-config",
+            "canonical": "nvl-auth-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth",
+            "current": "auth-migrations",
+            "canonical": "nvl-auth-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth",
+            "current": "auth-skills",
+            "canonical": "nvl-auth-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/billing",
+            "current": "billing-config",
+            "canonical": "nvl-billing-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/billing",
+            "current": "billing-migrations",
+            "canonical": "nvl-billing-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/billing",
+            "current": "billing-skills",
+            "canonical": "nvl-billing-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/comments",
+            "current": "comments-config",
+            "canonical": "nvl-comments-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/comments",
+            "current": "comments-migrations",
+            "canonical": "nvl-comments-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/comments",
+            "current": "comments-skills",
+            "canonical": "nvl-comments-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/content",
+            "current": "content-config",
+            "canonical": "nvl-content-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/content",
+            "current": "content-migrations",
+            "canonical": "nvl-content-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/content",
+            "current": "content-skills",
+            "canonical": "nvl-content-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/content",
+            "current": "content-views",
+            "canonical": "nvl-content-views",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/core",
+            "current": "data-config",
+            "canonical": "nvl-data-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/core",
+            "current": "data-skills",
+            "canonical": "nvl-data-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/core",
+            "current": "nvl-core-config",
+            "canonical": "nvl-core-config",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/core",
+            "current": "nvl-data-config",
+            "canonical": "nvl-data-config",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/core",
+            "current": "nvl-data-generated-types-tooling",
+            "canonical": "nvl-data-generated-types-tooling",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/core",
+            "current": "support-skills",
+            "canonical": "nvl-core-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/csv",
+            "current": "csv-skills",
+            "canonical": "nvl-csv-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/filterable",
+            "current": "filterable-skills",
+            "canonical": "nvl-filterable-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/forms",
+            "current": "forms-config",
+            "canonical": "nvl-forms-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/forms",
+            "current": "forms-migrations",
+            "canonical": "nvl-forms-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/forms",
+            "current": "forms-skills",
+            "canonical": "nvl-forms-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/forms",
+            "current": "forms-translations",
+            "canonical": "nvl-forms-translations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/mail-notifications",
+            "current": "mail-notifications-adoption",
+            "canonical": "nvl-mail-notifications-adoption",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/mail-notifications",
+            "current": "mail-notifications-config",
+            "canonical": "nvl-mail-notifications-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/mail-notifications",
+            "current": "mail-notifications-mail-views",
+            "canonical": "nvl-mail-notifications-mail-views",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/mail-notifications",
+            "current": "mail-notifications-migrations",
+            "canonical": "nvl-mail-notifications-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/mail-notifications",
+            "current": "mail-notifications-skills",
+            "canonical": "nvl-mail-notifications-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/media",
+            "current": "media-config",
+            "canonical": "nvl-media-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/media",
+            "current": "media-migrations",
+            "canonical": "nvl-media-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/media",
+            "current": "media-skills",
+            "canonical": "nvl-media-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/media",
+            "current": "media-translations",
+            "canonical": "nvl-media-translations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/metafields",
+            "current": "metafields-config",
+            "canonical": "nvl-metafields-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/metafields",
+            "current": "metafields-migrations",
+            "canonical": "nvl-metafields-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/metafields",
+            "current": "metafields-skills",
+            "canonical": "nvl-metafields-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/metafields",
+            "current": "metafields-translations",
+            "canonical": "nvl-metafields-translations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/pages",
+            "current": "pages-config",
+            "canonical": "nvl-pages-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/pages",
+            "current": "pages-migrations",
+            "canonical": "nvl-pages-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/pages",
+            "current": "pages-skills",
+            "canonical": "nvl-pages-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/payments",
+            "current": "payments-config",
+            "canonical": "nvl-payments-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/payments",
+            "current": "payments-migrations",
+            "canonical": "nvl-payments-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/payments",
+            "current": "payments-skills",
+            "canonical": "nvl-payments-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/primitives",
+            "current": "primitives-config",
+            "canonical": "nvl-primitives-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/primitives",
+            "current": "primitives-skills",
+            "canonical": "nvl-primitives-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/primitives",
+            "current": "primitives-translations",
+            "canonical": "nvl-primitives-translations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/seo",
+            "current": "seo-config",
+            "canonical": "nvl-seo-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/seo",
+            "current": "seo-migrations",
+            "canonical": "nvl-seo-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/seo",
+            "current": "seo-skills",
+            "canonical": "nvl-seo-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/settings",
+            "current": "settings-config",
+            "canonical": "nvl-settings-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/settings",
+            "current": "settings-migrations",
+            "canonical": "nvl-settings-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/settings",
+            "current": "settings-skills",
+            "canonical": "nvl-settings-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/tasks",
+            "current": "tasks-config",
+            "canonical": "nvl-tasks-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/tasks",
+            "current": "tasks-migrations",
+            "canonical": "nvl-tasks-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/tasks",
+            "current": "tasks-skills",
+            "canonical": "nvl-tasks-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/taxonomy",
+            "current": "taxonomy-config",
+            "canonical": "nvl-taxonomy-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/taxonomy",
+            "current": "taxonomy-migrations",
+            "canonical": "nvl-taxonomy-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/taxonomy",
+            "current": "taxonomy-skills",
+            "canonical": "nvl-taxonomy-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/templates",
+            "current": "templates-config",
+            "canonical": "nvl-templates-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/templates",
+            "current": "templates-migrations",
+            "canonical": "nvl-templates-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/templates",
+            "current": "templates-skills",
+            "canonical": "nvl-templates-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/templates",
+            "current": "templates-views",
+            "canonical": "nvl-templates-views",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/tenancy",
+            "current": "tenancy-config",
+            "canonical": "nvl-tenancy-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/tenancy",
+            "current": "tenancy-migrations",
+            "canonical": "nvl-tenancy-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/tenancy",
+            "current": "tenancy-skills",
+            "canonical": "nvl-tenancy-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/translatable",
+            "current": "translatable-config",
+            "canonical": "nvl-translatable-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/translatable",
+            "current": "translatable-skills",
+            "canonical": "nvl-translatable-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/translations",
+            "current": "translations-config",
+            "canonical": "nvl-translations-config",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/translations",
+            "current": "translations-migrations",
+            "canonical": "nvl-translations-migrations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/translations",
+            "current": "translations-skills",
+            "canonical": "nvl-translations-skills",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/translations",
+            "current": "translations-translations",
+            "canonical": "nvl-translations-translations",
+            "compatibility": "global_aliases",
+            "removal": 6
+        }
+    ],
+    "route_families": [
+        {
+            "package": "activity",
+            "current": "api/v1/activities",
+            "canonical": "nvl/api/v1/activity",
+            "name_prefix": "nvl.activity.",
+            "legacy_name_prefix": "nvl.activity."
+        },
+        {
+            "package": "auth",
+            "current": "api/v1/auth",
+            "canonical": "nvl/api/v1/auth",
+            "name_prefix": "nvl.auth.",
+            "legacy_name_prefix": "nvl.auth."
+        },
+        {
+            "package": "forms",
+            "current": "api/v1/forms",
+            "canonical": "nvl/api/v1/forms",
+            "name_prefix": "nvl.forms.",
+            "legacy_name_prefix": "nvl.forms."
+        },
+        {
+            "package": "media",
+            "current": "api/v1/media",
+            "canonical": "nvl/api/v1/media",
+            "name_prefix": "nvl.media.",
+            "legacy_name_prefix": "nvl.media."
+        },
+        {
+            "package": "metafields",
+            "current": "api/v1/metafields",
+            "canonical": "nvl/api/v1/metafields",
+            "name_prefix": "nvl.metafields.",
+            "legacy_name_prefix": "nvl.metafields."
+        },
+        {
+            "package": "translations",
+            "current": "api/v1/translations",
+            "canonical": "nvl/api/v1/translations",
+            "name_prefix": "nvl.translations.",
+            "legacy_name_prefix": "nvl.translations."
+        },
+        {
+            "package": "settings",
+            "current": "api/v1/settings",
+            "canonical": "nvl/api/v1/settings",
+            "name_prefix": "nvl.settings.",
+            "legacy_name_prefix": "nvl.settings."
+        },
+        {
+            "package": "content",
+            "current": "api/v1/content",
+            "canonical": "nvl/api/v1/content",
+            "name_prefix": "nvl.content.",
+            "legacy_name_prefix": "nvl.content."
+        },
+        {
+            "package": "pages",
+            "current": "api/v1/pages",
+            "canonical": "nvl/api/v1/pages",
+            "name_prefix": "nvl.pages.",
+            "legacy_name_prefix": "nvl.pages."
+        },
+        {
+            "package": "templates",
+            "current": "api/v1/templates",
+            "canonical": "nvl/api/v1/templates",
+            "name_prefix": "nvl.templates.",
+            "legacy_name_prefix": "nvl.templates."
+        },
+        {
+            "package": "tasks",
+            "current": "api/v1/tasks",
+            "canonical": "nvl/api/v1/tasks",
+            "name_prefix": "nvl.tasks.",
+            "legacy_name_prefix": "nvl.tasks."
+        },
+        {
+            "package": "comments",
+            "current": "api/v1/member/discussions",
+            "canonical": "nvl/api/v1/comments/member",
+            "name_prefix": "nvl.comments.member.",
+            "legacy_name_prefix": "nvl.comments.member."
+        },
+        {
+            "package": "comments",
+            "current": "api/v1/discussions",
+            "canonical": "nvl/api/v1/comments/public",
+            "name_prefix": "nvl.comments.public.",
+            "legacy_name_prefix": "nvl.comments.public."
+        },
+        {
+            "package": "comments",
+            "current": "api/v1/comment-attachments",
+            "canonical": "nvl/api/v1/comments/attachments",
+            "name_prefix": "nvl.comments.attachments.",
+            "legacy_name_prefix": "nvl.comments.attachments."
+        },
+        {
+            "package": "comments",
+            "current": "api/v1/comments",
+            "canonical": "nvl/api/v1/comments",
+            "name_prefix": "nvl.comments.management.",
+            "legacy_name_prefix": "nvl.comments.management."
+        },
+        {
+            "package": "seo",
+            "current": "api/v1/seo",
+            "canonical": "nvl/api/v1/seo",
+            "name_prefix": "nvl.seo.management.",
+            "legacy_name_prefix": "nvl.seo.management."
+        },
+        {
+            "package": "seo",
+            "current": "",
+            "canonical": "nvl/seo",
+            "name_prefix": "nvl.seo.",
+            "legacy_name_prefix": "nvl.seo."
+        },
+        {
+            "package": "media",
+            "current": "media",
+            "canonical": "nvl/media",
+            "name_prefix": "nvl.media.",
+            "legacy_name_prefix": "media."
+        },
+        {
+            "package": "core",
+            "current": "api/v1/nvl/types",
+            "canonical": "nvl/api/v1/data/types",
+            "name_prefix": "nvl.data.types.",
+            "legacy_name_prefix": "nvl-data.types."
+        }
+    ],
+    "exceptions": [
+        {
+            "surface": "env",
+            "names": [
+                "APP_NAME",
+                "APP_URL",
+                "APP_LOCALE",
+                "FILESYSTEM_DISK"
+            ],
+            "reason": "Inherited Laravel inputs remain host-owned."
+        },
+        {
+            "surface": "lock",
+            "names": [
+                "laravel_unique_job:",
+                "framework scheduler mutex"
+            ],
+            "reason": "Laravel generates mutex identity from the NVL job FQCN or event; NVL does not own the global string."
+        }
+    ]
+}

@@ -11,7 +11,7 @@ See the [installation and publishing guide](https://github.com/nvl-laravel-suite
 
 | Item | Value |
 |---|---|
-| Installed through | `composer require nvl/core:^2.0` |
+| Installed through | `composer require nvl/core:^5.0` |
 | Package identifier | `nvl/core` |
 | PHP namespaces | `Nvl\Support`, `Nvl\Data` |
 | Service providers | `Nvl\Support\Providers\SupportServiceProvider`, `Nvl\Data\Providers\DataServiceProvider` |
@@ -26,22 +26,21 @@ The Support namespace provides transport-neutral contracts and exceptions. The D
 ## Requirements and installation
 
 ```bash
-composer require nvl/core:^2.0
+composer require nvl/core:^5.0
 ```
 
 Laravel auto-discovers the Support and Data providers. Defaults work without
 publishing configuration. Publish only what the application needs:
 
 ```bash
-php artisan vendor:publish --tag=data-config
-php artisan vendor:publish --tag=support-skills
-php artisan vendor:publish --tag=data-skills
+php artisan vendor:publish --tag=nvl-core-config
+php artisan vendor:publish --tag=nvl-core-skills
+php artisan vendor:publish --tag=nvl-data-skills
 php artisan vendor:publish --tag=nvl-data-generated-types-tooling
 ```
 
-`data-config` publishes `config/nvl-data.php`;
-`php artisan vendor:publish --tag=nvl-data-config` is an alternative command
-for the same file, so use one tag. The generated-types tooling tag copies optional
+`nvl-core-config` publishes both `config/nvl-core.php` and `config/nvl-data.php`;
+`php artisan vendor:publish --tag=nvl-data-config` publishes only the Data file. The generated-types tooling tag copies optional
 ESLint and Prettier fragments. The skill tags publish
 `.agents/skills/nvl-support` and `.agents/skills/nvl-data`. Laravel Boost can
 also discover the bundled skills during `boost:install` or
@@ -124,17 +123,17 @@ Released under the [MIT License](LICENSE).
 
 ## Shared owner identity
 
-Publish Core defaults with `php artisan vendor:publish --tag=nvl-core-config`, then declare stable morph aliases in `config/nvl-core.php`:
+Publish Core defaults with `php artisan vendor:publish --tag=nvl-core-config`, then declare model classes in `config/nvl-core.php`:
 
 ```php
-'owners' => ['article' => Article::class],
+'owners' => [Article::class],
 ```
 
-`Nvl\Support\OwnerRegistry` exposes `register($alias, $modelClass)`, `model($alias)`, `aliasFor($model)`, and `all()`. Identical registrations are idempotent. A conflicting alias, a second canonical alias for the same model, or an incompatible existing host morph map fails before use. Core merges compatible entries without calling `Relation::enforceMorphMap()` for unrelated models.
+Declare owner classes in `nvl-core.owners`, for example `'owners' => [Article::class]`, and reference the same model class from each package capability. Laravel's `getMorphClass()` is the stored owner identity: it returns the host-authored morph alias or the FQCN when no map exists. Core declarations and package allowlists do not add or enforce a host morph map and do not grant authorization.
 
-Each package enables its own capability separately. Identity does not authorize Comments, Media, SEO, Content, Taxonomy, Metafields, Pages, Templates, or translation editing. Behavior definitions keep their resolvers, handlers, scopes, metadata, and mutation abilities.
+Legacy alias references remain read compatibility during major 5 and are removed in major 6. A legacy configured alias must agree with the model's current `getMorphClass()`; mismatches are diagnostics and require a host decision. Doctor can inspect declared package owner columns for stored-versus-current identities without rewriting them. If the host introduces or changes its morph map, review and convert only the affected stored columns and reconcile host relationships before cutover. No automatic owner-data conversion or `nvl:owners:upgrade` is provided. Rebuild configuration caches and restart workers after the coordinated change.
 
-Compatibility class inputs are available for one major cycle. `reference()` resolves them without adding a morph mapping when their package historically wrote class names; existing mapped registrations retain their aliases. `deprecations()` returns diagnostics keyed by source, with reference and replacement fields. Run `php artisan nvl:doctor --strict --format=json` after configuration changes and follow [UPGRADING.md](UPGRADING.md) for stored morph types.
+`Nvl\Support\OwnerRegistry` declares capabilities and resolves classes and their native identities. The deprecated `register($alias, $modelClass)` interface remains for major 5, reports incompatible legacy declarations and never rewrites the host morph map. Package-owned Page and TemplateVersion aliases are separately collision-checked. Keep per-package allowlists, resolvers, scopes and mutation abilities.
 
 ## Shared content locale catalog
 
@@ -152,7 +151,7 @@ Null values inherit application defaults; an explicit empty fallback list stays 
 
 Use constructor injection for runtime consumers. `Nvl\Support\Facades\Locales` exposes the same contract for declarative model definitions and static validation rules. Shared locale-code normalization preserves canonical regional/script casing such as `zh-Hant-TW`. A chain orders the requested locale, supported parents, explicit resource fallbacks, catalog fallbacks, and the content default without duplicate values.
 
-`primitives.locales` is deprecated for one major cycle. Its explicit legacy catalog is translated only by the standalone Core default when no canonical catalog is selected. `LocaleCatalogDiagnostics::inspect()` and `nvl:doctor` report deprecations and catalog conflicts without changing locale rows.
+`nvl-primitives.locales` is deprecated for one major cycle. Its explicit legacy catalog is translated only by the standalone Core default when no canonical catalog is selected. `LocaleCatalogDiagnostics::inspect()` and `nvl:doctor` report deprecations and catalog conflicts without changing locale rows.
 
 ## Consumer diagnostics
 
@@ -185,6 +184,16 @@ Compatibility aliases are normalized from the host overlay before package defaul
 
 Core owns `Nvl\Support\Tenancy` contracts, immutable identifiers and snapshots, queue envelopes, resource definitions, and the resource metadata registry. Packages consume `TenantBoundary`, `TenantContext`, `TenantRunner`, `TenantQueueContext`, `TenantInstallationState`, and `TenantOwnershipConfiguration` contracts from that namespace. Registering a neutral package registers Core; it does not select the enforcing Tenancy provider.
 
-Without `nvl/tenancy`, the disabled boundary preserves validated legacy queries and identity keys and supplies no ownership attributes. Tenant context is disabled, and requiring a tenant or privileged platform execution fails. The actual resource connection is checked for persisted adoption before access. Setting `tenancy.enabled=true` without the enforcing provider fails, and adopted storage cannot be reopened through disabled defaults. Queue admission runs before native command deserialization and rejects captured tenant work or adopted storage without the runtime.
+Without `nvl/tenancy`, the disabled boundary preserves validated legacy queries and identity keys and supplies no ownership attributes. Tenant context is disabled, and requiring a tenant or privileged platform execution fails. The actual resource connection is checked for persisted adoption before access. Setting `nvl-tenancy.enabled=true` without the enforcing provider fails, and adopted storage cannot be reopened through disabled defaults. Queue admission runs before native command deserialization and rejects captured tenant work or adopted storage without the runtime.
 
 `nvl/tenancy` is suggested by neutral packages and required for their tenancy test profiles. Select its provider through Laravel discovery or register it explicitly to activate the runtime implementations. Merely having its classes on disk does not register adoption adapters. Billing continues to require the runtime.
+
+## Canonical configuration and deployment preflight
+
+All current package config files and roots use `nvl-<package>`. Old generic roots and unprefixed package environment names are foreign by default. Existing NVL hosts may select `nvl-core.compatibility.legacy_config` package IDs and `legacy_env` while moving to canonical inputs; both default off. Canonical presence wins, including false/null/empty values. Keep logical `PackageStorage` IDs and tenant resource keys unchanged. See [the config/env rename inventory and cutover](UPGRADING.md#major-5-canonical-configuration-and-environment).
+
+Package HTTP routes, view and translation namespaces, middleware, rate limiters, permissions, publication tags, Blade directives, and container aliases use owned NVL names. HTTP APIs default to `/nvl/api/v1/<package>`; Media assets use `/nvl/media`, and SEO files use `/nvl/seo`. Existing host registrations keep their names and paths, including collisions with canonical NVL names, and Doctor reports the conflict. No package resources join the host's generic `config` publication tag.
+
+For major 5 migration only, select logical package IDs in `nvl-core.compatibility.global_aliases` for free legacy aliases and in `nvl-core.compatibility.legacy_routes` for legacy default URLs. Both default to `[]`, preserve occupied host names and paths, and emit strict Doctor warnings. Compatibility routes retain the same controllers, middleware, authorization, and signature checks. Retain legacy private asset URLs until issued signed links expire, then remove the selection, rebuild configuration and route caches, and restart workers. All legacy aliases and routes are removed in major 6. The complete owned-name inventory is `support/resources/global-names.json`.
+
+Run `nvl:schema:preflight` with the same selected paths and repository connection before native migrations. The automatic `MigrationStarted` guard checks an exact owned file before its own operation; it does not promise that an entire batch is checked before earlier DDL. Core preserves native and custom migrator objects. Follow [the owned-storage runbook](UPGRADING.md#existing-package-storage) for exact published declarations and manual vendor/published reconciliation; NVL never edits migration files.

@@ -38,7 +38,7 @@ it('keeps validated legacy identities and queries unchanged without tenant runti
 });
 
 it('rejects enabled tenancy without the runtime', function (): void {
-    config()->set('tenancy.enabled', true);
+    config()->set('nvl-tenancy.enabled', true);
     expect(fn () => $this->app->make(TenantBoundary::class)->attributes('fixture.records'))->toThrow(TenantConfigurationInvalid::class);
 });
 

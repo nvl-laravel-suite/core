@@ -4,6 +4,15 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+### Changed
+
+- Prepare lockstep major 5 with required and development NVL peer floors of `^5.0`. This candidate has not been tagged or published.
+- Use canonical package config and env inputs with explicit one-major compatibility and collision diagnostics.
+- Preserve the host migrator; add exact migration ownership, explicit schema preflight and published-file reconciliation.
+- Validate queue metadata before restoring commands, quarantine rejected payloads and expose raw retry.
+- Declare owner capabilities through Laravel morph identity and make global Data configuration adoption explicit.
+- Review [UPGRADING.md](UPGRADING.md) before adopting the new names and infrastructure boundaries.
+
 ## [2.2.1] - 2026-09-26
 
 ### Documentation

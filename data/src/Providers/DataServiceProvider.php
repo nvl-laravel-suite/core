@@ -19,7 +19,11 @@ use Nvl\Data\Services\TypeScriptConfigurator;
 use Nvl\Data\Services\TypeScriptPathGuard;
 use Nvl\Data\Services\TypeScriptSourceInspector;
 use Nvl\Data\Services\TypeScriptSourceRegistry;
+use Nvl\Support\Doctor\DoctorCheck;
+use Nvl\Support\Doctor\DoctorContributor;
+use Nvl\Support\Doctor\PackageDoctorContributor;
 use Nvl\Support\Traits\MergesPackageConfiguration;
+use Nvl\Support\Traits\RegistersNamespacedResources;
 use RuntimeException;
 use Spatie\LaravelData\LaravelDataServiceProvider;
 use Spatie\LaravelTypeScriptTransformer\TypeScriptTransformerServiceProvider;
@@ -30,6 +34,7 @@ use Spatie\LaravelTypeScriptTransformer\TypeScriptTransformerServiceProvider;
 class DataServiceProvider extends ServiceProvider
 {
     use MergesPackageConfiguration;
+    use RegistersNamespacedResources;
 
     /**
      * Register configuration, discovery, and transformer services.
@@ -53,6 +58,15 @@ class DataServiceProvider extends ServiceProvider
         $this->app->singleton(GeneratedTypesGenerator::class);
         $this->app->singleton(GeneratedTypesRouteConfiguration::class);
 
+        if (! $this->app->bound('nvl.doctor.core.typescript-adoption')) {
+            $this->app->singleton('nvl.doctor.core.typescript-adoption', static fn (): PackageDoctorContributor => new PackageDoctorContributor('nvl/core', static fn (): array => [
+                new DoctorCheck('adoption.typescript', 'info', true, config('nvl-data.typescript.adopt_global_config') === true
+                    ? 'Explicit TypeScript global configuration adoption from nvl-data.typescript.'
+                    : 'Global TypeScript configuration remains host-owned; NVL generation uses isolated configuration.'),
+            ]));
+            $this->app->tag('nvl.doctor.core.typescript-adoption', DoctorContributor::class);
+        }
+
         $configureTransformer = config('nvl-data.typescript.configure_transformer', true);
 
         if (! is_bool($configureTransformer)) {
@@ -61,7 +75,11 @@ class DataServiceProvider extends ServiceProvider
             );
         }
 
-        if ($configureTransformer) {
+        $adoptGlobalConfig = config('nvl-data.typescript.adopt_global_config', false);
+        if (! is_bool($adoptGlobalConfig)) {
+            throw new RuntimeException('nvl-data.typescript.adopt_global_config must be a boolean.');
+        }
+        if ($configureTransformer && $adoptGlobalConfig) {
             $this->app->register(DataTypeScriptTransformerServiceProvider::class);
         }
     }

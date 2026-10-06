@@ -64,7 +64,7 @@ final readonly class GeneratedTypesRouteConfiguration
     {
         $configured = $this->config->get(
             'nvl-data.typescript.routes.prefix',
-            'api/v1/nvl/types',
+            'nvl/api/v1/data/types',
         );
         $prefix = is_string($configured) ? trim($configured, '/') : null;
 

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Nvl\Data\Data\PaginatedCollection;
 use Nvl\Data\Providers\DataServiceProvider;
+use Nvl\Data\Providers\DataTypeScriptTransformerServiceProvider;
 use Nvl\Data\Services\GeneratedArtifactSet;
 use Nvl\Data\Services\GeneratedTypeFileCatalog;
 use Nvl\Data\Services\GeneratedTypesLock;
@@ -31,6 +32,8 @@ use Spatie\TypeScriptTransformer\Transformed\Transformed;
 use Spatie\TypeScriptTransformer\TypeScriptTransformerConfig;
 
 beforeEach(function (): void {
+    config(['nvl-data.typescript.adopt_global_config' => true]);
+    app()->register(DataTypeScriptTransformerServiceProvider::class);
     $this->generatedTypesDirectory = storage_path('framework/testing/nvl-data-'.str()->uuid());
     File::ensureDirectoryExists($this->generatedTypesDirectory.'/generated');
 
@@ -43,7 +46,7 @@ afterEach(function (): void {
     app()->forgetInstance(GeneratedTypeFileCatalog::class);
 });
 
-test('it registers a standalone transformer configuration and configurable source registry', function (): void {
+test('it explicitly adopts a standalone transformer configuration and configurable source registry', function (): void {
     $registry = app(TypeScriptSourceRegistry::class);
     $registry->register(__DIR__.'/../Fixtures');
 
@@ -67,7 +70,7 @@ test('its distributable configuration keeps generated type routes opt in and pro
         ->and($defaults['typescript']['routes']['cache_control'])->toBe('private, no-store');
 });
 
-test('it publishes its configuration through package and conventional config tags', function (): void {
+test('it publishes both Core components through namespaced configuration groups', function (): void {
     $expectedTarget = config_path('nvl-data.php');
 
     expect(array_values(DataServiceProvider::pathsToPublish(
@@ -76,8 +79,9 @@ test('it publishes its configuration through package and conventional config tag
     )))->toContain($expectedTarget)
         ->and(array_values(DataServiceProvider::pathsToPublish(
             DataServiceProvider::class,
-            'config',
-        )))->toContain($expectedTarget);
+            'nvl-core-config',
+        )))->toContain($expectedTarget)
+        ->and(array_values(DataServiceProvider::pathsToPublish(null, 'config')))->not->toContain($expectedTarget);
 });
 
 test('it exposes versioned strict warning flags and generated tooling fragments', function (): void {
@@ -149,7 +153,7 @@ test('partial consumer config preserves nested generated type route defaults', f
     (new DataServiceProvider(app()))->register();
 
     expect(config('nvl-data.typescript.routes.enabled'))->toBeTrue()
-        ->and(config('nvl-data.typescript.routes.prefix'))->toBe('api/v1/nvl/types')
+        ->and(config('nvl-data.typescript.routes.prefix'))->toBe('nvl/api/v1/data/types')
         ->and(config('nvl-data.typescript.routes.archive_enabled'))->toBeTrue();
 });
 
@@ -250,13 +254,13 @@ test('it serves a persisted hashable generated types manifest and supplemental s
         'generated/media.d.ts' => "declare namespace Nvl.Media { type Identifier = string; }\n",
     ]);
 
-    expect(Route::has('nvl-data.types.index'))->toBeTrue();
+    expect(Route::has('nvl.data.types.index'))->toBeTrue();
 
-    $manifest = $this->getJson(route('nvl-data.types.index'));
+    $manifest = $this->getJson(route('nvl.data.types.index'));
 
     $manifest->assertSuccessful()
         ->assertJsonPath('meta.entrypoint.path', 'generated.types.d.ts')
-        ->assertJsonPath('meta.entrypoint.url', '/api/v1/nvl/types/entrypoint')
+        ->assertJsonPath('meta.entrypoint.url', '/nvl/api/v1/data/types/entrypoint')
         ->assertJsonPath('meta.archive.path', 'archive')
         ->assertJsonPath('meta.version', $manifest->json('meta.generatedAt'))
         ->assertJsonPath('meta.revision', trim((string) $manifest->headers->get('etag'), '"'))
@@ -270,18 +274,18 @@ test('it serves a persisted hashable generated types manifest and supplemental s
             ],
         ])
         ->assertJsonPath('data.0.scope', 'media')
-        ->assertJsonPath('data.0.url', '/api/v1/nvl/types/media');
+        ->assertJsonPath('data.0.url', '/nvl/api/v1/data/types/media');
 
     expect($manifest->headers->get('etag'))->not->toBeNull()
         ->and($manifest->headers->get('x-nvl-types-hash'))->not->toBeNull()
         ->and($manifest->headers->get('x-nvl-manifest-revision'))->not->toBeNull();
 
     $this->getJson(
-        route('nvl-data.types.index'),
+        route('nvl.data.types.index'),
         ['If-None-Match' => (string) $manifest->headers->get('etag')],
     )->assertNotModified();
 
-    $entrypoint = $this->get(route('nvl-data.types.entrypoint'));
+    $entrypoint = $this->get(route('nvl.data.types.entrypoint'));
 
     $entrypoint
         ->assertSuccessful()
@@ -289,7 +293,7 @@ test('it serves a persisted hashable generated types manifest and supplemental s
 
     expect($entrypoint->getContent())->toContain('reference path');
 
-    $scope = $this->get(route('nvl-data.types.show', ['scope' => 'media']));
+    $scope = $this->get(route('nvl.data.types.show', ['scope' => 'media']));
 
     $scope
         ->assertSuccessful()
@@ -305,7 +309,7 @@ test('it supports application-specific generated type response headers', functio
         'generated/media.d.ts' => "declare namespace Nvl.Media {}\n",
     ]);
 
-    $this->get(route('nvl-data.types.show', ['scope' => 'media']))
+    $this->get(route('nvl.data.types.show', ['scope' => 'media']))
         ->assertSuccessful()
         ->assertHeader('X-ACME-Type-Scope', 'media')
         ->assertHeader('X-ACME-Type-Path', 'generated/media.d.ts');
@@ -317,17 +321,17 @@ test('it creates route safe scopes from nested declaration filenames', function 
         'generated/media-types.d.ts' => "declare namespace Nvl.Media {}\n",
     ]);
 
-    $this->getJson(route('nvl-data.types.index'))
+    $this->getJson(route('nvl.data.types.index'))
         ->assertSuccessful()
         ->assertJsonPath('data.0.scope', 'media-types')
-        ->assertJsonPath('data.0.url', '/api/v1/nvl/types/media-types');
+        ->assertJsonPath('data.0.url', '/nvl/api/v1/data/types/media-types');
 
-    $this->get(route('nvl-data.types.show', ['scope' => 'media-types']))
+    $this->get(route('nvl.data.types.show', ['scope' => 'media-types']))
         ->assertSuccessful();
 });
 
 test('it returns a retryable unavailable response before declarations are published', function (): void {
-    $this->getJson(route('nvl-data.types.index'))
+    $this->getJson(route('nvl.data.types.index'))
         ->assertServiceUnavailable()
         ->assertHeader('Retry-After', '5')
         ->assertJsonPath('message', 'Generated types are temporarily unavailable.');
@@ -370,7 +374,7 @@ test('it downloads a content-addressed archive of verified generated declaration
         }
     }
 
-    $response = $this->get(route('nvl-data.types.archive'));
+    $response = $this->get(route('nvl.data.types.archive'));
 
     $response->assertSuccessful()
         ->assertDownload();
@@ -722,9 +726,9 @@ test('it restores the prior artifact set when staged publication fails', functio
             ->and($this->generatedTypesDirectory.'/generated/new.d.ts')
             ->not->toBeFile();
 
-        $this->get(route('nvl-data.types.show', ['scope' => 'old']))
+        $this->get(route('nvl.data.types.show', ['scope' => 'old']))
             ->assertSuccessful();
-        $this->get(route('nvl-data.types.show', ['scope' => 'new']))
+        $this->get(route('nvl.data.types.show', ['scope' => 'new']))
             ->assertNotFound();
     } finally {
         File::deleteDirectory($stagingDirectory);
@@ -817,7 +821,7 @@ test('it returns immediately while a publication lock is contended', function ()
     $startedAt = hrtime(true);
 
     try {
-        $this->getJson(route('nvl-data.types.index'))
+        $this->getJson(route('nvl.data.types.index'))
             ->assertServiceUnavailable()
             ->assertHeader('Retry-After', '5');
     } finally {
@@ -850,7 +854,7 @@ test('it rejects manifest metadata changes without a matching revision', functio
         json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
     );
 
-    $this->getJson(route('nvl-data.types.index'))
+    $this->getJson(route('nvl.data.types.index'))
         ->assertServiceUnavailable()
         ->assertJsonPath('message', 'Generated types are temporarily unavailable.');
 });
@@ -865,7 +869,7 @@ test('it rejects checksum-tampered declarations without leaking filesystem paths
         "declare namespace Nvl.Tampered {}\n",
     );
 
-    $response = $this->get(route('nvl-data.types.show', ['scope' => 'media']));
+    $response = $this->get(route('nvl.data.types.show', ['scope' => 'media']));
 
     $response
         ->assertServiceUnavailable()
@@ -884,12 +888,12 @@ test('it never exposes declarations omitted from the transformer manifest', func
         "declare namespace Nvl.Private {}\n",
     );
 
-    $this->getJson(route('nvl-data.types.index'))
+    $this->getJson(route('nvl.data.types.index'))
         ->assertSuccessful()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.scope', 'media');
 
-    $this->get(route('nvl-data.types.show', ['scope' => 'private']))
+    $this->get(route('nvl.data.types.show', ['scope' => 'private']))
         ->assertNotFound();
 });
 
@@ -988,7 +992,7 @@ test('it enforces generated file bounds under oversized publications', function 
         ], JSON_THROW_ON_ERROR),
     );
 
-    $this->getJson(route('nvl-data.types.index'))
+    $this->getJson(route('nvl.data.types.index'))
         ->assertServiceUnavailable()
         ->assertJsonPath('message', 'Generated types are temporarily unavailable.');
 });
@@ -1002,15 +1006,15 @@ test('it enforces archive bounds but short circuits matching conditional request
         'generated.types.d.ts' => "/// <reference path=\"./generated/media.d.ts\" />\n",
         'generated/media.d.ts' => str_repeat('declare namespace Nvl.Media {}', 10),
     ]);
-    $manifest = $this->getJson(route('nvl-data.types.index'))->assertSuccessful();
+    $manifest = $this->getJson(route('nvl.data.types.index'))->assertSuccessful();
     config()->set('nvl-data.typescript.routes.archive_max_bytes', 1);
 
-    $this->get(route('nvl-data.types.archive'))
+    $this->get(route('nvl.data.types.archive'))
         ->assertServiceUnavailable()
         ->assertJsonPath('message', 'Generated types are temporarily unavailable.');
 
     $this->get(
-        route('nvl-data.types.archive'),
+        route('nvl.data.types.archive'),
         ['If-None-Match' => '"'.$manifest->json('meta.hash').'"'],
     )->assertNotModified();
 });
@@ -1021,12 +1025,12 @@ test('it serves repeated manifest reads from one stable persisted publication', 
         'generated/media.d.ts' => "declare namespace Nvl.Media {}\n",
     ]);
     config()->set('nvl-data.typescript.max_source_files', 1);
-    $expectedHash = $this->getJson(route('nvl-data.types.index'))
+    $expectedHash = $this->getJson(route('nvl.data.types.index'))
         ->assertSuccessful()
         ->json('meta.hash');
 
     foreach (range(1, 50) as $requestNumber) {
-        $this->getJson(route('nvl-data.types.index'))
+        $this->getJson(route('nvl.data.types.index'))
             ->assertSuccessful()
             ->assertJsonPath('meta.hash', $expectedHash);
     }

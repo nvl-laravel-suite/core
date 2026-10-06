@@ -6,10 +6,24 @@ namespace Nvl\Support\Tests\Unit;
 
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Config\Repository as RepositoryContract;
+use Illuminate\Events\Dispatcher;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Providers\SupportServiceProvider;
 use SplFileInfo;
+
+beforeEach(function (): void {
+    $this->originalPublishPaths = ServiceProvider::$publishes;
+    $this->originalPublishGroups = ServiceProvider::$publishGroups;
+    ServiceProvider::$publishes = [];
+    ServiceProvider::$publishGroups = [];
+});
+
+afterEach(function (): void {
+    ServiceProvider::$publishes = $this->originalPublishPaths;
+    ServiceProvider::$publishGroups = $this->originalPublishGroups;
+});
 
 it('is auto-discoverable through Core and can boot its provider in isolation', function (): void {
     $packageRoot = dirname(__DIR__, 2);
@@ -25,7 +39,7 @@ it('is auto-discoverable through Core and can boot its provider in isolation', f
     $application = new Application($packageRoot);
     $application->instance(RepositoryContract::class, new Repository);
     $provider = new SupportServiceProvider($application);
-    $provider->boot();
+    $provider->boot(new Dispatcher($application));
 
     expect($manifest['extra']['laravel']['providers'] ?? [])
         ->toContain(SupportServiceProvider::class)
@@ -38,11 +52,11 @@ it('publishes its packaged agent guidance through the documented tag', function 
     $application = new Application($packageRoot);
     $application->instance(RepositoryContract::class, new Repository);
     $provider = new SupportServiceProvider($application);
-    $provider->boot();
+    $provider->boot(new Dispatcher($application));
 
     $publishPaths = SupportServiceProvider::pathsToPublish(
         SupportServiceProvider::class,
-        'support-skills',
+        'nvl-core-skills',
     );
     $publishedSource = array_key_first($publishPaths);
 
@@ -71,14 +85,14 @@ it('has no runtime boot side effects outside the console', function (): void {
     $application->instance(RepositoryContract::class, new Repository);
     $publishPathsBeforeBoot = SupportServiceProvider::pathsToPublish(
         SupportServiceProvider::class,
-        'support-skills',
+        'nvl-core-skills',
     );
 
-    (new SupportServiceProvider($application))->boot();
+    (new SupportServiceProvider($application))->boot(new Dispatcher($application));
 
     expect(SupportServiceProvider::pathsToPublish(
         SupportServiceProvider::class,
-        'support-skills',
+        'nvl-core-skills',
     ))->toBe($publishPathsBeforeBoot);
 });
 
@@ -118,7 +132,7 @@ it('keeps its source boundary minimal and transport-neutral', function (): void 
         ->implode("\n");
 
     expect($sourceDirectories)
-        ->toBe(['Config', 'Console', 'Contracts', 'Doctor', 'Exceptions', 'Facades', 'Integrations', 'Locales', 'Providers', 'Schema', 'Tenancy', 'Traits'])
+        ->toBe(['Config', 'Console', 'Contracts', 'Doctor', 'Exceptions', 'Facades', 'Globals', 'Integrations', 'Locales', 'Providers', 'Schema', 'Tenancy', 'Traits'])
         ->and($source)
         ->not->toMatch('/^use\s+Nvl\\\\(?!Support\\\\)/m')
         ->not->toMatch('/\b(?:abort|redirect|response)\s*\(/');

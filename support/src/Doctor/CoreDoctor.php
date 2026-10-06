@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Nvl\Support\Doctor;
 
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Database\DatabaseManager;
 use InvalidArgumentException;
+use Nvl\Support\Config\PackageConfiguration;
 use Nvl\Support\Config\PackageOptions;
+use Nvl\Support\Globals\GlobalNames;
 use Nvl\Support\Locales\LocaleCatalogDiagnostics;
 use Nvl\Support\OwnerRegistry;
 use Throwable;
@@ -23,6 +26,9 @@ final readonly class CoreDoctor
         private OwnerRegistry $owners,
         private LocaleCatalogDiagnostics $locales,
         private Repository $config,
+        private OwnerIdentityDiagnostics $ownerRows,
+        private DatabaseManager $database,
+        private GlobalNames $globalNames,
     ) {}
 
     /**
@@ -32,7 +38,32 @@ final readonly class CoreDoctor
      */
     public function inspect(): array
     {
-        $checks = $this->infrastructureChecks();
+        $checks = [...$this->infrastructureChecks(), ...$this->queuePersistenceChecks()];
+        try {
+            $checks = [...$checks, ...$this->globalNames->diagnostics()];
+        } catch (Throwable $exception) {
+            $checks[] = new DoctorCheck('globals.configuration', 'error', false, $exception->getMessage());
+        }
+        foreach (PackageConfiguration::detectedLegacy($this->config) as $package => $canonical) {
+            $checks[] = new DoctorCheck('configuration.legacy.'.$package, 'warning', false,
+                "Legacy NVL-shaped configuration [{$package}] was detected. Move options to [{$canonical}] or select [{$package}] in nvl-core.compatibility.legacy_config.");
+        }
+        foreach ((array) $this->config->get('nvl-core.configuration.legacy_reads', []) as $package => $canonical) {
+            if (! is_string($package) || ! is_string($canonical)) {
+                $checks[] = new DoctorCheck('configuration.legacy_metadata', 'error', false, 'Legacy configuration diagnostic declarations must map package names to canonical names.');
+
+                continue;
+            }
+            $checks[] = new DoctorCheck('configuration.legacy_read.'.$package, 'warning', false, "Legacy configuration [{$package}] is active; move options to [{$canonical}].");
+        }
+        foreach ((array) $this->config->get('nvl-core.configuration.legacy_env', []) as $legacy => $canonical) {
+            if (! is_string($legacy) || ! is_string($canonical)) {
+                $checks[] = new DoctorCheck('configuration.legacy_env_metadata', 'error', false, 'Legacy environment diagnostic declarations must map legacy names to canonical names.');
+
+                continue;
+            }
+            $checks[] = new DoctorCheck('configuration.legacy_env.'.$legacy, 'warning', false, "Legacy env input [{$legacy}] is active; use [{$canonical}].");
+        }
         foreach (PackageOptions::deprecations() as $source => $deprecation) {
             $message = "Configuration [{$source}] is deprecated; use [{$deprecation['replacement']}].";
             if ($deprecation['conflict']) {
@@ -43,6 +74,10 @@ final readonly class CoreDoctor
 
         try {
             $this->owners->all();
+            foreach ($this->owners->errors() as $source => $message) {
+                $checks[] = new DoctorCheck('owners.identity.'.substr(hash('sha256', $source), 0, 16), 'error', false, $message);
+            }
+            $checks = [...$checks, ...$this->ownerRows->inspect()];
             foreach ($this->owners->deprecations() as $source => $deprecation) {
                 $checks[] = new DoctorCheck(
                     'owners.deprecated.'.$source,
@@ -99,5 +134,35 @@ final readonly class CoreDoctor
         }
 
         return $checks;
+    }
+
+    /** @return list<DoctorCheck> Explicit diagnostics for raw rejected-envelope persistence */
+    private function queuePersistenceChecks(): array
+    {
+        $driver = $this->config->get('queue.failed.driver', 'database-uuids');
+        if ($driver === null || $driver === 'null') {
+            return [new DoctorCheck('queue.quarantine.persistence', 'warning', false,
+                'Native failed-job persistence is disabled. Rejected NVL queue envelopes are deleted safely but cannot be retained for raw retry; configure a persistent queue.failed driver.')];
+        }
+        if (! in_array($driver, ['database', 'database-uuids'], true)) {
+            return [];
+        }
+        try {
+            if (PackageOptions::queueConnection('core') === 'sync') {
+                return [];
+            }
+            $connection = $this->config->get('queue.failed.database') ?? $this->config->get('database.default');
+            $table = $this->config->get('queue.failed.table', 'failed_jobs');
+            if (! is_string($connection) || ! is_string($table) || $table === '') {
+                throw new InvalidArgumentException('Native failed-job database and table must be configured.');
+            }
+            if (! $this->database->connection($connection)->getSchemaBuilder()->hasTable($table)) {
+                throw new InvalidArgumentException("Native failed-job table [{$connection}.{$table}] is unavailable.");
+            }
+        } catch (Throwable $exception) {
+            return [new DoctorCheck('queue.quarantine.persistence', 'error', false, $exception->getMessage())];
+        }
+
+        return [];
     }
 }

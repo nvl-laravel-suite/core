@@ -35,21 +35,21 @@ final readonly class LocaleCatalogDiagnostics
             $supported = [];
         }
 
-        $legacy = $this->config->get('primitives.locales.supported');
+        $legacy = $this->config->get('nvl-primitives.locales.supported');
 
         if ($legacy !== null) {
-            $warnings[] = 'primitives.locales is deprecated; bind LocaleCatalog or configure translatable.locales.';
+            $warnings[] = 'nvl-primitives.locales is deprecated; bind LocaleCatalog or configure nvl-translatable.locales.';
 
             try {
                 $legacyLocales = (new ApplicationLocaleCatalog(new Configuration([
-                    'primitives' => ['locales' => ['supported' => $legacy]],
+                    'nvl-primitives' => ['locales' => ['supported' => $legacy]],
                 ])))->supported();
                 sort($legacyLocales);
                 $selectedLocales = $supported;
                 sort($selectedLocales);
 
                 if ($legacyLocales !== $selectedLocales) {
-                    $errors[] = 'primitives.locales.supported conflicts with the selected LocaleCatalog.';
+                    $errors[] = 'nvl-primitives.locales.supported conflicts with the selected LocaleCatalog.';
                 }
             } catch (InvalidArgumentException $exception) {
                 $errors[] = $exception->getMessage();

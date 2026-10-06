@@ -8,11 +8,11 @@ use Illuminate\Database\DatabaseManager;
 use LogicException;
 use Nvl\Support\Config\PackageStorage;
 
-/** Inspects every pending package target before Laravel starts a migration batch. */
+/** Validates explicitly selected owned migration targets without executing migrations. */
 final readonly class SchemaPreflight
 {
     /** Create a preflight against the application's configured connections. */
-    public function __construct(private DatabaseManager $database) {}
+    public function __construct(private DatabaseManager $database, private SchemaMigrationPaths $paths) {}
 
     /**
      * Reject existing targets whose creating migration is still pending.
@@ -22,6 +22,26 @@ final readonly class SchemaPreflight
     public function validate(array $migrations): void
     {
         $targets = [];
+        $owned = [];
+        $owners = [];
+        foreach ($migrations as $path) {
+            $identity = $this->paths->identity($path);
+            if ($identity === null) {
+                continue;
+            }
+            $key = $identity['package'].'|'.$identity['name'];
+            if (isset($owners[$key]) && $owners[$key] !== $identity['path']) {
+                throw new LogicException("Migration [{$identity['name']}] has two owners. Select vendor or explicitly declared published ownership before migrating.");
+            }
+            $owners[$key] = $identity['path'];
+            if (! $identity['current']) {
+                throw new LogicException('Declared legacy migration code must be archived or replaced before migration preflight; reconcile code and history together.');
+            }
+            $owned[$identity['path']] = $identity;
+        }
+        if ($owned === []) {
+            return;
+        }
         $migrationSetting = config('database.migrations', ['table' => 'migrations']);
         $migrationTable = is_array($migrationSetting) ? ($migrationSetting['table'] ?? 'migrations') : $migrationSetting;
         if (! is_string($migrationTable) || $migrationTable === '') {
@@ -31,11 +51,14 @@ final readonly class SchemaPreflight
         $recorded = $repository->getSchemaBuilder()->hasTable($migrationTable)
             ? $repository->table($migrationTable)->pluck('migration')->all()
             : [];
-        foreach ($migrations as $path) {
+        foreach ($owned as $path => $identity) {
             $name = pathinfo($path, PATHINFO_FILENAME);
+            if (in_array($name, $recorded, true)) {
+                continue;
+            }
             foreach (SchemaIdentities::all() as $package => $manifest) {
                 foreach ($manifest['migrations'] as $old => $migration) {
-                    if (substr($name, 18) !== substr($migration['name'], 18)) {
+                    if ($package !== $identity['package'] || $migration['name'] !== $identity['name']) {
                         continue;
                     }
                     foreach ($migration['creates'] as $key) {
@@ -50,12 +73,12 @@ final readonly class SchemaPreflight
                         }
                         $targets[$target] = $name;
                         if ($schema->hasTable($table)) {
-                            throw new LogicException("Package [{$package}] cannot create existing table [{$table}]. No migrations in this batch have run. Run nvl:doctor --strict and use nvl:schema:upgrade for a verified legacy installation, or select an unused tables.{$key} name.");
+                            throw new LogicException("Package [{$package}] cannot create existing table [{$table}]. Run nvl:doctor --strict and use nvl:schema:upgrade for a verified legacy installation, or select an unused tables.{$key} name.");
                         }
                         $legacy = $manifest['tables'][$key]['legacy'];
                         if ($legacy !== $table && $schema->hasTable($legacy)
                             && array_any($recorded, static fn (mixed $row): bool => is_string($row) && substr($row, 18) === substr($old, 18))) {
-                            throw new LogicException("Package [{$package}] has legacy storage [{$legacy}] and a recorded legacy creator. No migrations in this batch have run. Run nvl:doctor --strict and resolve ownership with nvl:schema:upgrade --dry-run before creating parallel storage.");
+                            throw new LogicException("Package [{$package}] has legacy storage [{$legacy}] and a recorded legacy creator. Run nvl:doctor --strict and resolve ownership with nvl:schema:upgrade --dry-run before creating parallel storage.");
                         }
                     }
                 }
@@ -67,7 +90,7 @@ final readonly class SchemaPreflight
     public static function managed(string $package, string $key): bool
     {
         if ($package === 'tenancy' && $key === 'tenants') {
-            return config('tenancy.directory.driver', 'package') === 'package';
+            return config('nvl-tenancy.directory.driver', 'package') === 'package';
         }
         if ($package !== 'auth') {
             return true;

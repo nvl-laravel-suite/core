@@ -34,10 +34,10 @@ Test code and status validation, exception chaining, serialization safety, enum 
 
 ## Shared owner identity
 
-- Declare canonical aliases in `nvl-core.owners` and resolve identity through `Nvl\Support\OwnerRegistry`. Identical registrations are idempotent; conflicting aliases, duplicate canonical model aliases, and incompatible host morph maps fail before use.
+- Declare owner class lists in `nvl-core.owners`; use Laravel `getMorphClass()` for stored identity. Unmapped models retain their FQCN, and host-authored aliases stay authoritative.
 - Keep identity distinct from package authorization, allowlists, resolvers, handlers, scopes, and mutation abilities.
-- Accept deprecated host class inputs for one major cycle, report them through Doctor, and preserve the package's established morph-write behavior.
-- Do not automatically create aliases for historical FQCN-backed inputs or globally enforce morph maps on unrelated host models. Introducing a canonical alias requires an explicit, reviewed stored-morph conversion and host relationship reconciliation.
+- Core declarations and capability registration never install or enforce host morph maps. Package-owned Page/TemplateVersion mappings are separately collision-checked.
+- Report incompatible legacy alias references and stored identity drift through Doctor. Legacy aliases last major 5 only; reviewed host morph-map changes need explicit data reconciliation, never an automatic conversion.
 
 ## Shared diagnostics
 
@@ -55,6 +55,19 @@ Test code and status validation, exception chaining, serialization safety, enum 
 
 ### Schema ownership and upgrades
 
-Core's guarded migrator validates the entire pending batch before DDL. Canonical `tables.*` names use the full package prefix; resolve connections through PackageStorage, including Media's separate owner-slot ledger. `nvl:schema:upgrade` requires explicit packages and `--claim-legacy`, validates released relational keys and creator history, offers `--dry-run --format=json`, and preserves unrelated history/batches. Verified published copies map to exact canonical identities and current package migration code. Duplicate vendor/published owners are rejected. Modified host copies remain host-owned. Transactions are driver dependent and per connection; no automatic stored morph rewrite or importer is provided.
+Run `nvl:schema:preflight` before the native migration command with the same selected `--path`, `--realpath` and `--database`. It checks the selected pending NVL set without DDL. The automatic `Illuminate\Database\Events\MigrationStarted` listener checks only the exact owned file before its own up/down operation; it cannot promise whole-batch-before-DDL protection. Earlier migrations in plain `migrate --force` may already have executed before a later file is rejected. Pretend and a custom migrator selecting different files require explicit preflight of that actual set.
 
-Preserve the standard migrator state when installing the preflight. Host subclasses must extend `PackageMigrator` and retain `parent::runPending()` in custom execution; never replace an unknown host migrator silently. Public tenant request compatibility goes through `TenantSiteAttributes`; canonical attribute presence wins and both middleware keys restore independently.
+Preserve the original Laravel or custom migrator object, paths, connection and output; no `PackageMigrator` replacement or subclass requirement is installed. Claim published files only through exact `nvl-core.migrations.published` declarations, canonical identities and released checksums, with an explicit `legacy` history mapping for retimestamped records. `nvl:schema:upgrade --package=media --claim-legacy --migration-owner=vendor --dry-run --format=json` validates the complete owned storage/history plan. Archive verified copies outside loaded paths manually for vendor ownership, or install current package migration code manually and disable vendor loading before `--migration-owner=published`. Never rename old files and leave their obsolete down() code executable. The command rewrites verified history while retaining batches, and never mutates files or host morph values. Native pending/status/rollback uses actual filenames. DDL transaction guarantees depend on the driver and connection.
+
+Public tenant request compatibility goes through `TenantSiteAttributes`; canonical attribute presence wins and both middleware keys restore independently.
+
+### Quarantined native queue retries
+
+Native `queue:retry` selections are checked at `Illuminate\Console\Events\CommandStarting` against raw failed-job provider records before Laravel restores commands. Retry captured NVL payloads through `nvl:queue:retry <id...>` after repairing the boundary; native `Illuminate\Queue\Events\JobRetryRequested` alone occurs too late. Custom retry implementations must invoke `TenantQueueQuarantine::beforeNativeRetry()` before restoration. Preserve original raw bodies, captured attempts/deadlines and failed IDs until transport acceptance.
+
+## Canonical configuration ownership
+
+- Read/write `nvl-core` configuration and publish only canonical `nvl-<package>-<resource>` tags. Keep logical package/tenant resource identifiers unchanged.
+- Generic config roots and unprefixed package environment names are foreign by default. For an upgrading NVL host only, select `nvl-core.compatibility.legacy_config` package IDs and `legacy_env` explicitly; both default off. Canonical presence wins, including false/null/empty values. Legacy inputs are read without writing back and are removed in major 6.
+- Use canonical `NVL_<PACKAGE>_*` variables only in config evaluation, then rebuild configuration caches and restart workers after cutover. Shared Laravel environment variables retain their names. Consult Core's versioned `support/resources/global-names.json` for all renames.
+- Old global aliases and legacy route families require separate explicit `global_aliases`/`legacy_routes` package selections. Preserve collisions and use Doctor diagnostics; never grant generic permissions automatically or claim signed-link compatibility without the same authorization/signature checks.

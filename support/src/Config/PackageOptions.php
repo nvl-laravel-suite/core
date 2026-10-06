@@ -58,14 +58,18 @@ final class PackageOptions
      */
     public static function aliases(string $package): array
     {
-        $package = self::namespace($package);
+        $package = PackageConfiguration::logical($package);
         $aliases = ['auth.guard' => 'authorization.guard'];
 
         if (in_array($package, ['activity', 'mail-notifications', 'settings', 'taxonomy'], true)) {
             $aliases['storage.connection'] = 'connection';
         }
 
-        if ($package === 'nvl-auth') {
+        if ($package === 'activity') {
+            $aliases['retention.queue'] = 'queue.name';
+        } elseif ($package === 'tasks') {
+            $aliases['activity.queue'] = 'queue.name';
+        } elseif ($package === 'auth') {
             $aliases['guard'] = 'authorization.guard';
         } elseif ($package === 'templates') {
             $aliases['rendering.connection'] = 'queue.connection';
@@ -250,7 +254,7 @@ final class PackageOptions
             return $value;
         }
 
-        $logical = $namespace === 'nvl-auth' ? 'auth' : $namespace;
+        $logical = PackageConfiguration::logical($namespace);
         $explicit = Config::get("nvl-core.options_explicit.{$logical}", Config::get("nvl-core.storage_explicit.{$logical}", []));
         if (is_array($explicit) && in_array($canonical, $explicit, true)) {
             return $inheritCore ? Config::get("nvl-core.{$canonical}") : null;
@@ -286,10 +290,10 @@ final class PackageOptions
         return $value;
     }
 
-    /** Preserve Auth's established public configuration namespace. */
+    /** Resolve every package through its canonical configuration namespace. */
     private static function namespace(string $package): string
     {
-        return $package === 'auth' ? 'nvl-auth' : $package;
+        return PackageConfiguration::key($package);
     }
 
     private function __construct() {}

@@ -42,7 +42,7 @@ final readonly class EffectiveTenantConnection
     /** Return the configured core storage connection. */
     public function core(): Connection
     {
-        $name = $this->configuration->get('tenancy.connection') ?? $this->configuration->get('nvl-core.connection');
+        $name = $this->configuration->get('nvl-tenancy.connection') ?? $this->configuration->get('nvl-core.connection');
         if ($name !== null && ! is_string($name)) {
             throw new TenantConfigurationInvalid('tenancy.connection must be null or a connection name.');
         }

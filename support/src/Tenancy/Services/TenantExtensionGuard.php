@@ -36,7 +36,7 @@ final readonly class TenantExtensionGuard
             );
         }
 
-        if ($this->configuration->get('tenancy.enabled') === true
+        if ($this->configuration->get('nvl-tenancy.enabled') === true
             && ! is_a($class, $tenantContract, true)) {
             throw new InvalidArgumentException(
                 "{$label} [{$class}] is not tenant compatible.",

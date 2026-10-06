@@ -6,9 +6,9 @@ use Nvl\Support\Config\PackageOptions;
 
 it('inherits effective infrastructure through package Core and Laravel configuration', function (): void {
     config([
-        'media.queue' => ['connection' => null, 'name' => null],
-        'media.locks.store' => null,
-        'media.authorization.guard' => null,
+        'nvl-media.queue' => ['connection' => null, 'name' => null],
+        'nvl-media.locks.store' => null,
+        'nvl-media.authorization.guard' => null,
         'nvl-core.queue' => ['connection' => 'suite-jobs', 'name' => 'suite-work'],
         'nvl-core.locks.store' => 'suite-cache',
         'nvl-core.authorization.guard' => 'admin',
@@ -37,10 +37,10 @@ it('inherits effective infrastructure through package Core and Laravel configura
 
 it('preserves package and operation overrides without changing lock lifetimes', function (): void {
     config([
-        'media.queue' => ['connection' => 'media-jobs', 'name' => 'media-work'],
-        'media.locks' => ['store' => 'media-cache', 'multipart' => ['store' => 'uploads']],
-        'media.multipart.lock.seconds' => 125,
-        'media.authorization.guard' => 'media-users',
+        'nvl-media.queue' => ['connection' => 'media-jobs', 'name' => 'media-work'],
+        'nvl-media.locks' => ['store' => 'media-cache', 'multipart' => ['store' => 'uploads']],
+        'nvl-media.multipart.lock.seconds' => 125,
+        'nvl-media.authorization.guard' => 'media-users',
         'nvl-core.queue' => ['connection' => 'suite-jobs', 'name' => 'suite-work'],
         'nvl-core.locks.store' => 'suite-cache',
     ]);
@@ -50,21 +50,21 @@ it('preserves package and operation overrides without changing lock lifetimes', 
         ->and(PackageOptions::lockStore('media'))->toBe('media-cache')
         ->and(PackageOptions::lockStore('media', 'multipart'))->toBe('uploads')
         ->and(PackageOptions::authGuard('media'))->toBe('media-users')
-        ->and(config('media.multipart.lock.seconds'))->toBe(125);
+        ->and(config('nvl-media.multipart.lock.seconds'))->toBe(125);
 });
 
 it('inherits named database connections while preserving migration opt-in defaults', function (): void {
     config([
-        'billing.connection' => null,
+        'nvl-billing.connection' => null,
         'nvl-core.connection' => null,
         'database.default' => 'host-database',
-        'billing.migrations.enabled' => false,
+        'nvl-billing.migrations.enabled' => false,
     ]);
 
     expect(PackageOptions::connection('billing'))->toBe('host-database')
         ->and(PackageOptions::migrationsEnabled('billing'))->toBeFalse()
         ->and(PackageOptions::migrationsEnabled('payments', false))->toBeFalse();
-    config(['nvl-core.connection' => 'suite-storage', 'billing.connection' => 'billing-storage']);
+    config(['nvl-core.connection' => 'suite-storage', 'nvl-billing.connection' => 'billing-storage']);
     expect(PackageOptions::connection('billing'))->toBe('billing-storage');
 });
 
@@ -80,8 +80,8 @@ it('normalizes only declared package aliases and reports canonical conflicts onc
         ->and($normalized['authorization']['guard'])->toBe('legacy-admin')
         ->and($normalized['rendering']['timeout'])->toBe(90)
         ->and(PackageOptions::deprecations('templates'))->toHaveCount(3)
-        ->and(PackageOptions::deprecations('templates')['templates.rendering.connection'])
-        ->toBe(['replacement' => 'templates.queue.connection', 'value' => 'canonical', 'conflict' => true]);
+        ->and(PackageOptions::deprecations('templates')['nvl-templates.rendering.connection'])
+        ->toBe(['replacement' => 'nvl-templates.queue.connection', 'value' => 'canonical', 'conflict' => true]);
 
     expect(PackageOptions::normalize('content', ['rendering' => ['connection' => 'unrelated']], false))
         ->toBe(['rendering' => ['connection' => 'unrelated']]);
@@ -93,7 +93,7 @@ it('retains independent historical media lock stores instead of collapsing them'
         'deduplication_lock' => ['store' => 'deduplication'],
         'multipart' => ['lock' => ['store' => 'multipart']],
     ]);
-    config(['media' => $normalized]);
+    config(['nvl-media' => $normalized]);
 
     expect(PackageOptions::lockStore('media', 'mutation'))->toBe('mutations')
         ->and(PackageOptions::lockStore('media', 'deduplication'))->toBe('deduplication')
@@ -103,22 +103,22 @@ it('retains independent historical media lock stores instead of collapsing them'
 
 it('inherits route lists atomically and applies a selected authentication guard', function (): void {
     config([
-        'content.routes.management.middleware' => null,
-        'content.routes.middleware' => null,
+        'nvl-content.routes.management.middleware' => null,
+        'nvl-content.routes.middleware' => null,
         'nvl-core.routes.middleware' => ['api', 'auth', 'throttle:90,1'],
         'nvl-core.authorization.guard' => 'admin',
     ]);
 
     expect(PackageOptions::routeMiddleware('content', 'management'))->toBe(['api', 'auth:admin', 'throttle:90,1']);
 
-    config(['content.routes.management.middleware' => []]);
+    config(['nvl-content.routes.management.middleware' => []]);
     expect(PackageOptions::routeMiddleware('content', 'management'))->toBe([]);
-    config(['content.routes.management.middleware' => ['auth:token']]);
+    config(['nvl-content.routes.management.middleware' => ['auth:token']]);
     expect(PackageOptions::routeMiddleware('content', 'management'))->toBe(['auth:token']);
 });
 
 it('preserves normalized values and deprecations through a configuration cache round trip', function (): void {
-    config(['templates' => PackageOptions::normalize('templates', ['rendering' => ['connection' => 'historical']])]);
+    config(['nvl-templates' => PackageOptions::normalize('templates', ['rendering' => ['connection' => 'historical']])]);
     $cache = tempnam(sys_get_temp_dir(), 'nvl-options-');
     expect($cache)->not->toBeFalse();
     file_put_contents($cache, '<?php return '.var_export(config()->all(), true).';');
@@ -127,7 +127,7 @@ it('preserves normalized values and deprecations through a configuration cache r
         $cached = require $cache;
         config()->set($cached);
         expect(PackageOptions::queueConnection('templates'))->toBe('historical')
-            ->and(PackageOptions::deprecations('templates'))->toHaveKey('templates.rendering.connection');
+            ->and(PackageOptions::deprecations('templates'))->toHaveKey('nvl-templates.rendering.connection');
     } finally {
         unlink($cache);
     }
@@ -144,7 +144,7 @@ it('inherits Core when an explicit canonical null accompanies a historical overr
         'rendering' => ['connection' => 'historical'],
     ]);
     config([
-        'templates' => $host,
+        'nvl-templates' => $host,
         'nvl-core.options_explicit.templates' => ['queue.connection'],
         'nvl-core.queue.connection' => 'suite-jobs',
     ]);
@@ -157,8 +157,8 @@ it('rejects invalid names instead of silently inheriting them', function (string
     config([$key => $value]);
     expect(fn () => PackageOptions::{$method}('media'))->toThrow(InvalidArgumentException::class);
 })->with([
-    'empty canonical connection' => ['media.queue.connection', '', 'queueConnection'],
+    'empty canonical connection' => ['nvl-media.queue.connection', '', 'queueConnection'],
     'invalid Core queue' => ['nvl-core.queue.name', 12, 'queueName'],
-    'empty lock store' => ['media.locks.store', ' ', 'lockStore'],
-    'invalid guard' => ['media.authorization.guard', [], 'authGuard'],
+    'empty lock store' => ['nvl-media.locks.store', ' ', 'lockStore'],
+    'invalid guard' => ['nvl-media.authorization.guard', [], 'authGuard'],
 ]);

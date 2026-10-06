@@ -27,7 +27,7 @@ final class PersistedTenantStorage implements TenantInstallationState
     /** Reject configured tenant enforcement when its implementation is unavailable. */
     public function assertRuntimeDisabled(): void
     {
-        if ($this->configuration->get('tenancy.enabled') === true) {
+        if ($this->configuration->get('nvl-tenancy.enabled') === true) {
             throw new TenantConfigurationInvalid('Tenancy is enabled but its enforcing runtime is not loaded.');
         }
     }

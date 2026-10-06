@@ -17,17 +17,15 @@ Version 1.0 was a deliberately small foundation. The following steps describe th
 
 ## Shared owner identity cutover
 
-Declare canonical morph identities under `nvl-core.owners` and update capability definitions to reference them. Package allowlists, resolvers, handlers, visibility, translation policies, and authorization remain mandatory. Duplicate identical identities are idempotent; conflicting identity declarations or host morph maps fail.
+Declare owner classes in `nvl-core.owners`, for example `'owners' => [Article::class]`, and reference the same model class from each package capability. Laravel's `getMorphClass()` is the stored owner identity: it returns the host-authored morph alias or the FQCN when no map exists. Core declarations and package allowlists do not add or enforce a host morph map and do not grant authorization.
 
-Legacy model inputs remain accepted for one major cycle. Compatibility registration preserves the package's established write-time storage: existing Content, Taxonomy, and Metafields aliases remain mapped, while historical class-backed inputs do not create new aliases automatically. Existing host aliases remain authoritative. Core diagnostics identify deprecated host inputs without changing rows.
-
-A new canonical alias changes Laravel morph writes for its model. Convert verified FQCN-backed rows explicitly before introducing that alias and reconcile all affected package and host relationships. No automatic data conversion or `nvl:owners:upgrade` command is included. Keep existing aliases where possible; never rewrite unrelated values or host-owned morph tables as part of a package conversion. Rebuild configuration caches and restart workers after the coordinated cutover.
+Legacy alias references remain read compatibility during major 5 and are removed in major 6. A legacy configured alias must agree with the model's current `getMorphClass()`; mismatches are diagnostics and require a host decision. Doctor can inspect declared package owner columns for stored-versus-current identities without rewriting them. If the host introduces or changes its morph map, review and convert only the affected stored columns and reconcile host relationships before cutover. No automatic owner-data conversion or `nvl:owners:upgrade` is provided. Rebuild configuration caches and restart workers after the coordinated change.
 
 ## Shared locale catalog cutover
 
 Replace raw package locale reads with `Nvl\Support\Contracts\LocaleCatalog`. Configure `nvl-core.locales.supported`, `default`, and `fallback` or bind the contract in the host. Standalone Core defaults use the distinct valid application locale and fallback; explicit empty fallback lists are preserved. Translatable's configured adapter remains authoritative when installed, and host implementations are preserved.
 
-Move `primitives.locales.supported` to the canonical catalog during this major cycle. Legacy configuration remains accepted only by the standalone default and is reported by `php artisan nvl:doctor`; conflicting catalogs require an explicit host decision. Existing published Translatable lists, defaults, and fallbacks continue to apply. Fresh Translatable defaults inherit Core/application locales instead of adding `en` and `bg`.
+Move `nvl-primitives.locales.supported` to the canonical catalog during this major cycle. Legacy configuration remains accepted only by the standalone default and is reported by `php artisan nvl:doctor`; conflicting catalogs require an explicit host decision. Existing published Translatable lists, defaults, and fallbacks continue to apply. Fresh Translatable defaults inherit Core/application locales instead of adding `en` and `bg`.
 
 Review narrowed resource locales and explicit resource fallbacks against the selected catalog. Exact-only reads and intentional empty translated values remain unchanged. No locale rows are converted automatically. After configuration changes, rebuild configuration caches and restart long-running workers.
 
@@ -59,18 +57,20 @@ This release changes package schema identities. Run the upgrade before accepting
 ### Existing package storage
 
 1. Back up the package storage and Laravel migration repository. Pause workers and application writes using those tables.
-2. Install the new code with package migration loading disabled. Keep one migration owner: vendor migrations or published copies. Loading both is rejected before DDL.
-3. Run `php artisan nvl:doctor --strict --format=json`. Configure canonical package `connection` and `tables.<logical-key>` options, plus Core defaults in `nvl-core.php`. Remove explicit old default table mappings when selecting the new names; deliberately retained old mappings keep those tables in place.
-4. Inspect `php artisan nvl:schema:upgrade --package=forms --package=media --claim-legacy --dry-run --format=json`, selecting only packages whose legacy storage you own.
-5. Apply the identical selection without `--dry-run`. Re-enable your chosen migration owner, run `php artisan migrate`, rerun Doctor, then resume writes.
+2. Install the new code with package migration loading disabled. Select exactly one migration owner: vendor or published files.
+3. Declare each claimed published file by exact absolute path in `nvl-core.migrations.published`, with `package` (logical slug), `migration` (canonical manifest name), and optional `legacy` (exact recorded filename without `.php`). Retimestamped historical records require that explicit `legacy` mapping. A matching basename, directory, checksum alone, or modified host file is never automatically claimed.
+4. Review `php artisan nvl:schema:upgrade --package=settings --claim-legacy --migration-owner=vendor --dry-run --format=json`. The plan lists exact claimed files, ownership actions, table renames and history changes. Existing shape, keys and creator records must establish ownership; unrelated host data remains untouched.
+5. For **vendor ownership**, manually archive verified published copies outside every loaded executable migration path and update their declarations to the archived exact paths. The command refuses execution while a declared copy remains in a loaded path. Generate a fresh dry run, then apply it. History aligns to the canonical vendor filenames while retaining batches.
+6. For **published ownership**, replace each claimed executable file with current package migration code first and declare its actual filename, keeping vendor `migrations.enabled=false`. Review with `--migration-owner=published`. History aligns to the actual published native filenames while retaining batches. Renaming old files alone is insufficient: their old `down()` implementations can target legacy tables.
+7. Apply the reviewed selection without `--dry-run`. Re-enable only your selected owner. Run `nvl:schema:preflight` with the same intended paths and repository connection, stop on failure, then run native Laravel migration/status/rollback commands. Rerun Doctor before resuming writes.
 
-`--claim-legacy` is an explicit ownership assertion. The command also requires matching creator history and the released column, primary/unique/index and foreign-key contracts; a familiar table or filename alone is insufficient. Incomplete multi-table installations, duplicate targets and conflicting records fail before any writes. Unrelated host rows, batches, table contents and constraint names are preserved. Schema-qualified rename destinations require an explicit host schema move first. The command does not create importers or adopt host domain data.
+`nvl:schema:upgrade` never moves, rewrites, deletes or implicitly claims host migration files. Modified or unclaimed code requires host reconciliation before NVL can verify it. Duplicate declarations, history conflicts, incomplete installations and conflicting targets fail before changes. Schema-qualified rename destinations require an explicit host schema move first. The command does not import domain data.
 
-Laravel republishes migrations with new timestamps. An unmodified published migration is recognized by its released checksum and maps to the exact canonical vendor identity in the repository. Its sole-owner published path remains usable for migrate/status/rollback through the current package migration implementation. Modified host files retain their own identity and need an explicit host-owned upgrade; NVL never rewrites migration files. Remove a verified duplicate copy or disable vendor loading before using both paths together.
+Core preserves the host migrator object, including subclasses, selected connection, paths and output. It no longer installs `PackageMigrator` or changes native filename identity. Existing wrapper-based published installations must reconcile both code and history through the selected ownership procedure above before relying on native pending/status/rollback.
 
-Core preserves the standard Laravel migrator's selected connection, migration paths and console output. A host migrator subclass must extend `Nvl\Support\Schema\PackageMigrator`; custom batch overrides must call `parent::runPending()` before their migration execution. Unsupported subclasses fail with an upgrade instruction instead of silently losing host behavior.
+**The automatic whole-batch guarantee is lost.** Laravel's batch event does not carry its selected file list, and process-wide included files can contaminate later host-only commands. Core therefore guards exact owned files at `MigrationStarted` and supplies the explicit `nvl:schema:preflight` deployment gate. Plain `migrate --force` can apply earlier migrations before a later owned migration fails. Pretend and custom migration execution require the explicit preflight when the deployment needs a whole selected set checked in advance.
 
-Transactions cover renames and history updates when the database supports transactional DDL. Separate database connections have separate transactions; MySQL/MariaDB DDL cannot provide an all-or-nothing transaction. The dry-run JSON reports those limits. After a failure, inspect completed steps and rerun the command; verified renamed storage is resumable. A second successful run has no steps.
+For example, run `php artisan nvl:schema:preflight --path=database/migrations --format=json` before `php artisan migrate --path=database/migrations --force`. Use the same `--database`, multiple `--path` values and `--realpath` choices on both commands. Omitting paths inspects native registered vendor and host migration paths; `--package` restricts that selection to logical NVL package IDs. A custom migrator that changes its file set must pass that actual set to the explicit gate. Preflight performs no migration DDL and does not claim to load schema dumps or prepare Laravel's migration repository.
 
 ### Configuration and capabilities
 
@@ -78,9 +78,11 @@ All stateful packages accept `connection`, `tables.*`, `migrations.enabled`, `qu
 
 Old configuration spellings remain input aliases for one major release. Doctor reports explicit deprecated inputs and conflicts; a shipped default is not reported as a host override. Replace those keys before the following major.
 
-Declare owner identities once in `nvl-core.owners` by morph alias. Package capabilities reference aliases and retain their own slots, abilities and definitions. Old class-based declarations remain deprecated inputs for one major. Existing stored morph values are not rewritten; any persisted-alias conversion belongs to an explicit host migration.
+Declare owner classes in `nvl-core.owners`, for example `'owners' => [Article::class]`, and reference the same model class from each package capability. Laravel's `getMorphClass()` is the stored owner identity: it returns the host-authored morph alias or the FQCN when no map exists. Core declarations and package allowlists do not add or enforce a host morph map and do not grant authorization.
 
-Use Core's `LocaleCatalog` for supported/default/fallback locales. Its application adapter reads Laravel locale settings, and a loaded Translatable provider supplies the full catalog. Per-resource locale and fallback overrides remain supported. `primitives.locales` is deprecated for one major.
+Legacy alias references remain read compatibility during major 5 and are removed in major 6. A legacy configured alias must agree with the model's current `getMorphClass()`; mismatches are diagnostics and require a host decision. Doctor can inspect declared package owner columns for stored-versus-current identities without rewriting them. If the host introduces or changes its morph map, review and convert only the affected stored columns and reconcile host relationships before cutover. No automatic owner-data conversion or `nvl:owners:upgrade` is provided. Rebuild configuration caches and restart workers after the coordinated change.
+
+Use Core's `LocaleCatalog` for supported/default/fallback locales. Its application adapter reads Laravel locale settings, and a loaded Translatable provider supplies the full catalog. Per-resource locale and fallback overrides remain supported. `nvl-primitives.locales` is deprecated for one major.
 
 Tasks' Media/Activity, Comments' Media, Pages' Metafields and Mail Notifications' Settings adapters now activate from loaded providers. Each integration switch accepts null (automatic), false (disabled) or true (required, fail if unavailable). Explicitly require optional packages and register their providers if discovery is disabled. Existing undelivered Task activity stays in its outbox until an Activity publisher is available.
 
@@ -89,3 +91,82 @@ Neutral tenancy contracts and values now live in Core, with safe single-tenant i
 Public tenant request attributes use the Core `TenantSiteContext` class key. The deprecated Tenancy class key remains readable for one major when the canonical key is absent. Canonical presence wins, including an invalid or null value, so conflicting legacy data cannot bypass validation. Public middleware writes and restores both keys independently.
 
 Use `php artisan nvl:doctor --strict --format=json` as the shared deploy/CI gate. Package commands remain available. Media queue work inherits Core or Laravel's effective connection and queue instead of defaulting to synchronous execution.
+
+## Major 5: canonical configuration and environment
+
+Packages that ship configuration publish canonical `config/nvl-<package>.php` files under `nvl-<package>` roots. Core ships both `nvl-core.php` and `nvl-data.php`; CSV and Filterable configure behavior through typed APIs and have no package config file. The provider-free `nvl/laravel-suite` metapackage has no configuration of its own. Logical package IDs and tenant resource IDs retain their existing spellings; `PackageStorage::table('media', 'assets')` still uses the logical package ID. Do not rename Laravel's inherited `DB_*`, `QUEUE_CONNECTION`, cache, mail or filesystem inputs.
+
+| Former NVL config root | Canonical root |
+| --- | --- |
+| `activity` | `nvl-activity` |
+| `billing` | `nvl-billing` |
+| `comments` | `nvl-comments` |
+| `content` | `nvl-content` |
+| `forms` | `nvl-forms` |
+| `mail-notifications` | `nvl-mail-notifications` |
+| `media` | `nvl-media` |
+| `metafields` | `nvl-metafields` |
+| `pages` | `nvl-pages` |
+| `payments` | `nvl-payments` |
+| `primitives` | `nvl-primitives` |
+| `seo` | `nvl-seo` |
+| `settings` | `nvl-settings` |
+| `tasks` | `nvl-tasks` |
+| `taxonomy` | `nvl-taxonomy` |
+| `templates` | `nvl-templates` |
+| `tenancy` | `nvl-tenancy` |
+| `translatable` | `nvl-translatable` |
+| `translations` | `nvl-translations` |
+
+`nvl-auth`, `nvl-core`, `nvl-data` and `nvl-suite` were already canonical. The complete 120 package-owned environment renames are in [the versioned global names inventory](support/resources/global-names.json): each `env` entry maps its canonical name to its former name. For example, use `NVL_MEDIA_QUEUE`, `NVL_MEDIA_QUEUE_CONNECTION`, `NVL_MAIL_NOTIFICATIONS_ENABLED` and `NVL_TENANCY_ENABLED`.
+
+Compatibility is off by default. For an existing NVL installation only, explicitly select old config inputs in `nvl-core.compatibility.legacy_config`, for example `['media', 'settings']`, and enable `nvl-core.compatibility.legacy_env` (or `NVL_CORE_LEGACY_ENV=true`) while moving old environment variables. Fresh installations leave both off. The old generic config roots are read only when selected and are never populated or written back. Empty or unrelated foreign roots remain untouched. Recognizable old NVL options with no canonical root appear in Doctor so an upgrade does not silently use defaults.
+
+Canonical values win by presence, including `false`, `null`, `''` and empty arrays. Within a package's infrastructure resolver, a preserved canonical null can intentionally inherit Core/Laravel defaults, while invalid empty connection/queue/lock/guard names still fail validation. Canonical environment variables win whenever set, including false or empty values. Legacy fallbacks run only during config evaluation; runtime code reads configuration. Replace aliases before major 6, rebuild configuration caches and restart long-running workers.
+
+Global aliases and legacy URLs use separate selected package lists: `nvl-core.compatibility.global_aliases` and `legacy_routes`. Both default to `[]`; collisions preserve host registrations and are reported without values. Permission bridges require an explicit mapping and do not automatically accept old generic grants. Review the package-specific URL and signed-link cutover before rebuilding route caches.
+
+
+## Queue envelope and retained handler cutover
+
+### Compose retained queue handlers explicitly
+
+Enabled Tenancy preserves an existing host `CallQueuedHandler` binding. Adapt it
+to Core's `TenantQueueHandler` contract: `validate()` must admit captured metadata
+and the inert command/model graph without restoring user objects. Both `call()`
+and `failed()` must revalidate before command restoration. Extending the supplied
+`TenantCallQueuedHandler` and preserving all three methods supplies this adapter.
+Core invokes `validate()` at `JobProcessing`, before native execution or terminal
+failure handling. Carried-envelope mismatches, wrong-owner model identifiers and
+other admission failures enter raw quarantine, so native retry cannot restore
+the rejected command. Admitted commands that fail in `handle()` keep native
+failure handling. Ordinary host payloads without NVL metadata retain their handling.
+Tenancy Doctor requires these integrations when the runtime is enabled or a
+declared resource has adopted storage; disabled legacy storage passes with
+retained host handlers and batch repositories.
+
+### Retry quarantined NVL jobs through raw transport
+
+Rejected NVL envelopes appear in the host's native failed-job store with
+`NVL queue envelope rejected:` in their boundary exception. Laravel's native
+`queue:retry` restores the command before it requeues it. Installed Laravel 13
+dispatches `JobRetryRequested` before that restoration, so Core rejects identified
+quarantine records at this event for native ID, `all`, queue and range selections.
+These records must use the raw retry command. Ordinary failed
+host jobs retain native retry behavior.
+
+Configure persistent native failed-job storage for this inspection and retry
+path. If that storage is disabled or unavailable, the rejected job is still
+deleted to prevent native failure callbacks, and a storage error is raised;
+there is no durable quarantine record for that attempt.
+
+After repairing the runtime or envelope boundary, use
+`php artisan nvl:queue:retry <failed-id...>` for these records. It requeues the
+original raw body and lets the worker validate it again; it preserves captured
+`retryUntil` and payload attempts. The native failed-job ID is forgotten only
+after the transport confirms the push. An expired deadline still expires.
+Sync queues and transports with command-dependent options, including native
+SQS `getQueueableOptions()`, require an explicit raw retry integration. Custom
+retry commands must apply Core's `TenantQueueQuarantine::beforeNativeRetry()`
+raw-record preflight before any restoration. Commands omitting Laravel's event
+require that explicit integration. Recheck event ordering when upgrading Laravel.
