@@ -123,3 +123,22 @@ it('preserves registration order across source savepoints before publishing fact
     $source->commit();
     expect($received)->toBe([30, 60, 90]);
 });
+
+it('resolves compatible manual event delivery against the current host binding', function (): void {
+    $original = Container::getInstance();
+    $host = new Container;
+    $transactions = new DatabaseTransactionsManager;
+    $callbacks = new ConnectionCommitCallbacks(static fn (): DatabaseTransactionsManager => $transactions);
+    $native = new Dispatcher($host);
+    $first = new DomainEventDispatcher(static fn (): Dispatcher => $native, $callbacks);
+    $second = new DomainEventDispatcher(static fn (): Dispatcher => $native, $callbacks);
+    try {
+        Container::setInstance($host);
+        $host->instance(DomainEventDispatcher::class, $first);
+        expect(DomainEventDispatcher::current())->toBe($first);
+        $host->instance(DomainEventDispatcher::class, $second);
+        expect(DomainEventDispatcher::current())->toBe($second);
+    } finally {
+        Container::setInstance($original);
+    }
+});

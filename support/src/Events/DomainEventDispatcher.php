@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nvl\Support\Events;
 
 use Closure;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Nvl\Support\Contracts\DomainEvent;
@@ -21,6 +22,15 @@ final readonly class DomainEventDispatcher
      * @param  Closure(): Dispatcher  $events
      */
     public function __construct(private Closure $events, private ConnectionCommitCallbacks $commits) {}
+
+    /** Resolve the current host event boundary for compatible manually constructed callers.
+     *
+     * @internal
+     */
+    public static function current(): self
+    {
+        return Container::getInstance()->make(self::class);
+    }
 
     /** Publish the immutable event after the supplied writer connection commits. */
     public function dispatch(DomainEvent $event, Connection $connection): void
