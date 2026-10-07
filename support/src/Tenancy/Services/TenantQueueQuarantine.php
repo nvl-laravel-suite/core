@@ -32,7 +32,7 @@ final readonly class TenantQueueQuarantine
      */
     public function reject(JobProcessing $event, Throwable $reason): void
     {
-        $exception = new TenantBoundaryViolation(self::REJECTION_PREFIX.$reason->getMessage());
+        $exception = new TenantBoundaryViolation(self::REJECTION_PREFIX.$reason->getMessage(), previous: $reason);
         $event->job->markAsFailed();
         try {
             $failer = $this->container->get('queue.failer');
@@ -55,7 +55,7 @@ final readonly class TenantQueueQuarantine
     public static function isQuarantined(object $failure): bool
     {
         return is_string($failure->exception ?? null)
-            && str_starts_with($failure->exception, TenantBoundaryViolation::class.': '.self::REJECTION_PREFIX);
+            && preg_match('/(?:\\A|\\n\\nNext )'.preg_quote(TenantBoundaryViolation::class.': '.self::REJECTION_PREFIX, '/').'/', $failure->exception) === 1;
     }
 
     /**
