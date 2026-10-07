@@ -77,7 +77,7 @@ final class OwnerRegistry
      *
      * @internal
      */
-    public function reference(string $reference, string $source, ?string $legacyAlias = null, bool $legacyMorphMap = false): string
+    public function reference(string $reference, string $source, ?string $legacyAlias = null): string
     {
         if (! is_a($reference, Model::class, true)) {
             $owners = $this->all();

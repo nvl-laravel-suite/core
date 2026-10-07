@@ -76,7 +76,7 @@ it('retains host-mapped aliases and isolates registrations in different capabili
     Relation::morphMap(['article' => $owner::class]);
     $registry = new OwnerRegistry(new Repository(['nvl-core' => ['owners' => ['article' => $owner::class]]]));
 
-    expect($registry->reference($owner::class, 'nvl-content.owners.article', 'article', true))->toBe($owner::class)
+    expect($registry->reference($owner::class, 'nvl-content.owners.article', 'article'))->toBe($owner::class)
         ->and($owner->getMorphClass())->toBe('article')
         ->and($registry->reference($other::class, 'nvl-seo.owners.article', 'article'))->toBe($other::class)
         ->and($registry->errors())->toHaveCount(1)
@@ -252,3 +252,7 @@ it('installs package legacy morph aliases only for an explicitly selected compat
         ->and(Relation::getMorphedModel('page'))->toBe($compatibility ? PackageOwner::class : null)
         ->and((new PackageOwner)->getMorphClass())->toBe('nvl-page');
 })->with(['default off' => false, 'explicit selection' => true]);
+
+it('exposes only the capability reference and genuine legacy identity arguments', function (): void {
+    expect(array_map(static fn (ReflectionParameter $parameter): string => $parameter->getName(), (new ReflectionMethod(OwnerRegistry::class, 'reference'))->getParameters()))->toBe(['reference', 'source', 'legacyAlias']);
+});
