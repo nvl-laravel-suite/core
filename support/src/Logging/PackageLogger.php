@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Logging;
 
+use Closure;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Log\LogManager;
 use InvalidArgumentException;
@@ -19,8 +20,12 @@ final readonly class PackageLogger
 
     private const array Levels = ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'];
 
-    /** Retain infrastructure only; effective policy is resolved for every call. */
-    public function __construct(private Repository $config, private LogManager $logs) {}
+    /**
+     * Retain explicit infrastructure or resolve the current host logger for each call.
+     *
+     * @param  LogManager|Closure(): LogManager  $logs
+     */
+    public function __construct(private Repository $config, private LogManager|Closure $logs) {}
 
     /**
      * Write one stable diagnostic with bounded scalar context.
@@ -46,7 +51,7 @@ final readonly class PackageLogger
         if (! $this->config->has('logging.channels.nvl')) {
             $this->config->set('logging.channels.nvl', $channels['nvl']);
         }
-        $this->logs->channel($channel)->log($level, $key, [
+        ($this->logs instanceof Closure ? ($this->logs)() : $this->logs)->channel($channel)->log($level, $key, [
             ...$this->safeContext($context),
             'package' => $package,
             'message_key' => $key,

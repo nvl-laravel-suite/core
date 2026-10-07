@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Providers;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Database\Events\MigrationStarted;
+use Illuminate\Log\LogManager;
 use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Bindings\RequiredBindings;
 use Nvl\Support\Console\InstallCommand;
@@ -55,7 +57,9 @@ final class SupportServiceProvider extends ServiceProvider
         $this->app->singletonIf(RequiredBindingsDoctor::class);
         $this->app->singletonIf(InstallationRegistry::class);
         $this->app->singletonIf(ConfigPublisher::class);
-        $this->app->singletonIf(PackageLogger::class);
+        $this->app->singletonIf(PackageLogger::class, static fn (Application $app): PackageLogger => new PackageLogger(
+            $app->make(Repository::class), static fn (): LogManager => $app->make(LogManager::class),
+        ));
         $this->app->singletonIf(PackageLoggingDoctor::class);
         $this->app->tag([RequiredBindingsDoctor::class, PackageLoggingDoctor::class], DoctorContributor::class);
         $this->app->singleton(GlobalNames::class);

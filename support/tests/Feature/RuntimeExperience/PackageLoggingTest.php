@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Config\Repository;
 use Illuminate\Log\LogManager;
+use Illuminate\Support\Facades\Log;
 use Nvl\Support\Logging\PackageLogger;
 use Psr\Log\LoggerInterface;
 
@@ -64,4 +65,12 @@ it('diagnoses an invalid default policy even when Core has a valid override', fu
     $manager = Mockery::mock(LogManager::class);
     $manager->shouldNotReceive('channel');
     expect((new PackageLogger($config, $manager))->diagnostics())->toContain('Package logging verbosity must be quiet, normal, or verbose.');
+});
+
+it('uses a late native Log facade substitute after early singleton resolution', function (): void {
+    $logger = app(PackageLogger::class);
+    $sink = Mockery::mock(LoggerInterface::class);
+    $sink->shouldReceive('log')->once()->with('warning', 'nvl.media.variation.missing', ['package' => 'media', 'message_key' => 'nvl.media.variation.missing']);
+    Log::shouldReceive('channel')->once()->with('nvl')->andReturn($sink);
+    $logger->log('media', 'warning', 'nvl.media.variation.missing');
 });
