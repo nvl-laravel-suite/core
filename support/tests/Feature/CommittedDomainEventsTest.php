@@ -102,3 +102,24 @@ it('keeps only callbacks from the final successful native transaction retry', fu
     }, 2);
     expect($attempts)->toBe(2)->and($received)->toBe([2]);
 });
+
+it('preserves registration order across source savepoints before publishing facts', function (): void {
+    $transactions = new DatabaseTransactionsManager;
+    $source = c4Connection('ordered-source', $transactions);
+    $commits = new ConnectionCommitCallbacks(static fn (): DatabaseTransactionsManager => $transactions);
+    $received = [];
+    $source->beginTransaction();
+    $commits->afterCommit($source, function () use (&$received): void {
+        $received[] = 30;
+    });
+    $source->beginTransaction();
+    $commits->afterCommit($source, function () use (&$received): void {
+        $received[] = 60;
+    });
+    $source->commit();
+    $commits->afterCommit($source, function () use (&$received): void {
+        $received[] = 90;
+    });
+    $source->commit();
+    expect($received)->toBe([30, 60, 90]);
+});

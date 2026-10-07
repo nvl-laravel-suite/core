@@ -48,12 +48,30 @@ final readonly class ConnectionCommitCallbacks
             throw new EventCommitRegistrationException;
         }
 
-        if (! $transactions->callbackApplicableTransactions()->contains($record)) {
+        $applicable = $transactions->callbackApplicableTransactions()->filter(
+            static fn (DatabaseTransactionRecord $transaction): bool => $transaction->connection === $connection->getName(),
+        );
+        if (! $applicable->contains($record)) {
             $callback();
 
             return;
         }
 
-        $record->addCallback($callback);
+        $root = $applicable->sortBy('level')->first();
+        if (! $root instanceof DatabaseTransactionRecord || $root === $record) {
+            $record->addCallback($callback);
+
+            return;
+        }
+
+        $committed = false;
+        $record->addCallback(static function () use (&$committed): void {
+            $committed = true;
+        });
+        $root->addCallback(static function () use (&$committed, $callback): void {
+            if ($committed) {
+                $callback();
+            }
+        });
     }
 }
