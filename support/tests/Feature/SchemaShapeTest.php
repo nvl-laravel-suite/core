@@ -214,3 +214,17 @@ function nvlFormForeignIdentity(): array
 {
     return SchemaIdentities::package('forms')['tables']['i18n']['foreign_keys'];
 }
+
+it('accepts released JSON columns and rejects unrelated native text storage', function (): void {
+    $schema = DB::connection()->getSchemaBuilder();
+    $schema->create('native_json_shape', static function (Blueprint $table): void {
+        $table->json('payload')->nullable();
+        $table->longText('unconstrained_payload')->nullable();
+    });
+    SchemaShape::assertCompatible($schema, 'native_json_shape', ['payload' => 'json']);
+    expect($schema->hasColumn('native_json_shape', 'payload'))->toBeTrue();
+    if ($schema->getConnection()->getDriverName() !== 'sqlite') {
+        expect(fn () => SchemaShape::assertCompatible($schema, 'native_json_shape', ['unconstrained_payload' => 'json']))
+            ->toThrow(LogicException::class, 'unconstrained_payload');
+    }
+});

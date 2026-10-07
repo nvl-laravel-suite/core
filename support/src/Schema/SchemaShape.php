@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Schema;
 
+use Illuminate\Database\MySqlConnection;
 use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -35,7 +36,7 @@ final class SchemaShape
             $family = self::family($type);
             $actualFamily = $actual[$name] ?? null;
             $driver = $schema->getConnection()->getDriverName();
-            if ($actualFamily === $family || ($family === 'ip' && $driver !== 'pgsql' && $actualFamily === 'string') || ($driver === 'sqlite'
+            if ($actualFamily === $family || ($family === 'ip' && $driver !== 'pgsql' && $actualFamily === 'string') || ($family === 'json' && $actualFamily === 'text' && self::hasMariaDbJsonConstraint($schema, $table, $name)) || ($driver === 'sqlite'
                 && (($family === 'json' && $actualFamily === 'text') || ($family === 'boolean' && $actualFamily === 'integer')))) {
                 continue;
             }
@@ -79,6 +80,24 @@ final class SchemaShape
                 throw new LogicException("Table [{$table}] is missing its released foreign key on [".implode(', ', $expectedForeign['columns'])."] to [{$expectedForeign['package']}.{$expectedForeign['table']}].");
             }
         }
+    }
+
+    /** Recognize MariaDB's JSON alias only when its native validity constraint exists. */
+    private static function hasMariaDbJsonConstraint(Builder $schema, string $table, string $column): bool
+    {
+        $connection = $schema->getConnection();
+        if (! $connection instanceof MySqlConnection || ! $connection->isMaria()) {
+            return false;
+        }
+        [$namespace, $name] = $schema->parseSchemaAndTable($table);
+        $constraints = $connection->select(
+            'SELECT CHECK_CLAUSE AS clause FROM information_schema.CHECK_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = ? AND TABLE_NAME = ?',
+            [$namespace ?? $connection->getDatabaseName(), $connection->getTablePrefix().$name],
+        );
+        $identifier = '`'.str_replace('`', '``', $column).'`';
+        $pattern = '/^\(*\s*json_valid\(\s*'.preg_quote($identifier, '/').'\s*\)\s*\)*$/i';
+
+        return array_any($constraints, static fn (mixed $constraint): bool => is_object($constraint) && isset($constraint->clause) && is_string($constraint->clause) && preg_match($pattern, $constraint->clause) === 1);
     }
 
     /**
