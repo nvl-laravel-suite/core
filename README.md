@@ -42,7 +42,7 @@ See the [installation and publishing guide](https://github.com/nvl-laravel-suite
 
 ## Purpose
 
-`nvl/core` combines the Support and Data foundations in one Composer package. It provides transport-neutral business exceptions, stable response-code contracts, and shared package configuration merging for Laravel 13 on PHP 8.4+.
+`nvl/core` combines the Support and Data foundations in one Composer package. It provides transport-neutral business exceptions, stable response-code contracts, and shared package configuration merging for Laravel 12–13 on PHP 8.4+.
 
 The Support namespace provides transport-neutral contracts and exceptions. The Data namespace provides Spatie Data transforms, pagination, TypeScript source registration, and declaration generation. Core has no internal NVL dependency. See the [Data API and usage](data/README.md) for Data configuration and commands.
 
