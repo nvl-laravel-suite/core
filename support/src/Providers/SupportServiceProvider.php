@@ -6,6 +6,7 @@ namespace Nvl\Support\Providers;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Database\Events\MigrationStarted;
 use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Bindings\RequiredBindings;
@@ -42,8 +43,11 @@ final class SupportServiceProvider extends ServiceProvider
     {
         $this->mergePackageConfiguration(__DIR__.'/../../config/nvl-core.php', 'nvl-core');
         $this->app->singletonIf(OwnerRegistry::class);
-        $this->app->singletonIf(ConnectionCommitCallbacks::class, static fn (Application $app): ConnectionCommitCallbacks => new ConnectionCommitCallbacks($app->make('db.transactions')));
-        $this->app->singletonIf(DomainEventDispatcher::class);
+        $this->app->singletonIf(ConnectionCommitCallbacks::class, static fn (Application $app): ConnectionCommitCallbacks => new ConnectionCommitCallbacks(static fn (): DatabaseTransactionsManager => $app->make('db.transactions')));
+        $this->app->singletonIf(DomainEventDispatcher::class, static fn (Application $app): DomainEventDispatcher => new DomainEventDispatcher(
+            static fn (): Dispatcher => $app->make(Dispatcher::class),
+            $app->make(ConnectionCommitCallbacks::class),
+        ));
         $this->app->singletonIf(EventAliases::class);
         $this->app->singletonIf(RequiredBindings::class);
         $this->app->singletonIf(PackageExceptionPayload::class);

@@ -16,8 +16,12 @@ use Nvl\Support\Exceptions\EventCommitRegistrationException;
  */
 final readonly class ConnectionCommitCallbacks
 {
-    /** Use the host application's actual transaction manager. */
-    public function __construct(private DatabaseTransactionsManager $transactions) {}
+    /**
+     * Resolve the current host manager after test or application rebinding.
+     *
+     * @param  Closure(): DatabaseTransactionsManager  $transactions
+     */
+    public function __construct(private Closure $transactions) {}
 
     /**
      * Execute after the source outer commit, or immediately outside a source transaction.
@@ -35,7 +39,7 @@ final readonly class ConnectionCommitCallbacks
             return;
         }
 
-        $record = $this->transactions->getPendingTransactions()->last(
+        $record = ($this->transactions)()->getPendingTransactions()->last(
             static fn (DatabaseTransactionRecord $record): bool => $record->connection === $connection->getName()
                 && $record->level === $level,
         );

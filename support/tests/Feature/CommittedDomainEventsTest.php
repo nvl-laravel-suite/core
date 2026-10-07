@@ -29,7 +29,7 @@ it('publishes on the source outer commit while a later foreign transaction remai
     $native->listen(C4NativeConnectionFact::class, function (C4NativeConnectionFact $event) use (&$received): void {
         $received[] = $event->days;
     });
-    $events = new DomainEventDispatcher($native, new ConnectionCommitCallbacks($transactions));
+    $events = new DomainEventDispatcher(static fn (): Dispatcher => $native, new ConnectionCommitCallbacks(static fn (): DatabaseTransactionsManager => $transactions));
     $source->beginTransaction();
     $foreign->beginTransaction();
     $source->beginTransaction();
@@ -45,7 +45,7 @@ it('publishes on the source outer commit while a later foreign transaction remai
 it('discards rolled back savepoint callbacks and previously committed inner callbacks on outer rollback', function (): void {
     $transactions = new DatabaseTransactionsManager;
     $source = c4Connection('source', $transactions);
-    $commits = new ConnectionCommitCallbacks($transactions);
+    $commits = new ConnectionCommitCallbacks(static fn (): DatabaseTransactionsManager => $transactions);
     $received = [];
     $source->beginTransaction();
     $source->beginTransaction();
@@ -71,7 +71,7 @@ it('discards rolled back savepoint callbacks and previously committed inner call
 it('executes immediately only outside the source transaction and fails closed on missing records', function (): void {
     $transactions = new DatabaseTransactionsManager;
     $source = c4Connection('source', $transactions);
-    $wrongManager = new ConnectionCommitCallbacks(new DatabaseTransactionsManager);
+    $wrongManager = new ConnectionCommitCallbacks(static fn (): DatabaseTransactionsManager => new DatabaseTransactionsManager);
     $count = 0;
     $wrongManager->afterCommit($source, function () use (&$count): void {
         $count++;
@@ -88,7 +88,7 @@ it('executes immediately only outside the source transaction and fails closed on
 it('keeps only callbacks from the final successful native transaction retry', function (): void {
     $transactions = new DatabaseTransactionsManager;
     $source = c4Connection('source', $transactions);
-    $commits = new ConnectionCommitCallbacks($transactions);
+    $commits = new ConnectionCommitCallbacks(static fn (): DatabaseTransactionsManager => $transactions);
     $attempts = 0;
     $received = [];
     $source->transaction(function () use ($source, $commits, &$attempts, &$received): void {
