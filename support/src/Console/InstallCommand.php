@@ -43,6 +43,7 @@ final class InstallCommand extends Command
             foreach ($report->bindings as $binding) {
                 $this->line($binding->status.': '.$binding->message.' '.$binding->documentation);
             }
+            $this->line('Enable vendor/nvl/core/support/consumer-audit.neon in PHPStan. Owner relation boundaries are enforced statically, not at runtime.');
             $this->line('Review config, bind selected capabilities, then run nvl:doctor --strict. Refresh config cache explicitly when deploying.');
         }
 
