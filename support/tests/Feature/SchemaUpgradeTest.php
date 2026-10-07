@@ -276,3 +276,15 @@ it('rejects duplicate configured targets before executing an otherwise valid ren
         ->and(Schema::hasTable('nvl_settings_settings'))->toBeFalse()
         ->and(DB::table('migrations')->value('migration'))->toBe($old);
 });
+
+it('executes the native schema upgrade command and preserves text and JSON failure output', function (): void {
+    $this->artisan('nvl:schema:upgrade', ['--package' => ['settings'], '--claim-legacy' => true])
+        ->expectsOutputToContain('Schema upgrade completed.')->assertSuccessful();
+    $this->artisan('nvl:schema:upgrade', ['--package' => ['settings'], '--claim-legacy' => true, '--dry-run' => true])
+        ->expectsOutputToContain('Dry run validated; no storage changed.')->assertSuccessful();
+    $this->artisan('nvl:schema:upgrade', ['--format' => 'yaml'])
+        ->expectsOutputToContain('The format must be text or json.')->assertFailed();
+    $this->artisan('nvl:schema:upgrade', ['--package' => [''], '--format' => 'json'])
+        ->expectsOutputToContain('Each --package must name a package slug.')->assertFailed();
+    expect(DB::table('migrations')->count())->toBe(0);
+});

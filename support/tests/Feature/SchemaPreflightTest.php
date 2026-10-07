@@ -131,3 +131,28 @@ it('rejects legacy storage with old history before any earlier unrelated ddl', f
         ->toThrow(LogicException::class, 'before creating parallel storage')
         ->and(Schema::hasTable('nvl_forms_forms'))->toBeFalse();
 });
+
+it('keeps the deprecated opt-in migrator batch guard and duplicate-owner diagnostics functional', function (): void {
+    $directory = sys_get_temp_dir().'/nvl-legacy-migrator-'.bin2hex(random_bytes(8));
+    mkdir($directory);
+    mkdir($directory.'/second');
+    $first = $directory.'/2099_01_01_000000_host_probe.php';
+    $second = $directory.'/second/2099_01_01_000000_host_probe.php';
+    file_put_contents($first, '<?php return new class extends \\Illuminate\\Database\\Migrations\\Migration { public function up(): void {} };');
+    copy($first, $second);
+    try {
+        $migrator = new PackageMigrator(app('migration.repository'), app('db'), app(Filesystem::class), app('events'), app(SchemaPreflight::class));
+        expect($migrator->getMigrationFiles([$directory]))->toBe(['2099_01_01_000000_host_probe' => $first])
+            ->and($migrator->getMigrationName($first))->toBe('2099_01_01_000000_host_probe');
+        expect(fn () => $migrator->getMigrationFiles([$first, $second]))->toThrow(LogicException::class, 'two owners');
+        $output = new BufferedOutput;
+        $migrator->setOutput($output);
+        $migrator->runPending([]);
+        expect($output->fetch())->toContain('Nothing to migrate');
+    } finally {
+        unlink($second);
+        unlink($first);
+        rmdir($directory.'/second');
+        rmdir($directory);
+    }
+});
