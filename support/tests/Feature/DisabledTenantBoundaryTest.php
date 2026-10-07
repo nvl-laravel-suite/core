@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -10,6 +11,7 @@ use Nvl\Support\Providers\TenantServiceProvider;
 use Nvl\Support\Tenancy\Contracts\TenantBoundary;
 use Nvl\Support\Tenancy\Contracts\TenantContext;
 use Nvl\Support\Tenancy\Contracts\TenantInstallationState;
+use Nvl\Support\Tenancy\Contracts\TenantParentResolver;
 use Nvl\Support\Tenancy\Contracts\TenantQueueContext;
 use Nvl\Support\Tenancy\Enums\TenantContextMode;
 use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
@@ -17,6 +19,8 @@ use Nvl\Support\Tenancy\Exceptions\TenantConfigurationInvalid;
 use Nvl\Support\Tenancy\Exceptions\TenantContextMissing;
 use Nvl\Support\Tenancy\Exceptions\TenantSchemaNotReady;
 use Nvl\Support\Tenancy\Services\DisabledTenantBoundary;
+use Nvl\Support\Tenancy\Services\DisabledTenantOwnershipConfiguration;
+use Nvl\Support\Tenancy\Services\EffectiveTenantConnection;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 use Nvl\Support\Tenancy\ValueObjects\TenantContextSnapshot;
 use Nvl\Support\Tenancy\ValueObjects\TenantId;
@@ -153,3 +157,44 @@ it('requires an exact host registration despite explicit package resource lineag
 
     expect(fn () => $resources->forModel(new DisabledBoundaryChildRecord))->toThrow(TenantConfigurationInvalid::class);
 });
+
+it('compares effective connection instances and inventories participating host transactions', function (): void {
+    config(['database.connections.other' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']]);
+    $connections = app(EffectiveTenantConnection::class);
+    $default = DB::connection();
+    expect($connections->name(null))->toBe($default->getName());
+    $connections->assertCompatible([null, $default->getName()]);
+    expect(fn () => $connections->assertCompatible([null, 'other']))->toThrow(TenantConfigurationInvalid::class);
+    expect($connections->participating())->toContain($default, DB::connection('other'));
+    config(['nvl-tenancy.connection' => 'other']);
+    expect($connections->core())->toBe(DB::connection('other'));
+    config(['nvl-tenancy.connection' => false]);
+    expect(fn () => $connections->core())->toThrow(TenantConfigurationInvalid::class);
+});
+
+it('validates disabled canonical parent allowlists against registered model identities', function (string $shape): void {
+    $resources = app(TenantResourceRegistry::class);
+    $resolver = new class implements TenantParentResolver
+    {
+        /** @var array<string, class-string<Model>> */
+        public array $parents = [];
+
+        public function types(): array
+        {
+            return $this->parents;
+        }
+    };
+    $resolver->parents = match ($shape) {
+        'empty alias' => ['' => DisabledBoundaryRecord::class],
+        'unregistered model' => ['owner' => DisabledBoundaryCanonicalRecord::class],
+        default => ['owner' => DisabledBoundaryRecord::class],
+    };
+    $resources->registerParentResolver('fixture.records', $resolver::class);
+    app()->instance($resolver::class, $shape === 'wrong binding' ? new stdClass : $resolver);
+    $ownership = app(DisabledTenantOwnershipConfiguration::class);
+    if ($shape === 'valid') {
+        expect($ownership->parentTypes('fixture.records'))->toBe(['owner' => DisabledBoundaryRecord::class]);
+    } else {
+        expect(fn () => $ownership->parentTypes('fixture.records'))->toThrow(TenantConfigurationInvalid::class);
+    }
+})->with(['valid', 'empty alias', 'unregistered model', 'wrong binding']);
