@@ -162,7 +162,7 @@ it('silently accepts a historical alias that already matches the host map', func
 it('orders package canonical writes before legacy read aliases', function (): void {
     $registry = new OwnerRegistry(new Repository);
     Relation::morphMap(['page' => PackageOwner::class]);
-    $registry->registerPackage('nvl-page', PackageOwner::class, ['page']);
+    $registry->registerPackage('nvl-page', PackageOwner::class, ['page'], package: 'pages');
 
     expect((new PackageOwner)->getMorphClass())->toBe('nvl-page')
         ->and(Relation::getMorphedModel('page'))->toBe(PackageOwner::class)
@@ -179,7 +179,7 @@ it('rejects package alias collisions and preserves host-authored identities', fu
         ->and(Relation::morphMap())->toBe($map);
 
     Relation::morphMap(['host-page' => PackageOwner::class], false);
-    $registry->registerPackage('nvl-page', PackageOwner::class, ['page']);
+    $registry->registerPackage('nvl-page', PackageOwner::class, ['page'], package: 'pages');
     expect(Relation::morphMap())->toBe(['host-page' => PackageOwner::class])
         ->and((new PackageOwner)->getMorphClass())->toBe('host-page');
 });
@@ -232,12 +232,21 @@ it('preserves occupied legacy package aliases while installing the canonical ide
     Relation::morphMap(['page' => $host::class]);
     $config = new Repository(['nvl-core' => ['compatibility' => ['global_aliases' => $compatibility ? ['pages'] : []]]]);
     $registry = new OwnerRegistry($config);
-    $registry->registerPackage('nvl-page', PackageOwner::class, ['page']);
-    $registry->registerPackage('nvl-page', PackageOwner::class, ['page']);
+    $registry->registerPackage('nvl-page', PackageOwner::class, ['page'], package: 'pages');
+    $registry->registerPackage('nvl-page', PackageOwner::class, ['page'], package: 'pages');
 
     expect(Relation::getMorphedModel('page'))->toBe($host::class)
         ->and(Relation::getMorphedModel('nvl-page'))->toBe(PackageOwner::class)
         ->and((new PackageOwner)->getMorphClass())->toBe('nvl-page')
         ->and($registry->errors())->toBe([])
-        ->and(collect((new GlobalNames($config))->diagnostics())->filter(static fn ($check): bool => str_contains($check->message, '[page]')))->toHaveCount(1);
+        ->and(collect((new GlobalNames($config))->diagnostics())->filter(static fn ($check): bool => str_contains($check->message, '[page]')))->toHaveCount($compatibility ? 1 : 0);
+})->with(['default off' => false, 'explicit selection' => true]);
+
+it('installs package legacy morph aliases only for an explicitly selected compatibility group', function (bool $compatibility): void {
+    $config = new Repository(['nvl-core' => ['compatibility' => ['global_aliases' => $compatibility ? ['pages'] : []]]]);
+    $registry = new OwnerRegistry($config);
+    $registry->registerPackage('nvl-page', PackageOwner::class, ['page'], package: 'pages');
+    expect(Relation::getMorphedModel('nvl-page'))->toBe(PackageOwner::class)
+        ->and(Relation::getMorphedModel('page'))->toBe($compatibility ? PackageOwner::class : null)
+        ->and((new PackageOwner)->getMorphClass())->toBe('nvl-page');
 })->with(['default off' => false, 'explicit selection' => true]);

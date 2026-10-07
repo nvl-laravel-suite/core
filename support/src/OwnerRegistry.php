@@ -158,7 +158,7 @@ final class OwnerRegistry
      *
      * @internal
      */
-    public function registerPackage(string $alias, string $model, array $legacy = []): void
+    public function registerPackage(string $alias, string $model, array $legacy = [], string $package = 'core'): void
     {
         $this->validateAlias($alias);
         $this->validateModel($model);
@@ -171,10 +171,10 @@ final class OwnerRegistry
         }
         $readableLegacy = [];
         $names = new GlobalNames($this->configuration);
-        foreach ($legacy as $candidate) {
+        foreach ($names->enabled($package) ? $legacy : [] as $candidate) {
             $this->validateAlias($candidate);
             if (isset($map[$candidate]) && $map[$candidate] !== $model) {
-                $names->reserve('core', 'morph.legacy', $candidate,
+                $names->register($package, 'morph.legacy', $candidate, $alias,
                     static fn (string $name): bool => isset($map[$name]),
                     static function (string $name) use ($model): void {
                         Relation::morphMap([$name => $model]);
