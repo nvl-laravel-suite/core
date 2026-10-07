@@ -14,7 +14,7 @@ abstract class SupportedSchemaDatabaseTestCase extends TestCase
     /** Reject host databases before any schema cleanup or mutation. */
     public static function validateDatabase(string $driver, string $database): void
     {
-        if (! in_array($driver, ['pgsql', 'mysql', 'mariadb'], true) || $database !== 'nvl_core_test_ci') {
+        if (! in_array($driver, ['pgsql', 'mysql', 'mariadb'], true) || ($database !== 'nvl_core_test_ci' && preg_match('/^nvl_core_test_[a-f0-9]{8}_ci$/', $database) !== 1)) {
             throw new InvalidArgumentException('Supported schema tests require the disposable Core database [nvl_core_test_ci].');
         }
     }

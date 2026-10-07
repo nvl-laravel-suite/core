@@ -188,7 +188,7 @@ it('diagnoses package alias collisions and preserves host-authored identities', 
 });
 
 it('reports historical NVL owner rows without rewriting them', function (bool $legacyAlias): void {
-    $owner = new class extends Model {};
+    $owner = new PackageOwner;
     Relation::morphMap(['host-article' => $owner::class]);
     config(['nvl-core.owners' => $legacyAlias ? ['article' => $owner::class] : [$owner::class]]);
     Schema::create('nvl_content_placements', function (Blueprint $table): void {
@@ -259,7 +259,7 @@ it('exposes only the capability reference and genuine legacy identity arguments'
 });
 
 it('reports retained identity changes in activity mail and comment actor columns without changing rows', function (string $table, string $column): void {
-    $owner = new class extends Model {};
+    $owner = new PackageOwner;
     Relation::morphMap(['current-host-owner' => $owner::class], false);
     config(['nvl-core.owners' => []]);
     Schema::create($table, function (Blueprint $schema) use ($column): void {

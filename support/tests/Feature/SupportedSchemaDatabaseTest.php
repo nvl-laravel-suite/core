@@ -9,7 +9,7 @@ use Nvl\Support\Tests\SupportedSchemaDatabaseTestCase;
 
 it('executes Core schema proofs on the requested disposable database engine', function (): void {
     expect(DB::connection()->getDriverName())->toBe(getenv('DB_CONNECTION'))
-        ->and(DB::connection()->getDatabaseName())->toBe('nvl_core_test_ci');
+        ->and(DB::connection()->getDatabaseName())->toBe(getenv('DB_DATABASE'));
 })->skip(fn (): bool => getenv('NVL_SCHEMA_DATABASE') !== '1', 'Requires the explicitly selected disposable database.');
 
 it('rejects host databases before supported schema fixture cleanup', function (): void {
@@ -44,4 +44,11 @@ it('prevents a host connection URL from overriding the disposable schema databas
         putenv($originalDriver === false ? 'DB_CONNECTION' : 'DB_CONNECTION='.$originalDriver);
         putenv($originalDatabase === false ? 'DB_DATABASE' : 'DB_DATABASE='.$originalDatabase);
     }
+});
+
+it('admits only the runner generated disposable Core database names', function (): void {
+    expect(SupportedSchemaDatabaseTestCase::validateDatabase('pgsql', 'nvl_core_test_a123bc45_ci'))->toBeNull()
+        ->and(fn () => SupportedSchemaDatabaseTestCase::validateDatabase('pgsql', 'nvl_core_test_business_ci'))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => SupportedSchemaDatabaseTestCase::validateDatabase('pgsql', 'nvl_core_test_a123bc45_ci_extra'))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => SupportedSchemaDatabaseTestCase::validateDatabase('sqlite', 'nvl_core_test_a123bc45_ci'))->toThrow(InvalidArgumentException::class);
 });
