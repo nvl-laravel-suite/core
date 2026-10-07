@@ -24,6 +24,7 @@
     "env": {
         "NVL_COMMENTS_IDEMPOTENCY_DIGEST_KEY": "COMMENTS_IDEMPOTENCY_DIGEST_KEY",
         "NVL_COMMENTS_METADATA_DIGEST_KEY": "COMMENTS_METADATA_DIGEST_KEY",
+        "NVL_CONTENT_DEFINITIONS_VERSION": null,
         "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_BATCH_SIZE": "MAIL_NOTIFICATIONS_ANONYMIZATION_BATCH_SIZE",
         "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_DAYS": "MAIL_NOTIFICATIONS_ANONYMIZATION_DAYS",
         "NVL_MAIL_NOTIFICATIONS_ANONYMIZATION_ENABLED": "MAIL_NOTIFICATIONS_ANONYMIZATION_ENABLED",
@@ -1836,7 +1837,7 @@
             "surface": "queue",
             "owner": "nvl/activity",
             "current": "maintenance",
-            "canonical": "package.queue \u2192 nvl-core.queue \u2192 effective queue configuration",
+            "canonical": "package.queue → nvl-core.queue → effective queue configuration",
             "compatibility": "explicit_package_option",
             "removal": 6
         },
@@ -1844,7 +1845,7 @@
             "surface": "queue",
             "owner": "nvl/csv",
             "current": "csv-processing",
-            "canonical": "package.queue \u2192 nvl-core.queue \u2192 effective queue configuration",
+            "canonical": "package.queue → nvl-core.queue → effective queue configuration",
             "compatibility": "explicit_package_option",
             "removal": 6
         },
@@ -1852,7 +1853,7 @@
             "surface": "queue",
             "owner": "nvl/tasks",
             "current": "maintenance",
-            "canonical": "package.queue \u2192 nvl-core.queue \u2192 effective queue configuration",
+            "canonical": "package.queue → nvl-core.queue → effective queue configuration",
             "compatibility": "explicit_package_option",
             "removal": 6
         },
@@ -2863,6 +2864,150 @@
             "canonical": "nvl-translations-translations",
             "compatibility": "global_aliases",
             "removal": 6
+        },
+        {
+            "surface": "env",
+            "owner": "nvl/content",
+            "current": "NVL_CONTENT_DEFINITIONS_VERSION",
+            "canonical": "NVL_CONTENT_DEFINITIONS_VERSION",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/core",
+            "current": "nvl-core-translations",
+            "canonical": "nvl-core-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/tenancy",
+            "current": "nvl-tenancy-translations",
+            "canonical": "nvl-tenancy-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth",
+            "current": "nvl-auth-translations",
+            "canonical": "nvl-auth-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/billing",
+            "current": "nvl-billing-translations",
+            "canonical": "nvl-billing-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/payments",
+            "current": "nvl-payments-translations",
+            "canonical": "nvl-payments-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/csv",
+            "current": "nvl-csv-translations",
+            "canonical": "nvl-csv-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/filterable",
+            "current": "nvl-filterable-translations",
+            "canonical": "nvl-filterable-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/translatable",
+            "current": "nvl-translatable-translations",
+            "canonical": "nvl-translatable-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/settings",
+            "current": "nvl-settings-translations",
+            "canonical": "nvl-settings-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/taxonomy",
+            "current": "nvl-taxonomy-translations",
+            "canonical": "nvl-taxonomy-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/mail-notifications",
+            "current": "nvl-mail-notifications-translations",
+            "canonical": "nvl-mail-notifications-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/content",
+            "current": "nvl-content-translations",
+            "canonical": "nvl-content-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/comments",
+            "current": "nvl-comments-translations",
+            "canonical": "nvl-comments-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/templates",
+            "current": "nvl-templates-translations",
+            "canonical": "nvl-templates-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/pages",
+            "current": "nvl-pages-translations",
+            "canonical": "nvl-pages-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/tasks",
+            "current": "nvl-tasks-translations",
+            "canonical": "nvl-tasks-translations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/seo",
+            "current": "nvl-seo-translations",
+            "canonical": "nvl-seo-translations",
+            "compatibility": "none",
+            "removal": null
         }
     ],
     "route_families": [
