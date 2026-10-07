@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Tests\PHPStan;
 
+use Composer\InstalledVersions;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
@@ -22,7 +23,9 @@ final class ConsumerBoundaryInstallationTest extends TestCase
         try {
             $repositories = [];
             foreach (['core', 'comments', 'filterable'] as $package) {
-                $this->command(['composer', 'archive', '--format=zip', '--file='.$package, '--dir='.$workspace.'/archives', '--no-interaction'], $root.'/packages/nvl/'.$package);
+                $installedPath = InstalledVersions::getInstallPath('nvl/'.$package);
+                self::assertNotNull($installedPath);
+                $this->command(['composer', 'archive', '--format=zip', '--file='.$package, '--dir='.$workspace.'/archives', '--no-interaction'], $installedPath);
                 $directory = $workspace.'/packages/'.$package;
                 $filesystem->mkdir($directory);
                 $zip = new ZipArchive;
