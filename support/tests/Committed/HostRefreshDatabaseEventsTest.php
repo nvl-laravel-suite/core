@@ -41,3 +41,11 @@ it('honors an Event fake installed after early domain dispatcher resolution', fu
     });
     Event::assertDispatched(C4NativeConnectionFact::class);
 });
+
+it('respects native host test wrapper exclusions for facts published outside a nested source transaction', function (): void {
+    Event::fake([C4NativeConnectionFact::class]);
+    $connection = $this->app->make('db')->connection();
+    expect($connection->transactionLevel())->toBe(1);
+    $this->earlyEvents->dispatch(new C4NativeConnectionFact(120, true), $connection);
+    Event::assertDispatched(C4NativeConnectionFact::class);
+});

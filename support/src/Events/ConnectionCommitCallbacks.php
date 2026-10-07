@@ -39,12 +39,19 @@ final readonly class ConnectionCommitCallbacks
             return;
         }
 
-        $record = ($this->transactions)()->getPendingTransactions()->last(
+        $transactions = ($this->transactions)();
+        $record = $transactions->getPendingTransactions()->last(
             static fn (DatabaseTransactionRecord $record): bool => $record->connection === $connection->getName()
                 && $record->level === $level,
         );
         if (! $record instanceof DatabaseTransactionRecord) {
             throw new EventCommitRegistrationException;
+        }
+
+        if (! $transactions->callbackApplicableTransactions()->contains($record)) {
+            $callback();
+
+            return;
         }
 
         $record->addCallback($callback);
