@@ -2,7 +2,6 @@
     "schema_version": 1,
     "configs": {
         "nvl-data": {
-            "required": [],
             "common": [
                 "typescript.adopt_global_config",
                 "typescript.allowed_roots",
