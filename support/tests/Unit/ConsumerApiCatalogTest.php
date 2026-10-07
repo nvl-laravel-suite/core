@@ -621,7 +621,7 @@ it('marks only the reviewed Core roots and retains declared internal integration
     }
     expect(file_get_contents($core.'/support/src/Tenancy/Contracts/TenantParentResolver.php'))->toContain('@internal')->not->toContain('@api')
         ->and(file_get_contents($core.'/data/src/Services/TypeScriptPathGuard.php'))->not->toContain('@api')
-        ->and(file_get_contents($core.'/support/src/Tenancy/Exceptions/TenancyException.php'))->not->toContain('@api')
-        ->and(file_get_contents($core.'/support/src/Tenancy/Enums/TenancyResponseCode.php'))->not->toContain('@api')
+        ->and(file_get_contents($core.'/support/src/Tenancy/Exceptions/TenancyException.php'))->toContain('@api')
+        ->and(file_get_contents($core.'/support/src/Tenancy/Enums/TenancyResponseCode.php'))->toContain('@api')
         ->and(file_get_contents($core.'/support/src/Tenancy/Services/TenantResourceRegistry.php'))->toContain('@internal');
 });

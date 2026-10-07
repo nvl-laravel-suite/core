@@ -10,6 +10,7 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Translation\TranslationServiceProvider;
 use Nvl\Support\Providers\SupportServiceProvider;
 use SplFileInfo;
 
@@ -38,6 +39,8 @@ it('is auto-discoverable through Core and can boot its provider in isolation', f
     );
     $application = new Application($packageRoot);
     $application->instance(RepositoryContract::class, new Repository);
+    $application->instance('files', new Filesystem);
+    $application->register(TranslationServiceProvider::class);
     $provider = new SupportServiceProvider($application);
     $provider->boot(new Dispatcher($application));
 
@@ -51,6 +54,8 @@ it('publishes its packaged agent guidance through the documented tag', function 
     $packageRoot = dirname(__DIR__, 2);
     $application = new Application($packageRoot);
     $application->instance(RepositoryContract::class, new Repository);
+    $application->instance('files', new Filesystem);
+    $application->register(TranslationServiceProvider::class);
     $provider = new SupportServiceProvider($application);
     $provider->boot(new Dispatcher($application));
 
@@ -83,6 +88,8 @@ it('has no runtime boot side effects outside the console', function (): void {
         }
     };
     $application->instance(RepositoryContract::class, new Repository);
+    $application->instance('files', new Filesystem);
+    $application->register(TranslationServiceProvider::class);
     $publishPathsBeforeBoot = SupportServiceProvider::pathsToPublish(
         SupportServiceProvider::class,
         'nvl-core-skills',
@@ -132,7 +139,7 @@ it('keeps its source boundary minimal and transport-neutral', function (): void 
         ->implode("\n");
 
     expect($sourceDirectories)
-        ->toBe(['Config', 'Console', 'Consumer', 'Contracts', 'Doctor', 'Exceptions', 'Facades', 'Globals', 'Integrations', 'Locales', 'Owners', 'Providers', 'Schema', 'Tenancy', 'Traits'])
+        ->toBe(['Bindings', 'Config', 'Console', 'Consumer', 'Contracts', 'Doctor', 'Enums', 'Events', 'Exceptions', 'Facades', 'Globals', 'Http', 'Installation', 'Integrations', 'Locales', 'Logging', 'Owners', 'Providers', 'Schema', 'Tenancy', 'Testing', 'Traits'])
         ->and($source)
         ->not->toMatch('/^use\s+Nvl\\\\(?!Support\\\\)/m')
         ->not->toMatch('/\b(?:abort|redirect|response)\s*\(/');

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ConsumerDeclarationFixtures;
 
 use Nvl\Comments\Services\CommentAccessService as InternalService; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
-use Nvl\Comments\Exceptions\CommentsException as InternalException; // boundary: internalApi Nvl\Comments\Exceptions\CommentsException
+use Nvl\Comments\Exceptions\CommentsException as InternalException;
 use Nvl\Comments\Models\Comment;
 
 /** @template T */
@@ -27,7 +27,7 @@ class AliasOwner {} // boundary: internalApi Nvl\Comments\Services\CommentAccess
 class AliasImporter {} // boundary: internalApi Nvl\Comments\Services\CommentAccessService
 
 /** @throws InternalException */
-function throwsDeclaration(): void {} // boundary: internalApi Nvl\Comments\Exceptions\CommentsException
+function throwsDeclaration(): void {}
 
 function nativeDeclaration(InternalService $service): void {} // boundary: internalApi Nvl\Comments\Services\CommentAccessService
 
@@ -49,7 +49,7 @@ function expressions(Comment $comment): void
     $local = []; // boundary: internalApi Nvl\Comments\Services\CommentAccessService
     try {
         throwsDeclaration();
-    } catch (InternalException $error) { // boundary: internalApi Nvl\Comments\Exceptions\CommentsException
+    } catch (InternalException $error) {
     }
 }
 

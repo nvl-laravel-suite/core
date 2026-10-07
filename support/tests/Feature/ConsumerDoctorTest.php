@@ -22,7 +22,7 @@ it('reports an empty consumer installation without workbench providers', functio
         'healthy' => true,
         'strict' => true,
     ])->and(array_unique(array_column($report['checks'], 'package')))->toBe(['nvl/core'])
-        ->and($report['checks'])->toHaveCount(5);
+        ->and($report['checks'])->toHaveCount(7);
 });
 
 it('discovers only contributors registered by loaded providers and sorts the report', function (): void {
