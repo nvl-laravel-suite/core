@@ -2948,12 +2948,13 @@
             },
             "2026_07_29_055330_create_form_submission_receipts_table": {
                 "name": "2026_07_29_055330_nvl_forms_create_form_submission_receipts_table",
-                "path": "database/migrations/2026_07_29_055330_nvl_forms_create_form_submission_receipts_table.php",
+                "path": "database/migrations/current/2026_07_29_055330_nvl_forms_create_form_submission_receipts_table.php",
                 "create": true,
                 "legacy_checksum": "61c219d405095843f2cac666f38f09b532e55417a5617573ee087116466df826",
                 "creates": [
                     "submission_receipts"
-                ]
+                ],
+                "previous_checksum": "9da38ebfcbb75adad72a013a98e302d4992cd1096337157fb11533eb1bceaef0"
             },
             "2026_09_16_180010_add_forms_ownership": {
                 "name": "2026_09_16_180010_nvl_forms_add_forms_ownership",
@@ -4435,9 +4436,17 @@
             },
             "2026_09_16_110003_constrain_metafield_tenant_ownership": {
                 "name": "2026_09_16_110003_nvl_metafields_constrain_metafield_tenant_ownership",
-                "path": "database/tenancy/2026_09_16_110003_nvl_metafields_constrain_metafield_tenant_ownership.php",
+                "path": "database/tenancy/current/2026_09_16_110003_nvl_metafields_constrain_metafield_tenant_ownership.php",
                 "create": false,
                 "legacy_checksum": "27c4129eab565bfb024df942b0cdb06bb50d5f6522110f7c41de625b8d91b544",
+                "creates": [],
+                "previous_checksum": "8a11bbefff690a5a6acf8b0dbe71ea7d047f13294c0f0ab4c31862aae06a16fc"
+            },
+            "2026_10_07_091843_nvl_metafields_enforce_owner_identity_collation": {
+                "name": "2026_10_07_091843_nvl_metafields_enforce_owner_identity_collation",
+                "path": "database/migrations/2026_10_07_091843_nvl_metafields_enforce_owner_identity_collation.php",
+                "create": false,
+                "legacy_checksum": "a0864f061e7da186b06753f77fa741edde7bae1b639176c91c8705083d6b8a88",
                 "creates": []
             }
         }

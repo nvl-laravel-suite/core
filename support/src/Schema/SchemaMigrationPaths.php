@@ -127,7 +127,7 @@ final class SchemaMigrationPaths
         }
         $checksum = hash_file('sha256', $real);
         $current = $checksum === hash_file('sha256', $canonical['path']);
-        if (! $current && $checksum !== $migration['legacy_checksum']) {
+        if (! $current && $checksum !== $migration['legacy_checksum'] && $checksum !== $migration['previous_checksum']) {
             throw new LogicException("Declared published migration [{$path}] does not match the released checksum; reconcile modified host code explicitly.");
         }
 
