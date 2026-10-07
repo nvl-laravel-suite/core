@@ -314,3 +314,16 @@ it('admits canonical system actors only in declared actor columns with null iden
     ['nvl_media_owner_slot_operations', 'actor_type', 'actor_id'],
     ['nvl_templates_versions', 'published_by_type', 'published_by'],
 ]);
+
+it('reports owner identity and configuration failures without changing host identities', function (): void {
+    $owners = app(OwnerRegistry::class);
+    $owners->reference(PackageOwner::class, 'nvl-seo.owners.article', 'article');
+    $checks = array_column(app(CoreDoctor::class)->inspect(), null, 'key');
+    expect(array_filter(array_keys($checks), static fn (string $key): bool => str_starts_with($key, 'owners.identity.')))->not->toBeEmpty()
+        ->and((new PackageOwner)->getMorphClass())->toBe(PackageOwner::class);
+    config(['nvl-core.owners' => [stdClass::class]]);
+    app()->forgetInstance(OwnerRegistry::class);
+    app()->forgetInstance(CoreDoctor::class);
+    $checks = array_column(app(CoreDoctor::class)->inspect(), null, 'key');
+    expect($checks['owners.configuration']->severity)->toBe('error');
+});

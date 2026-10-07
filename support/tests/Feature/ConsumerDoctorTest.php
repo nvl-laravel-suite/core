@@ -215,3 +215,29 @@ it('rejects malformed adapted Doctor payloads instead of fabricating readiness',
     'invalid severity' => [['key' => 'ready', 'passed' => true, 'message' => 'Ready.', 'severity' => 1]],
     'absent remediation' => [['key' => 'ready', 'passed' => false, 'message' => null]],
 ]);
+
+it('retains valid legacy diagnostic declarations while rejecting malformed metadata', function (): void {
+    config(['nvl-core.configuration.legacy_reads' => ['media' => 'nvl-media', 'broken' => false],
+        'nvl-core.configuration.legacy_env' => ['OLD_INPUT' => 'NVL_INPUT', 'broken' => false],
+        'nvl-core.compatibility.global_aliases' => true]);
+    Artisan::call('nvl:doctor', ['--format' => 'json']);
+    $checks = array_column(json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR)['checks'], null, 'key');
+    expect($checks['configuration.legacy_read.media']['severity'])->toBe('warning')
+        ->and($checks['configuration.legacy_env.OLD_INPUT']['severity'])->toBe('warning')
+        ->and($checks['configuration.legacy_metadata']['severity'])->toBe('error')
+        ->and($checks['configuration.legacy_env_metadata']['severity'])->toBe('error')
+        ->and($checks['globals.configuration']['severity'])->toBe('error');
+});
+
+it('reports unsupported database selection and malformed native failed-job destinations', function (): void {
+    config(['database.connections.unsupported' => ['driver' => 'sqlsrv'], 'nvl-core.connection' => 'unsupported',
+        'nvl-core.queue.connection' => 'database', 'queue.failed.database' => [], 'queue.failed.table' => '']);
+    Artisan::call('nvl:doctor', ['--format' => 'json']);
+    $checks = array_column(json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR)['checks'], null, 'key');
+    expect($checks['database.platform']['message'])->toContain('SQL Server is unsupported')
+        ->and($checks['queue.quarantine.persistence']['message'])->toContain('must be configured');
+    config(['queue.failed.driver' => 'dynamodb']);
+    Artisan::call('nvl:doctor', ['--format' => 'json']);
+    expect(array_column(json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR)['checks'], 'key'))
+        ->not->toContain('queue.quarantine.persistence');
+});
