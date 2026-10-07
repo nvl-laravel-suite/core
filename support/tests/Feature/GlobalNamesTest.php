@@ -113,3 +113,19 @@ it('preserves canonical host route names and method paths during package loading
     $this->get('/host/download')->assertSee('host-name');
     $this->get('/nvl/media/status')->assertSee('owned');
 });
+
+it('installs only the selected canonical route family as native legacy routes', function (): void {
+    config(['nvl-core.compatibility.legacy_routes' => ['media']]);
+    $router = app(Router::class);
+    $canonical = $router->get('nvl/media/assets/{media}', static fn (): string => 'asset')->name('nvl.media.assets.probe');
+    $router->get('host/outside', static fn (): string => 'host')->name('nvl.media.assets.outside');
+    $router->get('nvl/media/assets/unnamed', static fn (): string => 'unnamed');
+    $names = new GlobalNames(config());
+    $names->bootRoutes($this->app);
+    $legacy = $router->getRoutes()->getByName('media.assets.probe');
+    expect($legacy)->not->toBeNull()
+        ->and($legacy->uri())->toBe('media/assets/{media}')
+        ->and($legacy->getActionName())->toBe($canonical->getActionName())
+        ->and($router->getRoutes()->getByName('media.assets.outside'))->toBeNull();
+    $this->get('/media/assets/example')->assertOk()->assertSee('asset');
+});

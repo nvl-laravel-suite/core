@@ -185,3 +185,33 @@ it('reports an unavailable native failed-job store for an asynchronous queue', f
     expect($checks['queue.quarantine.persistence'])->toMatchArray(['severity' => 'error', 'result' => 'fail'])
         ->and($checks['queue.quarantine.persistence']['message'])->toContain('missing_native_failed_jobs');
 });
+
+it('keeps legacy boolean and structured report decisions authoritative', function (): void {
+    $checks = PackageDoctorContributor::booleanChecks(['ready' => true, 'missing' => false], 'nvl:fixture:doctor');
+    expect($checks[0]->fails(true))->toBeFalse()
+        ->and($checks[1]->fails(false))->toBeTrue()
+        ->and($checks[1]->message)->toContain('nvl:fixture:doctor --strict --format=json');
+    $report = PackageDoctorContributor::reportChecks([
+        'healthy' => false,
+        'transport' => ['severity' => 'warning', 'passed' => false, 'message' => 'Configure the transport.'],
+        'inventory' => ['enabled' => false],
+    ], 'nvl:fixture:doctor');
+    expect($report)->toHaveCount(3)
+        ->and($report[0]->fails(false))->toBeTrue()
+        ->and($report[1]->fails(false))->toBeFalse()
+        ->and($report[1]->fails(true))->toBeTrue()
+        ->and($report[2]->severity)->toBe('info')
+        ->and($report[2]->passed)->toBeTrue();
+    $ready = PackageDoctorContributor::reportChecks(['healthy' => true], 'nvl:fixture:doctor');
+    expect($ready[0]->fails(true))->toBeFalse();
+});
+
+it('rejects malformed adapted Doctor payloads instead of fabricating readiness', function (array $check): void {
+    $contributor = new PackageDoctorContributor('nvl/fixture', static fn (): array => [$check]);
+    expect(fn () => iterator_to_array($contributor->inspect()))->toThrow(InvalidArgumentException::class);
+})->with([
+    'missing key' => [['passed' => true, 'message' => 'Ready.']],
+    'non-boolean readiness' => [['key' => 'ready', 'passed' => 1, 'message' => 'Ready.']],
+    'invalid severity' => [['key' => 'ready', 'passed' => true, 'message' => 'Ready.', 'severity' => 1]],
+    'absent remediation' => [['key' => 'ready', 'passed' => false, 'message' => null]],
+]);

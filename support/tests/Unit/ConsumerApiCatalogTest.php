@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Nvl\Support\Tests\Unit;
 
 use Closure;
+use PHPUnit\Runner\CodeCoverage;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SebastianBergmann\CodeCoverage\Data\RawCodeCoverageData;
 use SplFileInfo;
 use stdClass;
 use Symfony\Component\Process\Process;
@@ -111,6 +113,7 @@ function consumerCatalogProbe(array $catalogs, ?Closure $prepare = null): array
         file_put_contents($directory.'/installed.json', json_encode(['root' => ['name' => 'example/consumer'], 'versions' => $versions], JSON_THROW_ON_ERROR));
         $repository = dirname(__DIR__, 6);
         $script = <<<'PHP'
+if (function_exists('pcov\\start')) { pcov\start(); } elseif (function_exists('xdebug_info') && in_array('coverage', xdebug_info('mode'), true)) { xdebug_start_code_coverage(XDEBUG_CC_UNUSED | XDEBUG_CC_DEAD_CODE); }
 require $argv[1].'/vendor/composer/ClassLoader.php';
 require $argv[1].'/vendor/composer/InstalledVersions.php';
 $loader = new Composer\Autoload\ClassLoader;
@@ -153,12 +156,29 @@ try {
 } catch (Throwable $exception) {
     echo json_encode(['error' => $exception->getMessage(), 'exception' => $exception::class], JSON_THROW_ON_ERROR);
 }
+if (function_exists('pcov\\collect')) { pcov\stop(); file_put_contents($argv[2].'/coverage.json', json_encode(pcov\collect(), JSON_THROW_ON_ERROR)); } elseif (function_exists('xdebug_info') && in_array('coverage', xdebug_info('mode'), true)) { file_put_contents($argv[2].'/coverage.json', json_encode(xdebug_get_code_coverage(), JSON_THROW_ON_ERROR)); }
 PHP;
         $process = new Process([PHP_BINARY, '-r', $script, $repository, $directory]);
         $process->mustRun();
 
         /** @var array<string, mixed> $result */
         $result = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+
+        if (CodeCoverage::instance()->isActive() && is_file($directory.'/coverage.json')) {
+            $coverage = json_decode(file_get_contents($directory.'/coverage.json'), true, flags: JSON_THROW_ON_ERROR);
+            $lines = [];
+            foreach (is_array($coverage) ? $coverage : [] as $file => $counts) {
+                if (! is_string($file) || ! is_array($counts)) {
+                    continue;
+                }
+                foreach ($counts as $line => $count) {
+                    if (is_int($line) && is_int($count)) {
+                        $lines[$file][$line] = $count;
+                    }
+                }
+            }
+            CodeCoverage::instance()->codeCoverage()->append(RawCodeCoverageData::fromXdebugWithoutPathCoverage($lines));
+        }
 
         return $result;
     } finally {
