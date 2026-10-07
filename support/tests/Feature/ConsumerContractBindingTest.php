@@ -8,10 +8,11 @@ use Illuminate\Filesystem\FilesystemServiceProvider;
 use Illuminate\Foundation\Application;
 use Nvl\Support\OwnerRegistry;
 use Nvl\Support\Providers\SupportServiceProvider;
+use Nvl\Support\Tests\SupportedSchemaDatabaseTestCase;
 use Nvl\Support\Tests\TestCase;
 
 if (! in_array(dirname(__DIR__).'/Pest.php', get_included_files(), true)) {
-    uses(TestCase::class);
+    uses(getenv('NVL_SCHEMA_DATABASE') === '1' ? SupportedSchemaDatabaseTestCase::class : TestCase::class);
 }
 
 test('Core retains a shared owner registry and accepts late host replacement', function (): void {
