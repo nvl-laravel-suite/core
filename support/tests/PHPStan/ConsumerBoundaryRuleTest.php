@@ -80,7 +80,20 @@ final class ConsumerBoundaryRuleTest extends RuleTestCase
     /** Return the explicit host analysis configuration. @return list<string> */
     public static function getAdditionalConfigFiles(): array
     {
-        return [__DIR__.'/test.neon'];
+        return [__DIR__.'/test.neon', self::isolatedCacheConfiguration()];
+    }
+
+    /** Keep each native PHPUnit worker's generated PHPStan files independent. */
+    private static function isolatedCacheConfiguration(): string
+    {
+        $directory = sys_get_temp_dir().'/nvl-phpstan-rule-'.getmypid();
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+        $configuration = $directory.'/cache.neon';
+        file_put_contents($configuration, "parameters:\n    tmpDir: ".$directory."/cache\n");
+
+        return $configuration;
     }
 
     /** Assemble the shipped rules without relying on PHPStan's built-in analysis level. @return Rule<Node> */
