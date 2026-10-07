@@ -30,6 +30,7 @@ use Spatie\TypeScriptTransformer\Attributes\LiteralTypeScriptType;
 use Spatie\TypeScriptTransformer\Collections\TransformedCollection;
 use Spatie\TypeScriptTransformer\Transformed\Transformed;
 use Spatie\TypeScriptTransformer\TypeScriptTransformerConfig;
+use Spatie\TypeScriptTransformer\TypeScriptTransformerConfigFactory;
 
 beforeEach(function (): void {
     config(['nvl-data.typescript.adopt_global_config' => true]);
@@ -1317,3 +1318,34 @@ function writeDataPackageTransform(string $directory, array $files): void
         ),
     );
 }
+
+test('it rejects malformed transformer output and discovery options before publishing declarations', function (string $key, mixed $value, string $message): void {
+    config()->set($key, $value);
+    expect(fn (): TypeScriptTransformerConfig => app(TypeScriptConfigurator::class)->isolatedConfiguration($this->generatedTypesDirectory.'/isolated'))
+        ->toThrow(RuntimeException::class, $message)
+        ->and(is_file($this->generatedTypesDirectory.'/generated.types.d.ts'))->toBeFalse();
+})->with([
+    'invalid declaration filename' => ['nvl-data.typescript.output_file', [], 'must be a safe .d.ts path'],
+    'unknown writer' => ['nvl-data.typescript.writer', 'unknown', 'must be [global] or [split]'],
+    'invalid scope directory' => ['nvl-data.typescript.split_directory', [], 'must be a safe relative path'],
+    'invalid scope map' => ['nvl-data.typescript.scope_mappings', false, 'must be an array'],
+    'invalid scope identity' => ['nvl-data.typescript.scope_mappings', ['invalid space' => 'scope'], 'namespace and route-safe scope'],
+    'unknown model type' => ['nvl-data.typescript.model_type', 'object', 'must be [any] or [unknown]'],
+    'invalid replacement map' => ['typescript-transformer.type_replacements', false, 'must be a PHP-to-TypeScript replacement map'],
+    'empty memory policy' => ['nvl-data.typescript.memory_limit', '', 'must be a non-empty PHP memory limit'],
+    'invalid memory units' => ['nvl-data.typescript.memory_limit', '20T', 'Invalid PHP memory limit'],
+    'memory multiplication overflow' => ['nvl-data.typescript.memory_limit', PHP_INT_MAX.'G', 'exceeds the supported integer range'],
+]);
+
+test('it preserves the host memory limit when the transformer policy is unlimited', function (): void {
+    config()->set('nvl-data.typescript.memory_limit', '-1');
+    $before = ini_get('memory_limit');
+    app(TypeScriptConfigurator::class)->isolatedConfiguration($this->generatedTypesDirectory.'/isolated');
+    expect(ini_get('memory_limit'))->toBe($before);
+});
+
+test('it rejects a malformed configured output directory when no host override is supplied', function (): void {
+    config()->set('nvl-data.typescript.output_directory', false);
+    expect(fn () => app(TypeScriptConfigurator::class)->configure(new TypeScriptTransformerConfigFactory))
+        ->toThrow(RuntimeException::class, 'must be a non-empty path');
+});
