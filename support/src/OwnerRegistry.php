@@ -166,24 +166,16 @@ final class OwnerRegistry
             throw new InvalidArgumentException('Only NVL-owned models may install a package morph mapping.');
         }
         $map = Relation::morphMap();
-        if (isset($map[$alias]) && $map[$alias] !== $model) {
-            throw new InvalidArgumentException("Package morph alias [{$alias}] is occupied by a host model.");
-        }
-        $readableLegacy = [];
         $names = new GlobalNames($this->configuration);
-        foreach ($names->enabled($package) ? $legacy : [] as $candidate) {
-            $this->validateAlias($candidate);
-            if (isset($map[$candidate]) && $map[$candidate] !== $model) {
-                $names->register($package, 'morph.legacy', $candidate, $alias,
-                    static fn (string $name): bool => isset($map[$name]),
-                    static function (string $name) use ($model): void {
-                        Relation::morphMap([$name => $model]);
-                    },
-                );
+        $occupied = static fn (string $name): bool => isset(Relation::morphMap()[$name]) && Relation::getMorphedModel($name) !== $model;
+        $installCanonical = static function (string $name) use ($model): void {
+            Relation::morphMap([$name => $model] + Relation::morphMap(), false);
+        };
+        if ($occupied($alias)) {
+            $names->reserve($package, 'morph', $alias, $occupied, $installCanonical);
+            $this->declare($model, 'package.'.$alias, null);
 
-                continue;
-            }
-            $readableLegacy[] = $candidate;
+            return;
         }
         foreach ($map as $hostAlias => $hostModel) {
             if ($hostModel === $model && $hostAlias !== $alias && ! in_array($hostAlias, $legacy, true)) {
@@ -192,11 +184,15 @@ final class OwnerRegistry
                 return;
             }
         }
-        $owned = [$alias => $model];
-        foreach ($readableLegacy as $candidate) {
-            $owned[$candidate] = $model;
+        $names->reserve($package, 'morph', $alias, $occupied, $installCanonical);
+        foreach ($legacy as $candidate) {
+            $this->validateAlias($candidate);
+            $names->register($package, 'morph.legacy', $candidate, $alias, $occupied,
+                static function (string $name) use ($model): void {
+                    Relation::morphMap(Relation::morphMap() + [$name => $model], false);
+                },
+            );
         }
-        Relation::morphMap($owned + $map, false);
         $this->declare($model, 'package.'.$alias, null);
     }
 

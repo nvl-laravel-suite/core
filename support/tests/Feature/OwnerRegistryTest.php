@@ -169,14 +169,16 @@ it('orders package canonical writes before legacy read aliases', function (): vo
         ->and(Relation::getMorphedModel('nvl-page'))->toBe(PackageOwner::class);
 });
 
-it('rejects package alias collisions and preserves host-authored identities', function (): void {
+it('diagnoses package alias collisions and preserves host-authored identities', function (): void {
     $host = new class extends Model {};
     Relation::morphMap(['nvl-page' => $host::class]);
-    $registry = new OwnerRegistry(new Repository);
+    $config = new Repository;
+    $registry = new OwnerRegistry($config);
     $map = Relation::morphMap();
-    expect(fn () => $registry->registerPackage('nvl-page', PackageOwner::class, ['page']))
-        ->toThrow(InvalidArgumentException::class)
-        ->and(Relation::morphMap())->toBe($map);
+    $registry->registerPackage('nvl-page', PackageOwner::class, ['page'], package: 'pages');
+    expect(Relation::morphMap())->toBe($map)
+        ->and((new GlobalNames($config))->diagnostics()[0]->passed)->toBeFalse()
+        ->and((new GlobalNames($config))->diagnostics()[0]->message)->toContain('[nvl-page]', 'preserved');
 
     Relation::morphMap(['host-page' => PackageOwner::class], false);
     $registry->registerPackage('nvl-page', PackageOwner::class, ['page'], package: 'pages');
