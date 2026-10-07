@@ -17,6 +17,7 @@ abstract class TestCase extends Orchestra
      */
     protected function defineEnvironment($app): void
     {
+        $app['config']->set('nvl-data.typescript.allowed_roots', [base_path(), __DIR__.'/Fixtures']);
         $app['config']->set('nvl-data.typescript.routes.enabled', true);
         $app['config']->set('nvl-data.typescript.routes.middleware', ['throttle:60,1']);
     }
