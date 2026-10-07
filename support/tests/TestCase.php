@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nvl\Support\Tests;
 
 use Illuminate\Foundation\Application;
+use Nvl\Support\Providers\LocaleServiceProvider;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
@@ -21,6 +22,6 @@ abstract class TestCase extends Orchestra
      */
     protected function getPackageProviders($app): array
     {
-        return [SupportServiceProvider::class];
+        return [LocaleServiceProvider::class, SupportServiceProvider::class];
     }
 }
