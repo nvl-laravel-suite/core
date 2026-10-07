@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Auth\GenericUser;
 use Illuminate\Config\Repository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -258,7 +259,7 @@ it('exposes only the capability reference and genuine legacy identity arguments'
     expect(array_map(static fn (ReflectionParameter $parameter): string => $parameter->getName(), (new ReflectionMethod(OwnerRegistry::class, 'reference'))->getParameters()))->toBe(['reference', 'source', 'legacyAlias']);
 });
 
-it('reports retained identity changes in activity mail and comment actor columns without changing rows', function (string $table, string $column): void {
+it('reports retained identity changes in every native owner and actor column without changing rows', function (string $table, string $column): void {
     $owner = new PackageOwner;
     Relation::morphMap(['current-host-owner' => $owner::class], false);
     config(['nvl-core.owners' => []]);
@@ -282,4 +283,34 @@ it('reports retained identity changes in activity mail and comment actor columns
     ['nvl_activity_log', 'subject_type'], ['nvl_activity_log', 'causer_type'],
     ['nvl_mail_notifications_notifications', 'notifiable_type'], ['nvl_mail_notifications_scheduled_messages', 'notifiable_type'],
     ['nvl_comments_comments', 'actor_type'], ['nvl_comments_comments', 'moderated_by_type'], ['nvl_comments_comments', 'deleted_by_type'], ['nvl_comments_comments', 'restored_by_type'], ['nvl_comments_comments', 'anonymized_by_type'],
+    ['nvl_comments_reactions', 'actor_type'], ['nvl_comments_reports', 'reporter_type'], ['nvl_comments_reports', 'reviewed_by_type'], ['nvl_comments_revisions', 'edited_by_type'],
+    ['nvl_tasks_tasks', 'creator_type'], ['nvl_tasks_time_entries', 'performer_type'], ['nvl_tasks_assignments', 'assigned_by_type'], ['nvl_tasks_checklist_items', 'completed_by_type'],
+    ['nvl_content_blocks', 'created_by_type'], ['nvl_content_blocks', 'updated_by_type'], ['nvl_content_blocks', 'published_by_type'], ['nvl_content_revisions', 'actor_type'],
+    ['nvl_media_media', 'uploaded_by_type'], ['nvl_media_multipart_uploads', 'uploader_type'], ['nvl_media_owner_slot_operations', 'actor_type'],
+    ['nvl_templates_versions', 'published_by_type'], ['nvl_templates_renders', 'requested_by_type'],
+]);
+
+it('admits canonical system actors only in declared actor columns with null identifiers', function (string $table, string $type, string $id): void {
+    Schema::create($table, static function (Blueprint $schema) use ($type, $id): void {
+        $schema->string('id');
+        $schema->string($type)->nullable();
+        $schema->string($id)->nullable();
+    });
+    try {
+        DB::table($table)->insert(['id' => 'healthy-system-actor', $type => 'system', $id => null]);
+        DB::table($table)->insert(['id' => 'non-eloquent-actor', $type => GenericUser::class, $id => 'host-principal']);
+        expect(app(OwnerIdentityDiagnostics::class)->inspect())->toBe([]);
+        DB::table($table)->insert(['id' => 'invalid-system-actor', $type => 'system', $id => 'not-a-system-identity']);
+        $checks = app(OwnerIdentityDiagnostics::class)->inspect();
+        expect($checks)->toHaveCount(1)->and($checks[0]->message)->toContain($type, 'system');
+    } finally {
+        Schema::drop($table);
+    }
+})->with([
+    ['nvl_comments_comments', 'actor_type', 'actor_id'],
+    ['nvl_comments_comments', 'moderated_by_type', 'moderated_by_id'],
+    ['nvl_content_blocks', 'created_by_type', 'created_by_id'],
+    ['nvl_content_revisions', 'actor_type', 'actor_id'],
+    ['nvl_media_owner_slot_operations', 'actor_type', 'actor_id'],
+    ['nvl_templates_versions', 'published_by_type', 'published_by'],
 ]);
