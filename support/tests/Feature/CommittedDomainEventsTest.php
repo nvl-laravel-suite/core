@@ -8,6 +8,7 @@ use Illuminate\Database\SQLiteConnection;
 use Illuminate\Events\Dispatcher;
 use Nvl\Support\Events\ConnectionCommitCallbacks;
 use Nvl\Support\Events\DomainEventDispatcher;
+use Nvl\Support\Events\EventAliases;
 use Nvl\Support\Exceptions\EventCommitRegistrationException;
 use Nvl\Support\Tests\Fixtures\C4NativeConnectionFact;
 
@@ -141,4 +142,43 @@ it('resolves compatible manual event delivery against the current host binding',
     } finally {
         Container::setInstance($original);
     }
+});
+
+it('bridges exact legacy listeners once and preserves native dispatch cancellation', function (bool $stop): void {
+    $legacy = 'Nvl\\Support\\Tests\\Fixtures\\LegacyC4NativeConnectionFact';
+    if (! class_exists($legacy)) {
+        class_alias(C4NativeConnectionFact::class, $legacy);
+    }
+    $native = new Dispatcher(new Container);
+    $aliases = new EventAliases($native);
+    $received = [];
+    $shared = function (C4NativeConnectionFact $event) use (&$received): void {
+        $received[] = 'shared';
+    };
+    $native->listen(C4NativeConnectionFact::class, $shared);
+    $native->listen($legacy, $shared);
+    $native->listen($legacy, function (C4NativeConnectionFact $event) use (&$received, $stop): ?bool {
+        $received[] = 'legacy';
+
+        return $stop ? false : null;
+    });
+    $aliases->register(C4NativeConnectionFact::class, $legacy);
+    $aliases->register(C4NativeConnectionFact::class, $legacy);
+    $aliases->listen($legacy, function (C4NativeConnectionFact $event) use (&$received): void {
+        $received[] = 'adapter';
+    });
+    $native->dispatch(new C4NativeConnectionFact(30, true));
+    expect($received)->toBe($stop ? ['shared', 'legacy'] : ['shared', 'legacy', 'adapter'])
+        ->and($aliases->canonicalName($legacy))->toBe(C4NativeConnectionFact::class)
+        ->and($aliases->canonicalName('host.event'))->toBe('host.event');
+})->with([true, false]);
+
+it('retains custom host dispatchers while registering legacy listeners through the canonical adapter', function (): void {
+    $host = Mockery::mock(Illuminate\Contracts\Events\Dispatcher::class);
+    $listener = static function (C4NativeConnectionFact $event): void {};
+    $host->shouldReceive('listen')->once()->with(C4NativeConnectionFact::class, $listener);
+    $aliases = new EventAliases($host);
+    $aliases->register(C4NativeConnectionFact::class, C4NativeConnectionFact::class);
+    $aliases->listen(C4NativeConnectionFact::class, $listener);
+    expect($aliases->canonicalName(C4NativeConnectionFact::class))->toBe(C4NativeConnectionFact::class);
 });

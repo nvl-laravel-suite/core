@@ -41,3 +41,14 @@ it('rejects implicit missing test roots', function (): void {
     expect(fn () => new ConsumerBoundaryPolicy(Mockery::mock(ReflectionProvider::class), dirname(__DIR__, 6), ['app/Tests/absent']))
         ->toThrow(InvalidArgumentException::class);
 });
+
+it('hashes installed catalogs and normalized host options for stable result-cache invalidation', function (): void {
+    $reflection = Mockery::mock(ReflectionProvider::class)->shouldIgnoreMissing();
+    $base = dirname(__DIR__, 6);
+    $first = new ConsumerBoundaryPolicy($reflection, $base, [], ['tenant_comments' => 'nvl/comments', 'alternate_comments' => 'nvl/comments']);
+    $ordered = new ConsumerBoundaryPolicy($reflection, $base, [], ['alternate_comments' => 'nvl/comments', 'tenant_comments' => 'nvl/comments']);
+    $changed = new ConsumerBoundaryPolicy($reflection, $base, [], ['alternate_comments' => 'nvl/comments']);
+    expect($first->getKey())->toBe('nvl.consumer.boundary')
+        ->and($first->getHash())->toBe($ordered->getHash())
+        ->and($first->getHash())->not->toBe($changed->getHash());
+});
