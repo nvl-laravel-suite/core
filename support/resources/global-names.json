@@ -3008,6 +3008,30 @@
             "canonical": "nvl-seo-translations",
             "compatibility": "none",
             "removal": null
+        },
+        {
+            "surface": "morph",
+            "owner": "nvl/pages",
+            "current": "page",
+            "canonical": "nvl-page",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "morph",
+            "owner": "nvl/templates",
+            "current": "template-version",
+            "canonical": "nvl-template-version",
+            "compatibility": "global_aliases",
+            "removal": 6
+        },
+        {
+            "surface": "morph",
+            "owner": "nvl/content",
+            "current": "nvl-content-placement",
+            "canonical": "nvl-content-placement",
+            "compatibility": "none",
+            "removal": null
         }
     ],
     "route_families": [

@@ -6,6 +6,7 @@ namespace Nvl\Support\Doctor;
 
 use Composer\InstalledVersions;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use InvalidArgumentException;
 use Nvl\Support\Config\PackageStorage;
@@ -16,10 +17,12 @@ use Throwable;
 /** Inventories retained NVL morph types only during an explicit diagnostic. */
 final readonly class OwnerIdentityDiagnostics
 {
-    /** @var array<string, array<string, list<string>>> Capability owner columns; actors and authentication principals are separate boundaries. */
+    /** @var array<string, array<string, list<string>>> Persisted native model identities; Auth principals and non-morph scope labels use separate boundaries. */
     private const array OWNER_COLUMNS = [
-        'comments' => ['comments' => ['commentable_type']],
+        'activity' => ['log' => ['subject_type', 'causer_type']],
+        'comments' => ['comments' => ['commentable_type', 'actor_type', 'moderated_by_type', 'deleted_by_type', 'restored_by_type', 'anonymized_by_type']],
         'content' => ['placements' => ['owner_type']],
+        'mail-notifications' => ['notifications' => ['notifiable_type'], 'scheduled_messages' => ['notifiable_type']],
         'media' => ['associations' => ['associable_type'], 'owner_slot_operations' => ['owner_type']],
         'metafields' => ['metafields' => ['metafieldable_type']],
         'seo' => ['profiles' => ['seoable_type']],
@@ -34,10 +37,7 @@ final readonly class OwnerIdentityDiagnostics
     /** @return list<DoctorCheck> Historical identity mismatches without data mutation */
     public function inspect(): array
     {
-        $models = array_values($this->owners->all());
-        if ($models === []) {
-            return [];
-        }
+        $this->owners->all();
         $checks = [];
         foreach (SchemaIdentities::all() as $package => $definition) {
             if (! InstalledVersions::isInstalled('nvl/'.$package)) {
@@ -63,13 +63,13 @@ final readonly class OwnerIdentityDiagnostics
                             if (! is_string($stored)) {
                                 continue;
                             }
+                            $reference = Relation::getMorphedModel($stored) ?? $stored;
                             try {
-                                $model = $this->owners->model(Relation::getMorphedModel($stored) ?? $stored);
+                                $model = $this->owners->model($reference);
                             } catch (InvalidArgumentException) {
-                                $model = null;
+                                $model = is_a($reference, Model::class, true) ? $reference : null;
                             }
-                            $current = $model !== null && in_array($model, $models, true)
-                                ? (new $model)->getMorphClass() : null;
+                            $current = $model !== null ? (new $model)->getMorphClass() : null;
                             if ($current === $stored) {
                                 continue;
                             }

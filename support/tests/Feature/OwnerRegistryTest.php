@@ -9,6 +9,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Nvl\Support\Doctor\CoreDoctor;
+use Nvl\Support\Doctor\OwnerIdentityDiagnostics;
 use Nvl\Support\Globals\GlobalNames;
 use Nvl\Support\OwnerRegistry;
 use Nvl\Support\Tests\Fixtures\PackageOwner;
@@ -256,3 +257,29 @@ it('installs package legacy morph aliases only for an explicitly selected compat
 it('exposes only the capability reference and genuine legacy identity arguments', function (): void {
     expect(array_map(static fn (ReflectionParameter $parameter): string => $parameter->getName(), (new ReflectionMethod(OwnerRegistry::class, 'reference'))->getParameters()))->toBe(['reference', 'source', 'legacyAlias']);
 });
+
+it('reports retained identity changes in activity mail and comment actor columns without changing rows', function (string $table, string $column): void {
+    $owner = new class extends Model {};
+    Relation::morphMap(['current-host-owner' => $owner::class], false);
+    config(['nvl-core.owners' => []]);
+    Schema::create($table, function (Blueprint $schema) use ($column): void {
+        $schema->string('id');
+        $schema->string($column)->nullable();
+    });
+    DB::table($table)->insert(['id' => 'retained-row', $column => $owner::class]);
+    try {
+        $checks = app(OwnerIdentityDiagnostics::class)->inspect();
+        $mismatches = array_values(array_filter($checks, static fn ($check): bool => str_starts_with($check->key, 'owners.rows.')));
+        expect($mismatches)->toHaveCount(1)
+            ->and($mismatches[0]->message)->toContain($table, $column, 'current-host-owner')
+            ->and(DB::table($table)->value($column))->toBe($owner::class);
+        DB::table($table)->update([$column => 'current-host-owner']);
+        expect(app(OwnerIdentityDiagnostics::class)->inspect())->toBe([]);
+    } finally {
+        Schema::drop($table);
+    }
+})->with([
+    ['nvl_activity_log', 'subject_type'], ['nvl_activity_log', 'causer_type'],
+    ['nvl_mail_notifications_notifications', 'notifiable_type'], ['nvl_mail_notifications_scheduled_messages', 'notifiable_type'],
+    ['nvl_comments_comments', 'actor_type'], ['nvl_comments_comments', 'moderated_by_type'], ['nvl_comments_comments', 'deleted_by_type'], ['nvl_comments_comments', 'restored_by_type'], ['nvl_comments_comments', 'anonymized_by_type'],
+]);
