@@ -24,7 +24,11 @@ class PackageMigrator extends Migrator
         parent::__construct($repository, $resolver, $files, $events);
     }
 
-    /** Preserve Laravel's configured state and require custom migrators to retain the safety boundary. */
+    /**
+     * Return the supplied host migrator unchanged; this method performs no preflight.
+     *
+     * @deprecated Invoke nvl:schema:preflight explicitly before the native migration command.
+     */
     public static function guard(Migrator $migrator, SchemaPreflight $preflight): Migrator
     {
         return $migrator;

@@ -48,7 +48,7 @@ it('rejects duplicate creating identities with distinct published timestamps bef
     }
 });
 
-it('uses the guarded migrator for actual Laravel migration batches', function (): void {
+it('preserves the native migrator for actual Laravel migration batches', function (): void {
     expect(app('migrator')::class)->toBe(Migrator::class);
 });
 
