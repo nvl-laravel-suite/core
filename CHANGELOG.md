@@ -3,7 +3,9 @@
 
 All notable changes to `nvl/core` are documented here. Earlier Support history is retained below; Data history is in `data/CHANGELOG.md`.
 
-## [5.0.0] — release candidate (unpublished)
+## [Unreleased]
+
+## [5.0.0] - 2026-10-08
 
 ### Added
 
@@ -19,7 +21,7 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 - Classify the supported consumer PHP surface with explicit source annotations and restrict package model handles to declared identity and in-memory read fields; preserve existing workflow behavior and concrete signatures.
 - Add bounded native owner batches and complete object-valued result maps for authorized package readers; these helpers perform no queries or authorization.
 - Admit same-storage model lineage through explicit disabled-tenancy resources while retaining exact host registration and storage/adoption guards.
-- Prepare lockstep major 5 with required and development NVL peer floors of `^5.0`. This candidate has not been tagged or published.
+- Adopt lockstep major 5 with required and development NVL peer floors of `^5.0`.
 - Use canonical package config and env inputs with explicit one-major compatibility and collision diagnostics.
 - Preserve the host migrator; add exact migration ownership, explicit schema preflight and published-file reconciliation.
 - Validate queue metadata before restoring commands, quarantine rejected payloads and expose raw retry.
