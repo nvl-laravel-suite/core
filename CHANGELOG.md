@@ -5,6 +5,13 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [5.0.1] - 2026-10-08
+
+### Changed
+
+- Correct published-family verification and adoption guidance for local Dagger CI; runtime contracts are unchanged.
+
+
 ## [5.0.0] - 2026-10-08
 
 ### Added
