@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use InvalidArgumentException;
 use Nvl\Support\Globals\GlobalNames;
+use Nvl\Support\Models\ConfiguredModelResolver;
+use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
 
 /**
  * Declares owner capabilities while retaining Laravel's host-owned morph identity.
@@ -22,6 +24,9 @@ final class OwnerRegistry
 
     /** @var array<string, string> */
     private array $diagnostics = [];
+
+    /** @var array<class-string<Model>, class-string<Model>> */
+    private array $replacements = [];
 
     /** Retain the host's effective capability declarations. */
     public function __construct(private readonly Repository $configuration) {}
@@ -38,12 +43,42 @@ final class OwnerRegistry
     }
 
     /**
+     * Install a validated model replacement while retaining persisted morph aliases.
+     *
+     * @param  class-string<Model>  $base
+     */
+    public function registerReplacement(string $alias, string $base, string $configured): void
+    {
+        $this->validateAlias($alias);
+        $effective = (new ConfiguredModelResolver)->resolve($configured, $base);
+        $map = Relation::morphMap();
+        if ((isset($map[$alias]) && ! in_array($map[$alias], [$base, $effective], true))
+            || (isset($map[$base]) && ! in_array($map[$base], [$base, $effective], true))
+            || (isset($this->replacements[$base]) && $this->replacements[$base] !== $effective)
+            || (isset($this->declarations['replacement.'.$alias]) && $this->declarations['replacement.'.$alias]['model'] !== $effective)) {
+            throw new OwnershipConfigurationInvalid('Configured model replacement conflicts with an existing identity.');
+        }
+        foreach ($map as $name => $model) {
+            if ($model === $base || $model === $effective) {
+                $map[$name] = $effective;
+            }
+        }
+        if ($base !== $effective) {
+            $map[$base] = $effective;
+        }
+        Relation::morphMap($map, false);
+        $this->replacements[$base] = $effective;
+        $this->declare($effective, 'replacement.'.$alias, null);
+    }
+
+    /**
      * Resolve a class or one-major historical alias to its declared model.
      *
      * @return class-string<Model>
      */
     public function model(string $reference): string
     {
+        $reference = $this->replacements[$reference] ?? $reference;
         $owners = $this->all();
         if (is_a($reference, Model::class, true) && in_array($reference, $owners, true)) {
             return $reference;
@@ -79,6 +114,7 @@ final class OwnerRegistry
      */
     public function reference(string $reference, string $source, ?string $legacyAlias = null): string
     {
+        $reference = $this->replacements[$reference] ?? $reference;
         if (! is_a($reference, Model::class, true)) {
             $owners = $this->all();
             $legacyModel = null;
@@ -204,11 +240,16 @@ final class OwnerRegistry
             throw new InvalidArgumentException('nvl-core.owners must be a list of Eloquent model classes.');
         }
         $inputs = $this->declarations;
+        foreach ($inputs as &$input) {
+            $input['model'] = $this->replacements[$input['model']] ?? $input['model'];
+        }
+        unset($input);
         foreach ($configured as $alias => $model) {
             if (is_int($alias) && ! array_is_list($configured)) {
                 throw new InvalidArgumentException('nvl-core.owners must use a sequential class list or string compatibility aliases.');
             }
             $this->validateModel($model);
+            $model = $this->replacements[$model] ?? $model;
             if (is_string($alias)) {
                 $this->validateAlias($alias);
             }

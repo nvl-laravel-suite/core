@@ -11,6 +11,7 @@ parameters:
     paths:
         - src
         - tests/Fixtures/ConfigurationServiceProvider.php
+        - tests/Fixtures/OwnershipCapableModel.php
 
     level: max
 

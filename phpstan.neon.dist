@@ -14,6 +14,7 @@ parameters:
         - support/src
         - data/src
         - support/tests/Fixtures/ConfigurationServiceProvider.php
+        - support/tests/Fixtures/OwnershipCapableModel.php
         - support/tests/Fixtures/ScriptedFake.php
         - data/tests/Fixtures/DataTransformFixture.php
 

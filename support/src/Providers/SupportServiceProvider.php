@@ -27,6 +27,7 @@ use Nvl\Support\Http\PackageExceptionRenderer;
 use Nvl\Support\Installation\ConfigPublisher;
 use Nvl\Support\Installation\InstallationRegistry;
 use Nvl\Support\Logging\PackageLogger;
+use Nvl\Support\Models\ConfiguredModelResolver;
 use Nvl\Support\OwnerRegistry;
 use Nvl\Support\Schema\SchemaMigrationEvents;
 use Nvl\Support\Traits\MergesPackageConfiguration;
@@ -45,6 +46,7 @@ final class SupportServiceProvider extends ServiceProvider
     {
         $this->mergePackageConfiguration(__DIR__.'/../../config/nvl-core.php', 'nvl-core');
         $this->app->singletonIf(OwnerRegistry::class);
+        $this->app->singletonIf(ConfiguredModelResolver::class);
         $this->app->singletonIf(ConnectionCommitCallbacks::class, static fn (Application $app): ConnectionCommitCallbacks => new ConnectionCommitCallbacks(static fn (): DatabaseTransactionsManager => $app->make('db.transactions')));
         $this->app->singletonIf(DomainEventDispatcher::class, static fn (Application $app): DomainEventDispatcher => new DomainEventDispatcher(
             static fn (): Dispatcher => $app->make(Dispatcher::class),
