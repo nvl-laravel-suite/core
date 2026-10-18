@@ -652,6 +652,7 @@
             "file": "support/src/Ownership/Services/OwnershipResourceRegistry.php",
             "methods": [
                 "all",
+                "assertUnclaimed",
                 "forModel",
                 "freeze",
                 "get",
@@ -664,7 +665,10 @@
             "kind": "trait",
             "file": "support/src/Ownership/Traits/HasOwnership.php",
             "methods": [
-                "ownershipDefinition"
+                "bootHasOwnership",
+                "delete",
+                "ownershipDefinition",
+                "save"
             ],
             "properties": [],
             "constants": []
@@ -711,7 +715,8 @@
             "kind": "class",
             "file": "support/src/Ownership/ValueObjects/OwnershipResourceDefinition.php",
             "methods": [
-                "__construct"
+                "__construct",
+                "parents"
             ],
             "properties": [
                 "allowsCentral",
@@ -720,6 +725,7 @@
                 "model",
                 "ownership",
                 "parentResource",
+                "parentResources",
                 "requiresPartition"
             ],
             "constants": []

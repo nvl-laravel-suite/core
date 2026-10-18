@@ -26,11 +26,15 @@ final class PersistedTenantStorage implements TenantInstallationState
     /** @var WeakMap<Connection, list<stdClass>> */
     private WeakMap $ownershipMarkers;
 
+    /** @var WeakMap<Connection, bool> */
+    private WeakMap $ownershipProtocol;
+
     /** Retain application configuration and immutable resource metadata. */
     public function __construct(private readonly Repository $configuration, private readonly TenantResourceRegistry $resources, private readonly OwnershipResourceRegistry $ownershipResources, private readonly OwnershipMaintenanceState $maintenance)
     {
         $this->markers = new WeakMap;
         $this->ownershipMarkers = new WeakMap;
+        $this->ownershipProtocol = new WeakMap;
     }
 
     /** Reject configured tenant enforcement when its implementation is unavailable. */
@@ -62,6 +66,7 @@ final class PersistedTenantStorage implements TenantInstallationState
             $markers = [];
             $probe = (new PersistedOwnershipStorage)->probe($connection, $table);
             $this->ownershipMarkers[$connection] = $probe['markers'];
+            $this->ownershipProtocol[$connection] = $probe['protocol'];
             if ($probe['legacy']) {
                 foreach ($connection->table($table)->pluck('resource') as $key) {
                     if (! is_string($key)) {
@@ -73,6 +78,10 @@ final class PersistedTenantStorage implements TenantInstallationState
             $this->markers[$connection] = $markers;
         }
         (new PersistedOwnershipStorage)->assertMarkers($this->ownershipMarkers[$connection], $resource, $definition === null ? null : (new $definition->model)->getTable());
+        $physical = ($definition === null ? null : (new $definition->model)->getTable());
+        if ($this->ownershipProtocol[$connection] && $physical !== null) {
+            (new PersistedOwnershipStorage)->assertNoPartition($connection, $physical);
+        }
         $markers = $this->markers[$connection];
         if (($resource === null && $markers !== []) || ($resource !== null && isset($markers[$resource]))) {
             throw new TenantSchemaNotReady('Persisted tenant ownership blocks legacy storage access without the tenant runtime.');
@@ -84,6 +93,7 @@ final class PersistedTenantStorage implements TenantInstallationState
     {
         $this->markers = new WeakMap;
         $this->ownershipMarkers = new WeakMap;
+        $this->ownershipProtocol = new WeakMap;
     }
 
     /** Admit an ordinary queue callback only after checking all registered actual connections. */

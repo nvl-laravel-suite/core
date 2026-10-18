@@ -39,3 +39,10 @@ it('rejects invalid owner classes and relation declarations', function (): void 
         ->and(fn () => OwnershipDefinition::column(Model::class, 'company_id'))->toThrow(OwnershipConfigurationInvalid::class)
         ->and(fn () => OwnershipDefinition::inherited('product.owner'))->toThrow(OwnershipConfigurationInvalid::class);
 });
+
+it('rejects native key declarations that collide with technical partition fields', function (): void {
+    foreach (['owner_scope_key', 'owner_reference'] as $field) {
+        expect(fn () => OwnershipDefinition::column(OwnershipDefinitionCompany::class, $field))->toThrow(OwnershipConfigurationInvalid::class)
+            ->and(fn () => OwnershipDefinition::pivot(OwnershipDefinitionCompany::class, 'owners', $field, 'company_id'))->toThrow(OwnershipConfigurationInvalid::class);
+    }
+});

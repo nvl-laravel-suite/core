@@ -41,6 +41,7 @@ final readonly class OwnershipDefinition
     {
         self::assertOwner($owner);
         self::assertIdentifier($foreignKey);
+        self::assertNativeKey($foreignKey);
 
         return new self('column', owner: $owner, foreignKey: $foreignKey);
     }
@@ -55,6 +56,8 @@ final readonly class OwnershipDefinition
         if ($resourceKey === $ownerKey) {
             throw new OwnershipConfigurationInvalid('Ownership pivot keys must identify separate records.');
         }
+        self::assertNativeKey($resourceKey);
+        self::assertNativeKey($ownerKey);
 
         return new self('pivot', owner: $owner, table: $table, resourceKey: $resourceKey, ownerKey: $ownerKey);
     }
@@ -90,6 +93,14 @@ final readonly class OwnershipDefinition
     {
         if (strlen($identifier) > 100 || preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $identifier) !== 1) {
             throw new OwnershipConfigurationInvalid('Ownership identifiers must be explicit bounded SQL or relation names.');
+        }
+    }
+
+    /** Keep host key declarations separate from protocol-owned columns. */
+    private static function assertNativeKey(string $key): void
+    {
+        if (in_array($key, ['owner_scope_key', 'owner_reference'], true)) {
+            throw new OwnershipConfigurationInvalid('Native owner keys cannot reuse technical partition columns.');
         }
     }
 }

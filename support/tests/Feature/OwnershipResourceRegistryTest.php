@@ -9,8 +9,10 @@ use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
+use Nvl\Support\Tests\Fixtures\OwnedOwnershipReplacement;
 use Nvl\Support\Tests\Fixtures\OwnershipCapableModel;
 use Nvl\Support\Tests\Fixtures\PackageOwner;
+use Nvl\Support\Tests\Fixtures\UnscopedOwnershipBase;
 
 it('exposes only disabled context and immutable metadata when the runtime is absent', function (): void {
     expect(app(OwnershipContext::class)->snapshot()->mode)->toBe(OwnershipContextMode::Disabled)
@@ -45,4 +47,19 @@ it('rejects a cycle even when its parents are registered later', function (): vo
     $registry->register(new OwnershipResourceDefinition('test.a', 'test', OwnershipCapableModel::class, OwnershipDefinition::inherited('parent'), parentResource: 'test.b'));
     expect(fn () => $registry->register(new OwnershipResourceDefinition('test.b', 'test', PackageOwner::class, OwnershipDefinition::inherited('parent'), parentResource: 'test.a')))
         ->toThrow(OwnershipConfigurationInvalid::class);
+});
+
+it('retains explicit polymorphic parent closure without a second native morph map', function (): void {
+    $registry = new OwnershipResourceRegistry;
+    $registry->register(new OwnershipResourceDefinition('test.children', 'test', OwnershipCapableModel::class, OwnershipDefinition::inherited('subject'), parentResources: ['test.parents']));
+    expect(fn () => $registry->freeze())->toThrow(OwnershipConfigurationInvalid::class);
+    $registry->register(new OwnershipResourceDefinition('test.parents', 'test', PackageOwner::class, OwnershipDefinition::unscoped()));
+    $registry->freeze();
+    expect($registry->get('test.children')->parents())->toBe(['test.parents']);
+});
+
+it('denies the unscoped base model when an owned replacement claims its storage before adoption', function (): void {
+    app(OwnershipResourceRegistry::class)->register(new OwnershipResourceDefinition('test.claimed', 'test', OwnedOwnershipReplacement::class, OwnedOwnershipReplacement::ownershipDefinition()));
+    expect(fn () => UnscopedOwnershipBase::query()->count())->toThrow(OwnershipViolation::class)
+        ->and(fn () => (new UnscopedOwnershipBase)->saveQuietly())->toThrow(OwnershipViolation::class);
 });

@@ -6,6 +6,7 @@ namespace Nvl\Support\Ownership\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
+use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 
 /**
@@ -35,15 +36,19 @@ final class OwnershipResourceRegistry
             throw new OwnershipConfigurationInvalid('Ownership resource metadata is frozen.');
         }
         $next = [...$this->resources, $resource->key => $resource];
-        foreach ($next as $definition) {
-            $visited = [];
-            while ($definition !== null) {
-                if (isset($visited[$definition->key])) {
-                    throw new OwnershipConfigurationInvalid('Ownership resource graph contains a cycle.');
-                }
-                $visited[$definition->key] = true;
-                $definition = $definition->parentResource === null ? null : ($next[$definition->parentResource] ?? null);
+        $visit = function (OwnershipResourceDefinition $definition, array $visited) use (&$visit, $next): void {
+            if (in_array($definition->key, $visited, true)) {
+                throw new OwnershipConfigurationInvalid('Ownership resource graph contains a cycle.');
             }
+            $visited[] = $definition->key;
+            foreach ($definition->parents() as $key) {
+                if (isset($next[$key])) {
+                    $visit($next[$key], $visited);
+                }
+            }
+        };
+        foreach ($next as $definition) {
+            $visit($definition, []);
         }
         $this->resources = $next;
     }
@@ -52,8 +57,13 @@ final class OwnershipResourceRegistry
     public function freeze(): void
     {
         foreach ($this->resources as $resource) {
-            if ($resource->parentResource !== null && ! isset($this->resources[$resource->parentResource])) {
-                throw new OwnershipConfigurationInvalid('Ownership parent resource is not registered.');
+            if ($resource->ownership->strategy === 'inherited' && $resource->parents() === []) {
+                throw new OwnershipConfigurationInvalid('Inherited resources require their complete canonical parent allowlist.');
+            }
+            foreach ($resource->parents() as $parent) {
+                if (! isset($this->resources[$parent])) {
+                    throw new OwnershipConfigurationInvalid('Ownership parent resource is not registered.');
+                }
             }
         }
         $this->frozen = true;
@@ -75,6 +85,21 @@ final class OwnershipResourceRegistry
         }
 
         throw new OwnershipConfigurationInvalid('The concrete model has no registered ownership policy.');
+    }
+
+    /** Reject stale base classes and alternate models over declared owned storage. @internal */
+    public function assertUnclaimed(Model $model): void
+    {
+        foreach ($this->resources as $resource) {
+            if ($resource->ownership->strategy === 'unscoped') {
+                continue;
+            }
+            $canonical = new $resource->model;
+            if (is_a($resource->model, $model::class, true)
+                || ($canonical->getConnection() === $model->getConnection() && $canonical->getTable() === $model->getTable())) {
+                throw new OwnershipViolation('Owned storage requires its exact configured model.');
+            }
+        }
     }
 
     /** @return array<string, OwnershipResourceDefinition> */

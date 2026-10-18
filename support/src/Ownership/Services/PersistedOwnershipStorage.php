@@ -14,13 +14,17 @@ final readonly class PersistedOwnershipStorage
     /** Reject prepared and active storage on the supplied actual connection. */
     public function assertUnadopted(Connection $connection, ?string $resource = null, ?string $physicalTable = null): void
     {
-        $this->assertMarkers($this->probe($connection)['markers'], $resource, $physicalTable);
+        $probe = $this->probe($connection);
+        $this->assertMarkers($probe['markers'], $resource, $physicalTable);
+        if ($probe['protocol'] && $physicalTable !== null) {
+            $this->assertNoPartition($connection, $physicalTable);
+        }
     }
 
     /**
      * Inspect both protocol catalogs in one native schema query per connection generation.
      *
-     * @return array{legacy: bool, markers: list<stdClass>}
+     * @return array{legacy: bool, protocol: bool, markers: list<stdClass>}
      */
     public function probe(Connection $connection, ?string $legacyTable = null): array
     {
@@ -45,6 +49,14 @@ final readonly class PersistedOwnershipStorage
                 array_push($bindings, $namespace, $name);
             }
         }
+        $suffix = OwnershipStorageTables::Markers;
+        if ($connection->getDriverName() === 'sqlite') {
+            $selections[] = "exists(select 1 from main.sqlite_master where type = 'table' and substr(name, -?) = ?) as protocol";
+            array_push($bindings, strlen($suffix), $suffix);
+        } else {
+            $selections[] = 'exists(select 1 from information_schema.tables where right(table_name, ?) = ?'.($connection->getDriverName() === 'pgsql' ? '' : ' and table_schema = DATABASE()').') as protocol';
+            array_push($bindings, strlen($suffix), $suffix);
+        }
         $row = $connection->selectOne('select '.implode(', ', $selections), $bindings, false);
         if (! $row instanceof stdClass) {
             throw new OwnershipSchemaNotReady('The native protocol catalog could not be inspected.');
@@ -52,7 +64,18 @@ final readonly class PersistedOwnershipStorage
         $markers = in_array($row->owned, [true, 1, '1'], true)
             ? array_values($connection->table(OwnershipStorageTables::Markers)->useWritePdo()->get()->all()) : [];
 
-        return ['legacy' => in_array($row->legacy, [true, 1, '1'], true), 'markers' => $markers];
+        return ['legacy' => in_array($row->legacy, [true, 1, '1'], true), 'protocol' => in_array($row->protocol, [true, 1, '1'], true), 'markers' => $markers];
+    }
+
+    /** A native technical partition survives protocol prefix and schema-search changes. */
+    public function assertNoPartition(Connection $connection, string $table): void
+    {
+        $present = $connection->getDriverName() === 'pgsql'
+            ? $connection->selectOne("SELECT attname FROM pg_attribute WHERE attrelid = to_regclass(?) AND attname = 'owner_scope_key' AND NOT attisdropped", [$connection->getQueryGrammar()->wrapTable($table)], false) !== null
+            : $connection->getSchemaBuilder()->hasColumn($table, 'owner_scope_key');
+        if ($present) {
+            throw new OwnershipSchemaNotReady('Physical ownership partitioning requires its enforcing runtime.');
+        }
     }
 
     /** @param list<stdClass> $markers */
