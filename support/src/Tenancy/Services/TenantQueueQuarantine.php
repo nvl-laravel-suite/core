@@ -66,7 +66,7 @@ final readonly class TenantQueueQuarantine
      */
     public static function beforeNativeRetry(JobRetryRequested $event): void
     {
-        if (self::isQuarantined($event->job)) {
+        if (self::isQuarantined($event->job) || OwnershipQueueQuarantine::isCaptured($event->job)) {
             throw new TenantBoundaryViolation('Quarantined NVL work requires nvl:queue:retry; native retry restores the captured command.');
         }
     }
@@ -84,7 +84,7 @@ final readonly class TenantQueueQuarantine
             throw new TenantConfigurationInvalid('NVL queue quarantine requires a native failed-job provider.');
         }
         $failure = $failer->find($id);
-        if ($failure === null || ! self::isQuarantined($failure)) {
+        if ($failure === null || (! self::isQuarantined($failure) && ! OwnershipQueueQuarantine::isCaptured($failure))) {
             throw new TenantBoundaryViolation('Raw retry requires an identified NVL quarantine record.');
         }
         if (! is_string($failure->payload ?? null) || ! is_string($failure->connection ?? null) || ! is_string($failure->queue ?? null)) {

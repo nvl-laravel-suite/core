@@ -58,3 +58,8 @@ enum SchemaNumericConnectionAlias: int
 {
     case Host = 3;
 }
+
+it('keeps optional ownership protocol tables fixed across configuration replacement', function (): void {
+    config()->set('nvl-ownership.tables.stores', 'renamed_ownership_stores');
+    expect(fn () => PackageStorage::resolveTable('ownership', 'stores'))->toThrow(InvalidArgumentException::class, 'fixed');
+});

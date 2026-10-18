@@ -47,6 +47,10 @@ final class PackageStorage
             throw new InvalidArgumentException("{$namespace}.tables.{$key} must be a safe table identifier.");
         }
 
+        if ($package === 'ownership' && $value !== $default) {
+            throw new InvalidArgumentException('Ownership protocol identities are fixed and cannot be renamed.');
+        }
+
         return $value;
     }
 

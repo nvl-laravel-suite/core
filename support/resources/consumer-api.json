@@ -767,6 +767,7 @@
             "properties": [
                 "allowsCentral",
                 "family",
+                "immutableFields",
                 "key",
                 "model",
                 "ownership",

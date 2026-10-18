@@ -12,10 +12,10 @@ use Throwable;
 final class QueueQuarantineRetryCommand extends Command
 {
     /** @var string */
-    protected $signature = 'nvl:queue:retry {id* : Native failed-job IDs identifying NVL quarantine records}';
+    protected $signature = 'nvl:queue:retry {id* : Native failed-job IDs identifying captured NVL records}';
 
     /** @var string */
-    protected $description = 'Retry quarantined NVL queue envelopes without restoring captured commands';
+    protected $description = 'Retry captured NVL queue envelopes without restoring captured commands';
 
     /** Retry the selected native records and leave rejected or unsupported records available for inspection. */
     public function handle(TenantQueueQuarantine $quarantine): int

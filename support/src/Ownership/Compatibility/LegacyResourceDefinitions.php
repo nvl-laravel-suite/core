@@ -22,7 +22,7 @@ final readonly class LegacyResourceDefinitions
         }
         $legacy = $this->resources->all()[$key] ?? null;
 
-        return $legacy === null ? null : new OwnershipResourceDefinition($legacy->key, $legacy->family, $legacy->model, OwnershipDefinition::unscoped());
+        return $legacy === null ? null : new OwnershipResourceDefinition($legacy->key, str_replace(['.', '_'], '-', $legacy->family), $legacy->model, OwnershipDefinition::unscoped());
     }
 
     /** Resolve an exact registered legacy model without weakening the new configured graph. */

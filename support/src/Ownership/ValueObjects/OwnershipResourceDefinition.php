@@ -23,6 +23,7 @@ final readonly class OwnershipResourceDefinition
      *
      * @param  class-string<Model>  $model
      * @param  array<array-key, string>  $parentResources
+     * @param  list<string>  $immutableFields  Package-owned native identity fields.
      */
     public function __construct(
         public string $key,
@@ -33,6 +34,7 @@ final readonly class OwnershipResourceDefinition
         public bool $allowsCentral = false,
         public bool $requiresPartition = true,
         array $parentResources = [],
+        public array $immutableFields = [],
     ) {
         if (preg_match('/^[a-z][a-z0-9._-]{0,190}$/D', $key) !== 1
             || preg_match('/^[a-z][a-z0-9-]{0,99}$/D', $family) !== 1
@@ -48,6 +50,14 @@ final readonly class OwnershipResourceDefinition
         }
         if (count(array_unique($parentResources)) !== count($parentResources)) {
             throw new OwnershipConfigurationInvalid('Polymorphic parent resources cannot be duplicated.');
+        }
+        if (count(array_unique($immutableFields)) !== count($immutableFields)) {
+            throw new OwnershipConfigurationInvalid('Immutable native identity fields must be a unique list.');
+        }
+        foreach ($immutableFields as $field) {
+            if (preg_match('/^[a-z][a-z0-9_]{0,62}$/D', $field) !== 1) {
+                throw new OwnershipConfigurationInvalid('Immutable native identity fields require safe column identifiers.');
+            }
         }
         $this->parentResources = $parentResources;
     }

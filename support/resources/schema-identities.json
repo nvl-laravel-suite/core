@@ -3896,6 +3896,26 @@
                     }
                 ],
                 "foreign_keys": []
+            },
+            "owner_grant_locks": {
+                "constant": "OwnerGrantLocks",
+                "legacy": "nvl_media_owner_grant_locks",
+                "default": "nvl_media_owner_grant_locks",
+                "columns": {
+                    "owner_scope_key": "string",
+                    "media_id": "string"
+                },
+                "create_migrations": [],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "owner_scope_key",
+                            "media_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
             }
         },
         "migrations": {
@@ -4448,6 +4468,237 @@
                 "create": false,
                 "legacy_checksum": "a0864f061e7da186b06753f77fa741edde7bae1b639176c91c8705083d6b8a88",
                 "creates": []
+            }
+        }
+    },
+    "ownership": {
+        "config": "nvl-ownership",
+        "tables": {
+            "stores": {
+                "constant": "Stores",
+                "legacy": "nvl_ownership_stores",
+                "default": "nvl_ownership_stores",
+                "columns": {
+                    "id": "integer",
+                    "store_id": "string"
+                },
+                "create_migrations": [
+                    "2026_10_18_000001_create_adoption_tables"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "store_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
+            },
+            "adoption_runs": {
+                "constant": "Runs",
+                "legacy": "nvl_ownership_adoption_runs",
+                "default": "nvl_ownership_adoption_runs",
+                "columns": {
+                    "id": "string",
+                    "status": "string",
+                    "mapping_hash": "string",
+                    "configuration_hash": "string",
+                    "packages": "json",
+                    "checkpoints": "json",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_10_18_000001_create_adoption_tables"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "status",
+                            "updated_at"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
+            },
+            "adoption_checkpoints": {
+                "constant": "Checkpoints",
+                "legacy": "nvl_ownership_adoption_checkpoints",
+                "default": "nvl_ownership_adoption_checkpoints",
+                "columns": {
+                    "id": "string",
+                    "run_id": "string",
+                    "phase": "string",
+                    "checkpoint": "json",
+                    "created_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_10_18_000001_create_adoption_tables"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "run_id"
+                        ],
+                        "package": "ownership",
+                        "table": "adoption_runs",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "resource_markers": {
+                "constant": "Markers",
+                "legacy": "nvl_ownership_resource_markers",
+                "default": "nvl_ownership_resource_markers",
+                "columns": {
+                    "resource": "string",
+                    "physical_table": "string",
+                    "state": "string",
+                    "schema_version": "integer",
+                    "configuration_hash": "string",
+                    "generation": "string",
+                    "coordinator_store": "string",
+                    "source_store": "string",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_10_18_000001_create_adoption_tables"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "resource"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "physical_table"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
+            },
+            "legacy_owner_mappings": {
+                "constant": "Mappings",
+                "legacy": "nvl_ownership_legacy_owner_mappings",
+                "default": "nvl_ownership_legacy_owner_mappings",
+                "columns": {
+                    "run_id": "string",
+                    "resource": "string",
+                    "record_id": "string",
+                    "owner_reference": "json",
+                    "legacy_tenant_id": "string",
+                    "metadata": "json"
+                },
+                "create_migrations": [
+                    "2026_10_18_000001_create_adoption_tables"
+                ],
+                "keys": [
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "run_id",
+                            "resource",
+                            "record_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "legacy_tenant_id",
+                            "run_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "run_id"
+                        ],
+                        "package": "ownership",
+                        "table": "adoption_runs",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "operation_facts": {
+                "constant": "Operations",
+                "legacy": "nvl_ownership_operation_facts",
+                "default": "nvl_ownership_operation_facts",
+                "columns": {
+                    "id": "string",
+                    "actor_type": "string",
+                    "actor_id": "string",
+                    "purpose": "string",
+                    "owner_reference": "json",
+                    "created_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_10_18_000001_create_adoption_tables"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "actor_type",
+                            "actor_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
+            }
+        },
+        "migrations": {
+            "2026_10_18_000001_create_adoption_tables": {
+                "name": "2026_10_18_000001_nvl_ownership_create_adoption_tables",
+                "path": "database/migrations/ownership/2026_10_18_000001_nvl_ownership_create_adoption_tables.php",
+                "create": true,
+                "legacy_checksum": "586d40ec2121f8c12f9673d94f0900b0cf16a8f6884e2c6a2efa599b2938ee71",
+                "creates": [
+                    "stores",
+                    "adoption_runs",
+                    "adoption_checkpoints",
+                    "resource_markers",
+                    "legacy_owner_mappings",
+                    "operation_facts"
+                ]
             }
         }
     },

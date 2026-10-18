@@ -58,6 +58,18 @@ final readonly class OwnershipQueueQuarantine
             && preg_match('/(?:\\A|\\n\\nNext )'.preg_quote(OwnershipViolation::class.': '.self::REJECTION_PREFIX, '/').'/', $failure->exception) === 1;
     }
 
+    /** Recognize scalar captured wire work without restoring its command or native model. */
+    public static function isCaptured(object $failure): bool
+    {
+        if (! is_string($failure->payload ?? null)) {
+            return false;
+        }
+        $payload = json_decode($failure->payload, true);
+        $data = is_array($payload) ? ($payload['data'] ?? null) : null;
+
+        return is_array($data) && (array_key_exists('nvl_ownership', $data) || array_key_exists('nvl_tenancy', $data));
+    }
+
     /**
      * Stop Laravel's eager command restoration before native retry touches quarantined work.
      *
@@ -65,7 +77,7 @@ final readonly class OwnershipQueueQuarantine
      */
     public static function beforeNativeRetry(JobRetryRequested $event): void
     {
-        if (self::isQuarantined($event->job)) {
+        if (self::isQuarantined($event->job) || self::isCaptured($event->job)) {
             throw new OwnershipViolation('Quarantined NVL work requires nvl:queue:retry; native retry restores the captured command.');
         }
     }
@@ -83,7 +95,7 @@ final readonly class OwnershipQueueQuarantine
             throw new OwnershipConfigurationInvalid('NVL queue quarantine requires a native failed-job provider.');
         }
         $failure = $failer->find($id);
-        if ($failure === null || ! self::isQuarantined($failure)) {
+        if ($failure === null || (! self::isQuarantined($failure) && ! self::isCaptured($failure))) {
             throw new OwnershipViolation('Raw retry requires an identified NVL quarantine record.');
         }
         if (! is_string($failure->payload ?? null) || ! is_string($failure->connection ?? null) || ! is_string($failure->queue ?? null)) {

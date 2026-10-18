@@ -13,6 +13,9 @@ use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 use Nvl\Support\Tenancy\Contracts\TenantBoundary;
+use Nvl\Support\Tenancy\Contracts\TenantContext;
+use Nvl\Support\Tenancy\Enums\TenantContextMode;
+use Nvl\Support\Tenancy\Enums\TenantResourceKind;
 use Nvl\Support\Tenancy\Services\PersistedTenantStorage;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 
@@ -90,7 +93,21 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
         $definition = $this->definition($resource);
         $this->validate(new $definition->model, $resource);
 
-        return isset($this->legacyResources->all()[$resource]) ? $this->legacy->attributes($resource) : [];
+        $legacy = $this->legacyResources->all()[$resource] ?? null;
+        if ($legacy === null) {
+            return [];
+        }
+        if ($legacy->kind === TenantResourceKind::Inherited) {
+            $this->legacy->key($resource, 'new-record');
+            if ($legacy->parentResource !== null) {
+                return $this->attributes($legacy->parentResource);
+            }
+            $snapshot = $this->container->make(TenantContext::class)->snapshot();
+
+            return $snapshot->mode === TenantContextMode::Disabled ? [] : ['tenant_id' => $snapshot->tenantId?->value];
+        }
+
+        return $this->legacy->attributes($resource);
     }
 
     /** Retain only identities admitted by the old or unowned boundary. */
