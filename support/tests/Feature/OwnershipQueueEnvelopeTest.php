@@ -9,6 +9,7 @@ use Nvl\Support\Ownership\ValueObjects\OwnerReference;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
 use Nvl\Support\Tests\Fixtures\CapturedOwnershipCommand;
+use Nvl\Support\Tests\Fixtures\ReadonlyOwnershipFact;
 
 it('round trips only scalar versioned owner principal and generation metadata', function (): void {
     $snapshot = new OwnershipSnapshot(OwnershipContextMode::Owner, new OwnerReference('company', 'store.companies', 'string', '007'), ['kind' => 'actor', 'type' => 'actor', 'id' => '1'], generations: ['store' => 'generation']);
@@ -41,4 +42,11 @@ it('captures once and preserves the native identity for unowned command consumer
     expect($command->uniqueId())->toBe('native-id')
         ->and($command->ownershipJobEnvelope()->context()->mode)->toBe(OwnershipContextMode::Disabled)
         ->and(fn () => $command->recapture())->toThrow(OwnershipViolation::class);
+});
+
+it('captures immutable scalar admission in readonly domain facts', function (): void {
+    $fact = new ReadonlyOwnershipFact('committed');
+    $restored = unserialize(serialize($fact), ['allowed_classes' => [ReadonlyOwnershipFact::class, OwnershipJobEnvelope::class]]);
+    expect($restored)->toBeInstanceOf(ReadonlyOwnershipFact::class)
+        ->and($restored->ownershipJobEnvelope()->toArray())->toBe($fact->ownershipJobEnvelope()->toArray());
 });
