@@ -2,21 +2,12 @@
 
 declare(strict_types=1);
 
-use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Models\ConfiguredModelResolver;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
-
-/** Advertised extendable package model contract. */
-class OwnershipConfigurableModel extends Model {}
-
-/** Concrete final host replacement is a valid extension. */
-final class OwnershipConfiguredModel extends OwnershipConfigurableModel {}
-
-/** Unrelated host model cannot replace another package's model. */
-final class OwnershipUnrelatedModel extends Model {}
-
-/** Abstract replacement cannot be instantiated for canonical storage. */
-abstract class OwnershipAbstractModel extends OwnershipConfigurableModel {}
+use Nvl\Support\Tests\Fixtures\OwnershipAbstractModel;
+use Nvl\Support\Tests\Fixtures\OwnershipConfigurableModel;
+use Nvl\Support\Tests\Fixtures\OwnershipConfiguredModel;
+use Nvl\Support\Tests\Fixtures\OwnershipUnrelatedModel;
 
 it('resolves only concrete subclasses of the advertised model', function (): void {
     $resolver = new ConfiguredModelResolver;

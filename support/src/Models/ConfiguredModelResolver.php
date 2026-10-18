@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
 use ReflectionClass;
 
-/** Validates advertised concrete model extensions without opening storage. */
+/**
+ * Validates advertised concrete model extensions without opening storage.
+ *
+ * @api
+ */
 final readonly class ConfiguredModelResolver
 {
     /**

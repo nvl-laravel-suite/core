@@ -6,7 +6,11 @@ namespace Nvl\Support\Ownership\Contracts;
 
 use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 
-/** Declares how canonical model ownership is resolved without selecting an actor. */
+/**
+ * Declares how canonical model ownership is resolved without selecting an actor.
+ *
+ * @api
+ */
 interface Ownable
 {
     /** Return immutable model-owned persistence metadata. */

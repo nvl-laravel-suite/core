@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
 use ReflectionClass;
 
-/** Describes a single canonical primary owner and its supported persistence shape. */
+/**
+ * Describes a single canonical primary owner and its supported persistence shape.
+ *
+ * @api
+ */
 final readonly class OwnershipDefinition
 {
     /**

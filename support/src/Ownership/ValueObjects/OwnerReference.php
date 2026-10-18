@@ -6,7 +6,11 @@ namespace Nvl\Support\Ownership\ValueObjects;
 
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
 
-/** Preserves native owner identity independently from model subclasses and UUID tenancy. */
+/**
+ * Preserves native owner identity independently from model subclasses and UUID tenancy.
+ *
+ * @api
+ */
 final readonly class OwnerReference
 {
     /** Create a canonical scalar identity with an explicit native key kind. */

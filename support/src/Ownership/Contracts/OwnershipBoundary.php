@@ -7,7 +7,11 @@ namespace Nvl\Support\Ownership\Contracts;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-/** Provides canonical ownership enforcement independently from owner lifecycle. */
+/**
+ * Provides canonical ownership enforcement independently from owner lifecycle.
+ *
+ * @api
+ */
 interface OwnershipBoundary
 {
     /**
@@ -23,7 +27,7 @@ interface OwnershipBoundary
     /** Verify canonical persisted ownership of the exact configured record. */
     public function assertRecord(Model $record, string $resource): void;
 
-    /** @return array{owner_scope_key?: string, owner_reference?: string} */
+    /** @return array<string, int|string|null> Server-generated ownership fields only. */
     public function attributes(string $resource): array;
 
     /** Derive a resource and ownership-specific operation identity. */

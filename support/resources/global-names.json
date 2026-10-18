@@ -9,6 +9,7 @@
         "mail-notifications": "nvl-mail-notifications",
         "media": "nvl-media",
         "metafields": "nvl-metafields",
+        "ownership": "nvl-ownership",
         "pages": "nvl-pages",
         "payments": "nvl-payments",
         "primitives": "nvl-primitives",

@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
 use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 use Nvl\Support\Tests\Fixtures\OwnershipCapableModel;
-
-/** Native integer-key owner used to validate declarative ownership metadata. */
-final class OwnershipDefinitionCompany extends Model {}
+use Nvl\Support\Tests\Fixtures\OwnershipDefinitionCompany;
 
 it('declares column and exclusive pivot ownership without opening a connection', function (): void {
     $column = OwnershipDefinition::column(OwnershipDefinitionCompany::class, 'company_id');

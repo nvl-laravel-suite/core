@@ -8,18 +8,10 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Nvl\Support\OwnerRegistry;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
 use Nvl\Support\Ownership\ValueObjects\OwnerReference;
-
-/** Model base for stable package morph identity replacement. */
-class OwnershipIdentityBase extends Model {}
-
-/** Explicit configured class retains its base's stored aliases. */
-final class OwnershipIdentityReplacement extends OwnershipIdentityBase {}
-
-/** Separate model family cannot take another replacement's registration. */
-class OwnershipOtherIdentityBase extends Model {}
-
-/** Concrete replacement belonging to the separate model family. */
-final class OwnershipOtherIdentityReplacement extends OwnershipOtherIdentityBase {}
+use Nvl\Support\Tests\Fixtures\OwnershipIdentityBase;
+use Nvl\Support\Tests\Fixtures\OwnershipIdentityReplacement;
+use Nvl\Support\Tests\Fixtures\OwnershipOtherIdentityBase;
+use Nvl\Support\Tests\Fixtures\OwnershipOtherIdentityReplacement;
 
 it('round trips a versioned scalar owner reference with stable partition identity', function (): void {
     $reference = new OwnerReference('company', 'application.companies', 'int', '7');

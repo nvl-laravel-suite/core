@@ -446,6 +446,15 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Models\\ConfiguredModelResolver": {
+            "kind": "class",
+            "file": "support/src/Models/ConfiguredModelResolver.php",
+            "methods": [
+                "resolve"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\OwnerRegistry": {
             "kind": "class",
             "file": "support/src/OwnerRegistry.php",
@@ -456,7 +465,8 @@
                 "deprecations",
                 "errors",
                 "model",
-                "register"
+                "register",
+                "registerReplacement"
             ],
             "properties": [],
             "constants": []
@@ -499,6 +509,215 @@
                 "order"
             ],
             "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Contracts\\Ownable": {
+            "kind": "interface",
+            "file": "support/src/Ownership/Contracts/Ownable.php",
+            "methods": [
+                "ownershipDefinition"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Contracts\\OwnershipBoundary": {
+            "kind": "interface",
+            "file": "support/src/Ownership/Contracts/OwnershipBoundary.php",
+            "methods": [
+                "assertRecord",
+                "attributes",
+                "key",
+                "query"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Contracts\\OwnershipContext": {
+            "kind": "interface",
+            "file": "support/src/Ownership/Contracts/OwnershipContext.php",
+            "methods": [
+                "requireOwner",
+                "snapshot"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Enums\\OwnershipContextMode": {
+            "kind": "enum",
+            "file": "support/src/Ownership/Enums/OwnershipContextMode.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "Central",
+                "Disabled",
+                "Owner",
+                "Unresolved"
+            ]
+        },
+        "Nvl\\Support\\Ownership\\Enums\\OwnershipResponseCode": {
+            "kind": "enum",
+            "file": "support/src/Ownership/Enums/OwnershipResponseCode.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "BoundaryViolation",
+                "ConfigurationInvalid"
+            ]
+        },
+        "Nvl\\Support\\Ownership\\Exceptions\\OwnershipConfigurationInvalid": {
+            "kind": "class",
+            "file": "support/src/Ownership/Exceptions/OwnershipConfigurationInvalid.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Exceptions\\OwnershipException": {
+            "kind": "class",
+            "file": "support/src/Ownership/Exceptions/OwnershipException.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Exceptions\\OwnershipViolation": {
+            "kind": "class",
+            "file": "support/src/Ownership/Exceptions/OwnershipViolation.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Services\\OwnershipResourceRegistry": {
+            "kind": "class",
+            "file": "support/src/Ownership/Services/OwnershipResourceRegistry.php",
+            "methods": [
+                "all",
+                "forModel",
+                "freeze",
+                "get",
+                "register"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Traits\\HasOwnership": {
+            "kind": "trait",
+            "file": "support/src/Ownership/Traits/HasOwnership.php",
+            "methods": [
+                "ownershipDefinition"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\ValueObjects\\OwnerReference": {
+            "kind": "class",
+            "file": "support/src/Ownership/ValueObjects/OwnerReference.php",
+            "methods": [
+                "__construct",
+                "fromArray",
+                "scopeKey",
+                "toArray"
+            ],
+            "properties": [
+                "key",
+                "keyType",
+                "storage",
+                "type",
+                "version"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\ValueObjects\\OwnershipDefinition": {
+            "kind": "class",
+            "file": "support/src/Ownership/ValueObjects/OwnershipDefinition.php",
+            "methods": [
+                "column",
+                "inherited",
+                "pivot",
+                "unscoped"
+            ],
+            "properties": [
+                "foreignKey",
+                "owner",
+                "ownerKey",
+                "relation",
+                "resourceKey",
+                "strategy",
+                "table"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\ValueObjects\\OwnershipResourceDefinition": {
+            "kind": "class",
+            "file": "support/src/Ownership/ValueObjects/OwnershipResourceDefinition.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "allowsCentral",
+                "family",
+                "key",
+                "model",
+                "ownership",
+                "parentResource",
+                "requiresPartition"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\ValueObjects\\OwnershipSnapshot": {
+            "kind": "class",
+            "file": "support/src/Ownership/ValueObjects/OwnershipSnapshot.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "mode",
+                "operation",
+                "owner",
+                "principal"
+            ],
             "constants": []
         },
         "Nvl\\Support\\Tenancy\\Contracts\\TenantBoundary": {
