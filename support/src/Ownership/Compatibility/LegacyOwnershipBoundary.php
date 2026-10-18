@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Ownership\Compatibility;
 
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,7 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
         private OwnershipResourceRegistry $resources,
         private TenantResourceRegistry $legacyResources,
         private TenantBoundary $legacy,
-        private PersistedTenantStorage $storage,
+        private Container $container,
     ) {}
 
     /**
@@ -72,7 +73,7 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
             || $this->configuration->get('nvl-tenancy.enabled') === true) {
             throw new OwnershipViolation;
         }
-        $this->storage->assertUnadopted($record->getConnection(), $resource);
+        $this->container->make(PersistedTenantStorage::class)->assertUnadopted($record->getConnection(), $resource);
     }
 
     /** @return array<string, int|string|null> */

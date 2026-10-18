@@ -32,7 +32,9 @@ use Nvl\Support\OwnerRegistry;
 use Nvl\Support\Ownership\Compatibility\LegacyOwnershipBoundary;
 use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Contracts\OwnershipContext;
+use Nvl\Support\Ownership\Contracts\OwnershipMaintenanceState;
 use Nvl\Support\Ownership\Services\DisabledOwnershipContext;
+use Nvl\Support\Ownership\Services\InactiveOwnershipMaintenance;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Schema\SchemaMigrationEvents;
 use Nvl\Support\Traits\MergesPackageConfiguration;
@@ -52,6 +54,7 @@ final class SupportServiceProvider extends ServiceProvider
         $this->mergePackageConfiguration(__DIR__.'/../../config/nvl-core.php', 'nvl-core');
         $this->app->singletonIf(OwnerRegistry::class);
         $this->app->singletonIf(OwnershipResourceRegistry::class);
+        $this->app->scopedIf(OwnershipMaintenanceState::class, InactiveOwnershipMaintenance::class);
         $this->app->scopedIf(OwnershipContext::class, DisabledOwnershipContext::class);
         $this->app->bindIf(OwnershipBoundary::class, LegacyOwnershipBoundary::class);
         $this->app->singletonIf(ConfiguredModelResolver::class);

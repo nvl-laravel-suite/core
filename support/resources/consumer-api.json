@@ -575,7 +575,8 @@
             ],
             "constants": [
                 "BoundaryViolation",
-                "ConfigurationInvalid"
+                "ConfigurationInvalid",
+                "SchemaNotReady"
             ]
         },
         "Nvl\\Support\\Ownership\\Exceptions\\OwnershipConfigurationInvalid": {
@@ -598,6 +599,23 @@
         "Nvl\\Support\\Ownership\\Exceptions\\OwnershipException": {
             "kind": "class",
             "file": "support/src/Ownership/Exceptions/OwnershipException.php",
+            "methods": [
+                "__construct",
+                "context",
+                "package",
+                "publicContext",
+                "responseCode",
+                "responseHeaders",
+                "suggestedStatus",
+                "translationKey",
+                "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Exceptions\\OwnershipSchemaNotReady": {
+            "kind": "class",
+            "file": "support/src/Ownership/Exceptions/OwnershipSchemaNotReady.php",
             "methods": [
                 "__construct",
                 "context",
@@ -713,6 +731,7 @@
                 "__construct"
             ],
             "properties": [
+                "generations",
                 "mode",
                 "operation",
                 "owner",
