@@ -6,6 +6,7 @@ namespace Nvl\Support\Ownership\Services;
 
 use Closure;
 use Illuminate\Bus\Dispatcher;
+use Nvl\Support\Ownership\Compatibility\LegacyQueueAuthority;
 use Nvl\Support\Ownership\Contracts\OwnershipQueueContext;
 use Nvl\Support\Ownership\Enums\OwnershipContextMode;
 
@@ -52,6 +53,9 @@ class OwnershipBusDispatcher extends Dispatcher
      */
     private function captured(mixed $command, Closure $operation): mixed
     {
+        if ($this->container->make(LegacyQueueAuthority::class)->active()) {
+            return $operation();
+        }
         $carrier = $this->container->make(OwnershipQueueCarrier::class);
         if (! is_object($command) || ! $carrier->captured($command)) {
             return $operation();

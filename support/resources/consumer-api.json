@@ -542,6 +542,15 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Ownership\\Contracts\\OwnershipContextParticipant": {
+            "kind": "interface",
+            "file": "support/src/Ownership/Contracts/OwnershipContextParticipant.php",
+            "methods": [
+                "enter"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Ownership\\Enums\\OwnershipContextMode": {
             "kind": "enum",
             "file": "support/src/Ownership/Enums/OwnershipContextMode.php",
@@ -643,6 +652,15 @@
                 "suggestedStatus",
                 "translationKey",
                 "translationParameters"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Services\\OwnershipContextParticipants": {
+            "kind": "class",
+            "file": "support/src/Ownership/Services/OwnershipContextParticipants.php",
+            "methods": [
+                "register"
             ],
             "properties": [],
             "constants": []

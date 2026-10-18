@@ -7,6 +7,7 @@ namespace Nvl\Support\Ownership\Services;
 use Illuminate\Container\Container;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Jobs\JobName;
+use Nvl\Support\Ownership\Compatibility\LegacyQueueAuthority;
 use Nvl\Support\Ownership\Contracts\OwnershipQueuedJob;
 use Nvl\Support\Ownership\Contracts\OwnershipQueueHandler;
 use Nvl\Support\Ownership\Enums\OwnershipContextMode;
@@ -31,6 +32,10 @@ final readonly class OwnershipQueueAdmission
         }
         $name = $data['commandName'] ?? null;
         try {
+            if ($this->container->make(LegacyQueueAuthority::class)->active()
+                && array_key_exists('nvl_tenancy', $data) && ! array_key_exists('nvl_ownership', $data)) {
+                return;
+            }
             if (! array_key_exists('nvl_ownership', $data) && (! is_string($name) || ! is_subclass_of($name, OwnershipQueuedJob::class))) {
                 return;
             }

@@ -6,6 +6,7 @@ namespace Nvl\Support\Ownership\Services;
 
 use Illuminate\Container\Container;
 use Illuminate\Queue\Queue;
+use Nvl\Support\Ownership\Compatibility\LegacyQueueAuthority;
 use Nvl\Support\Ownership\Contracts\OwnershipQueueContext;
 
 /** Supplies disabled scalar capture for opted-in native commands without requiring a runtime. @internal */
@@ -26,6 +27,9 @@ abstract class OwnershipQueuePublication extends Queue
     public static function payload(?string $connection = null, ?string $queue = null, array $payload = []): array
     {
         $app = Container::getInstance();
+        if ($app->make(LegacyQueueAuthority::class)->active()) {
+            return [];
+        }
         if ($app->bound('nvl.ownership.runtime') && $app->make('config')->get('nvl-ownership.enabled') === true) {
             return [];
         }
