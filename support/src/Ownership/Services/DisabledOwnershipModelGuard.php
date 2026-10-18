@@ -22,7 +22,13 @@ final readonly class DisabledOwnershipModelGuard implements OwnershipModelGuard
     {
         foreach ($this->container->make(OwnershipResourceRegistry::class)->all() as $resource) {
             if ($resource->model === $model::class) {
-                $this->container->make(OwnershipBoundary::class)->assertRecord($model, $resource->key);
+                $boundary = $this->container->make(OwnershipBoundary::class);
+                if ($model->exists) {
+                    $boundary->assertRecord($model, $resource->key);
+                } else {
+                    $boundary->query($model->newModelQuery(), $resource->key);
+                    $boundary->attributes($resource->key);
+                }
 
                 return;
             }

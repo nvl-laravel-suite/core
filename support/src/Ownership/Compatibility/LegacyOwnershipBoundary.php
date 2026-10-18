@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
+use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 use Nvl\Support\Tenancy\Contracts\TenantBoundary;
 use Nvl\Support\Tenancy\Services\PersistedTenantStorage;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
@@ -37,7 +38,7 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
      */
     public function query(Builder $query, string $resource): Builder
     {
-        $this->assertRecord($query->getModel(), $resource);
+        $this->validate($query->getModel(), $resource);
         if (isset($this->legacyResources->all()[$resource])) {
             return $this->legacy->query($query, $resource);
         }
@@ -54,7 +55,16 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
     /** Validate exact storage before any unowned compatibility access. */
     public function assertRecord(Model $record, string $resource): void
     {
-        $definition = $this->resources->get($resource);
+        $this->validate($record, $resource);
+        if (isset($this->legacyResources->all()[$resource])) {
+            $this->legacy->assertRecord($record, $resource);
+        }
+    }
+
+    /** Validate declarations and physical storage without requiring a query model to be persisted. */
+    private function validate(Model $record, string $resource): void
+    {
+        $definition = $this->definition($resource);
         if ($this->configuration->get('nvl-ownership.enabled') === true
             || in_array($definition->ownership->strategy, ['column', 'pivot'], true)) {
             throw new OwnershipViolation('Declared ownership requires the enforcing runtime.');
@@ -65,8 +75,6 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
             throw new OwnershipViolation;
         }
         if (isset($this->legacyResources->all()[$resource])) {
-            $this->legacy->assertRecord($record, $resource);
-
             return;
         }
         if ($definition->ownership->strategy !== 'unscoped'
@@ -79,8 +87,8 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
     /** @return array<string, int|string|null> */
     public function attributes(string $resource): array
     {
-        $definition = $this->resources->get($resource);
-        $this->assertRecord(new $definition->model, $resource);
+        $definition = $this->definition($resource);
+        $this->validate(new $definition->model, $resource);
 
         return isset($this->legacyResources->all()[$resource]) ? $this->legacy->attributes($resource) : [];
     }
@@ -88,9 +96,17 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
     /** Retain only identities admitted by the old or unowned boundary. */
     public function key(string $resource, string $identity): string
     {
-        $definition = $this->resources->get($resource);
-        $this->assertRecord(new $definition->model, $resource);
+        $definition = $this->definition($resource);
+        $this->validate(new $definition->model, $resource);
 
         return isset($this->legacyResources->all()[$resource]) ? $this->legacy->key($resource, $identity) : $identity;
+    }
+
+    /** Preserve explicit legacy registrations only while the new authority is disabled. */
+    private function definition(string $resource): OwnershipResourceDefinition
+    {
+        return $this->resources->all()[$resource]
+            ?? $this->container->make(LegacyResourceDefinitions::class)->get($resource)
+            ?? $this->resources->get($resource);
     }
 }

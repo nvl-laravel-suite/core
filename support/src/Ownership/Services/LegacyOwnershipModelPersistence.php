@@ -7,6 +7,7 @@ namespace Nvl\Support\Ownership\Services;
 use Closure;
 use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Contracts\OwnershipModelGuard;
 use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
 
@@ -20,6 +21,24 @@ final readonly class LegacyOwnershipModelPersistence implements OwnershipModelPe
     public function save(Model $model, Closure $persist): bool
     {
         $this->container->make(OwnershipModelGuard::class)->saving($model);
+        if (! $model->exists) {
+            foreach ($this->container->make(OwnershipResourceRegistry::class)->all() as $resource) {
+                if ($resource->model === $model::class) {
+                    $boundary = $this->container->make(OwnershipBoundary::class);
+                    if ($boundary->attributes($resource->key) !== []) {
+                        return $model->getConnection()->transaction(function () use ($model, $persist, $resource, $boundary): bool {
+                            $saved = $persist();
+                            if ($saved) {
+                                $boundary->assertRecord($model, $resource->key);
+                            }
+
+                            return $saved;
+                        });
+                    }
+                    break;
+                }
+            }
+        }
 
         return $persist();
     }
