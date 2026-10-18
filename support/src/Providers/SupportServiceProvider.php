@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Providers;
 
+use Illuminate\Bus\DatabaseBatchRepository;
+use Illuminate\Bus\Dispatcher as BusDispatcher;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Database\Events\MigrationStarted;
 use Illuminate\Log\LogManager;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Bindings\RequiredBindings;
 use Nvl\Support\Console\InstallCommand;
@@ -30,15 +33,23 @@ use Nvl\Support\Logging\PackageLogger;
 use Nvl\Support\Models\ConfiguredModelResolver;
 use Nvl\Support\OwnerRegistry;
 use Nvl\Support\Ownership\Compatibility\LegacyOwnershipBoundary;
+use Nvl\Support\Ownership\Contracts\OwnershipBatchOptions;
 use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Contracts\OwnershipContext;
 use Nvl\Support\Ownership\Contracts\OwnershipMaintenanceState;
 use Nvl\Support\Ownership\Contracts\OwnershipModelGuard;
 use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
+use Nvl\Support\Ownership\Contracts\OwnershipQueueContext;
+use Nvl\Support\Ownership\Services\DisabledOwnershipBatchOptions;
 use Nvl\Support\Ownership\Services\DisabledOwnershipContext;
 use Nvl\Support\Ownership\Services\DisabledOwnershipModelGuard;
+use Nvl\Support\Ownership\Services\DisabledOwnershipQueueContext;
 use Nvl\Support\Ownership\Services\InactiveOwnershipMaintenance;
 use Nvl\Support\Ownership\Services\LegacyOwnershipModelPersistence;
+use Nvl\Support\Ownership\Services\OwnershipBatchRepository;
+use Nvl\Support\Ownership\Services\OwnershipBusDispatcher;
+use Nvl\Support\Ownership\Services\OwnershipQueueAdmission;
+use Nvl\Support\Ownership\Services\OwnershipQueuePublication;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Schema\SchemaMigrationEvents;
 use Nvl\Support\Traits\MergesPackageConfiguration;
@@ -61,6 +72,10 @@ final class SupportServiceProvider extends ServiceProvider
         $this->app->scopedIf(OwnershipMaintenanceState::class, InactiveOwnershipMaintenance::class);
         $this->app->bindIf(OwnershipModelGuard::class, DisabledOwnershipModelGuard::class);
         $this->app->bindIf(OwnershipModelPersistence::class, LegacyOwnershipModelPersistence::class);
+        $this->app->bindIf(OwnershipQueueContext::class, DisabledOwnershipQueueContext::class);
+        $this->app->bindIf(OwnershipBatchOptions::class, DisabledOwnershipBatchOptions::class);
+        $this->app->extend(DatabaseBatchRepository::class, static fn ($repository) => is_object($repository) && $repository::class === DatabaseBatchRepository::class ? OwnershipBatchRepository::fromNative($repository) : $repository);
+        $this->app->extend(BusDispatcher::class, static fn ($dispatcher) => is_object($dispatcher) && $dispatcher::class === BusDispatcher::class ? OwnershipBusDispatcher::fromNative($dispatcher) : $dispatcher);
         $this->app->scopedIf(OwnershipContext::class, DisabledOwnershipContext::class);
         $this->app->bindIf(OwnershipBoundary::class, LegacyOwnershipBoundary::class);
         $this->app->singletonIf(ConfiguredModelResolver::class);
@@ -91,6 +106,8 @@ final class SupportServiceProvider extends ServiceProvider
      */
     public function boot(Dispatcher $events): void
     {
+        $events->listen(JobProcessing::class, [OwnershipQueueAdmission::class, 'handle']);
+        OwnershipQueuePublication::register();
         $this->app->make(GlobalNames::class)->translations('core', __DIR__.'/../../lang', $this->app->make('translation.loader'));
         $this->publishes([
             __DIR__.'/../../lang' => lang_path('vendor/nvl-core'),

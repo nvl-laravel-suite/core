@@ -11,6 +11,7 @@ use Illuminate\Queue\Events\JobRetryRequested;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Queue\SyncQueue;
+use Nvl\Support\Ownership\Services\OwnershipQueueQuarantine;
 use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
 use Nvl\Support\Tenancy\Exceptions\TenantConfigurationInvalid;
 use Throwable;
@@ -54,7 +55,7 @@ final readonly class TenantQueueQuarantine
     /** Detect only native records created by this quarantine boundary. */
     public static function isQuarantined(object $failure): bool
     {
-        return is_string($failure->exception ?? null)
+        return OwnershipQueueQuarantine::isQuarantined($failure) || is_string($failure->exception ?? null)
             && preg_match('/(?:\\A|\\n\\nNext )'.preg_quote(TenantBoundaryViolation::class.': '.self::REJECTION_PREFIX, '/').'/', $failure->exception) === 1;
     }
 

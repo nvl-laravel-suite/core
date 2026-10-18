@@ -661,12 +661,24 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Ownership\\Traits\\CapturesOwnership": {
+            "kind": "trait",
+            "file": "support/src/Ownership/Traits/CapturesOwnership.php",
+            "methods": [
+                "ownershipJobEnvelope",
+                "ownershipLockKey",
+                "uniqueId"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Ownership\\Traits\\HasOwnership": {
             "kind": "trait",
             "file": "support/src/Ownership/Traits/HasOwnership.php",
             "methods": [
                 "bootHasOwnership",
                 "delete",
+                "newQueryForRestoration",
                 "ownershipDefinition",
                 "save"
             ],
@@ -708,6 +720,22 @@
                 "resourceKey",
                 "strategy",
                 "table"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\ValueObjects\\OwnershipJobEnvelope": {
+            "kind": "class",
+            "file": "support/src/Ownership/ValueObjects/OwnershipJobEnvelope.php",
+            "methods": [
+                "capture",
+                "context",
+                "fromArray",
+                "fromSnapshot",
+                "key",
+                "toArray"
+            ],
+            "properties": [
+                "data"
             ],
             "constants": []
         },

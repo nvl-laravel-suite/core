@@ -61,5 +61,6 @@ it('retains explicit polymorphic parent closure without a second native morph ma
 it('denies the unscoped base model when an owned replacement claims its storage before adoption', function (): void {
     app(OwnershipResourceRegistry::class)->register(new OwnershipResourceDefinition('test.claimed', 'test', OwnedOwnershipReplacement::class, OwnedOwnershipReplacement::ownershipDefinition()));
     expect(fn () => UnscopedOwnershipBase::query()->count())->toThrow(OwnershipViolation::class)
-        ->and(fn () => (new UnscopedOwnershipBase)->saveQuietly())->toThrow(OwnershipViolation::class);
+        ->and(fn () => (new UnscopedOwnershipBase)->saveQuietly())->toThrow(OwnershipViolation::class)
+        ->and(fn () => (new UnscopedOwnershipBase)->newQueryForRestoration(1)->first())->toThrow(OwnershipViolation::class);
 });
