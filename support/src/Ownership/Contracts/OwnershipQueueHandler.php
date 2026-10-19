@@ -6,7 +6,11 @@ namespace Nvl\Support\Ownership\Contracts;
 
 use Illuminate\Contracts\Queue\Job;
 
-/** Enforces raw admission and both native command-restoration boundaries. @api */
+/**
+ * Enforces raw admission and both native command-restoration boundaries.
+ *
+ * @api
+ */
 interface OwnershipQueueHandler
 {
     /** @param array<string, mixed> $data */

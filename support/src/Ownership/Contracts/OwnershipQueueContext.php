@@ -8,7 +8,11 @@ use Closure;
 use Illuminate\Bus\PendingBatch;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 
-/** Re-admits captured work and preserves native batch behavior. @api */
+/**
+ * Re-admits captured work and preserves native batch behavior.
+ *
+ * @api
+ */
 interface OwnershipQueueContext
 {
     /** Capture explicitly global work with no actor, owner or central privileges. */

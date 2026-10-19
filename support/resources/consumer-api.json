@@ -551,6 +551,46 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Ownership\\Contracts\\OwnershipQueueContext": {
+            "kind": "interface",
+            "file": "support/src/Ownership/Contracts/OwnershipQueueContext.php",
+            "methods": [
+                "captureBatch",
+                "captureUnowned",
+                "run"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Contracts\\OwnershipQueueHandler": {
+            "kind": "interface",
+            "file": "support/src/Ownership/Contracts/OwnershipQueueHandler.php",
+            "methods": [
+                "call",
+                "failed",
+                "validate"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Contracts\\OwnershipQueuedJob": {
+            "kind": "interface",
+            "file": "support/src/Ownership/Contracts/OwnershipQueuedJob.php",
+            "methods": [
+                "ownershipJobEnvelope"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\Contracts\\OwnershipSystemRunner": {
+            "kind": "interface",
+            "file": "support/src/Ownership/Contracts/OwnershipSystemRunner.php",
+            "methods": [
+                "runSystem"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Ownership\\Enums\\OwnershipContextMode": {
             "kind": "enum",
             "file": "support/src/Ownership/Enums/OwnershipContextMode.php",
@@ -706,8 +746,11 @@
             "methods": [
                 "bootHasOwnership",
                 "delete",
+                "fresh",
                 "newQueryForRestoration",
                 "ownershipDefinition",
+                "refresh",
+                "refreshForUpdate",
                 "save"
             ],
             "properties": [],
@@ -719,6 +762,7 @@
             "methods": [
                 "__construct",
                 "fromArray",
+                "fromJson",
                 "scopeKey",
                 "toArray"
             ],

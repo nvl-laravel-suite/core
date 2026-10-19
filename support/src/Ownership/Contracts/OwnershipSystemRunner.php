@@ -7,7 +7,11 @@ namespace Nvl\Support\Ownership\Contracts;
 use Closure;
 use Nvl\Support\Ownership\ValueObjects\OwnerReference;
 
-/** Enters a named, freshly authorized owner operation without coupling consumers to the runtime. @api */
+/**
+ * Enters a named, freshly authorized owner operation without coupling consumers to the runtime.
+ *
+ * @api
+ */
 interface OwnershipSystemRunner
 {
     /**
