@@ -6,13 +6,14 @@ namespace Nvl\Support\Tenancy\Contracts;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 
 /**
  * Provides validated ownership access with or without the tenant runtime.
  *
  * @api
  */
-interface TenantBoundary
+interface TenantBoundary extends OwnershipBoundary
 {
     /**
      * @template T of Model
