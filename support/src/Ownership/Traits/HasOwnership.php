@@ -100,7 +100,7 @@ trait HasOwnership
     {
         OwnershipRefreshGuard::assertReadable($this);
         if ($this->exists) {
-            $this->setKeysForSelectQuery($this->newQueryWithoutScopes())->useWritePdo()->lockForUpdate()->firstOrFail();
+            $this->newQueryWithoutScopes()->whereKey($this->getKeyForSelectQuery())->useWritePdo()->lockForUpdate()->firstOrFail();
         }
 
         return $this->refresh();
