@@ -6765,6 +6765,37 @@
                     }
                 ],
                 "foreign_keys": []
+            },
+            "owner_grants": {
+                "constant": "OwnerGrants",
+                "legacy": "nvl_templates_owner_grants",
+                "default": "nvl_templates_owner_grants",
+                "columns": {
+                    "id": "string",
+                    "template_version_id": "string",
+                    "source_revision": "integer",
+                    "revision": "integer",
+                    "revoked_at": "datetime",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "owner_scope_key",
+                            "template_version_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
             }
         },
         "migrations": {
