@@ -13,6 +13,7 @@ use Nvl\Support\Doctor\CoreDoctor;
 use Nvl\Support\Doctor\OwnerIdentityDiagnostics;
 use Nvl\Support\Globals\GlobalNames;
 use Nvl\Support\OwnerRegistry;
+use Nvl\Support\Tests\Fixtures\OwnershipIdentityBase;
 use Nvl\Support\Tests\Fixtures\PackageOwner;
 
 beforeEach(function (): void {
@@ -327,3 +328,22 @@ it('reports owner identity and configuration failures without changing host iden
     $checks = array_column(app(CoreDoctor::class)->inspect(), null, 'key');
     expect($checks['owners.configuration']->severity)->toBe('error');
 });
+
+it('registers a validated host replacement while preserving canonical or explicit host morph identity', function (?string $hostAlias): void {
+    if ($hostAlias !== null) {
+        Relation::morphMap([$hostAlias => HostConfiguredPackageIdentity::class], false);
+    }
+    $registry = new OwnerRegistry(new Repository);
+    $registry->registerReplacement('pages.pages', OwnershipIdentityBase::class, HostConfiguredPackageIdentity::class);
+    $registry->registerReplacement('pages.pages', OwnershipIdentityBase::class, HostConfiguredPackageIdentity::class);
+    $registry->registerPackage('nvl-page', OwnershipIdentityBase::class, ['page'], package: 'pages');
+
+    $expected = $hostAlias ?? 'nvl-page';
+    expect((new HostConfiguredPackageIdentity)->getMorphClass())->toBe($expected)
+        ->and(Relation::getMorphedModel($expected))->toBe(HostConfiguredPackageIdentity::class)
+        ->and($registry->model(OwnershipIdentityBase::class))->toBe(HostConfiguredPackageIdentity::class)
+        ->and(Relation::getMorphedModel(OwnershipIdentityBase::class))->toBe(HostConfiguredPackageIdentity::class);
+})->with([null, 'host-page', OwnershipIdentityBase::class]);
+
+/** A genuine host namespace replacement must not masquerade as an NVL package model. */
+final class HostConfiguredPackageIdentity extends OwnershipIdentityBase {}

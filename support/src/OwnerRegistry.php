@@ -28,6 +28,9 @@ final class OwnerRegistry
     /** @var array<class-string<Model>, class-string<Model>> */
     private array $replacements = [];
 
+    /** @var array<string, true> Read aliases installed by replacement registration, never host-authored identities. */
+    private array $replacementReadAliases = [];
+
     /** Retain the host's effective capability declarations. */
     public function __construct(private readonly Repository $configuration) {}
 
@@ -64,6 +67,9 @@ final class OwnerRegistry
             }
         }
         if ($base !== $effective) {
+            if (! array_key_exists($base, $map)) {
+                $this->replacementReadAliases[$base] = true;
+            }
             $map[$base] = $effective;
         }
         Relation::morphMap($map, false);
@@ -201,6 +207,7 @@ final class OwnerRegistry
         if (! str_starts_with($model, 'Nvl\\')) {
             throw new InvalidArgumentException('Only NVL-owned models may install a package morph mapping.');
         }
+        $model = $this->replacements[$model] ?? $model;
         $map = Relation::morphMap();
         $names = new GlobalNames($this->configuration);
         $occupied = static fn (string $name): bool => isset(Relation::morphMap()[$name]) && Relation::getMorphedModel($name) !== $model;
@@ -214,7 +221,7 @@ final class OwnerRegistry
             return;
         }
         foreach ($map as $hostAlias => $hostModel) {
-            if ($hostModel === $model && $hostAlias !== $alias && ! in_array($hostAlias, $legacy, true)) {
+            if ($hostModel === $model && $hostAlias !== $alias && ! isset($this->replacementReadAliases[$hostAlias]) && ! in_array($hostAlias, $legacy, true)) {
                 $this->declare($model, 'package.'.$alias, null);
 
                 return;
