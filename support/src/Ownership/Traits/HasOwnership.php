@@ -7,6 +7,7 @@ namespace Nvl\Support\Ownership\Traits;
 use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
 use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
+use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipRestorationQuery;
 use Nvl\Support\Ownership\Services\OwnershipScope;
 use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
@@ -28,6 +29,36 @@ trait HasOwnership
     public function save(array $options = []): bool
     {
         return Container::getInstance()->make(OwnershipModelPersistence::class)->save($this, fn (): bool => parent::save($options));
+    }
+
+    /** Fence native instance counters before observers, including quiet increments/decrements.
+     * Laravel leaves this protected seam untyped; validate its arguments before native delegation.
+     *
+     * @param  array<string,mixed>  $extra
+     */
+    protected function incrementOrDecrement(mixed $column, mixed $amount, mixed $extra, mixed $method): int|bool
+    {
+        $this->validateOwnershipCounterArguments($column, $amount, $extra, $method);
+        if (! $this->exists) {
+            return parent::incrementOrDecrement($column, $amount, $extra, $method);
+        }
+        $affected = false;
+        Container::getInstance()->make(OwnershipModelPersistence::class)->save($this, function () use ($column, $amount, $extra, $method, &$affected): bool {
+            $affected = parent::incrementOrDecrement($column, $amount, $extra, $method);
+
+            return true;
+        });
+
+        return $affected;
+    }
+
+    /** Validate Laravel's raw counter invocation before it can reach a native write. */
+    private function validateOwnershipCounterArguments(mixed $column, mixed $amount, mixed $extra, mixed $method): void
+    {
+        if (! is_string($column) || (! is_int($amount) && ! is_float($amount)) || ! is_array($extra)
+            || ! in_array($method, ['increment', 'decrement'], true)) {
+            throw new OwnershipViolation('Invalid native ownership counter mutation.');
+        }
     }
 
     /** Keep deletion under the same canonical persistence boundary. */

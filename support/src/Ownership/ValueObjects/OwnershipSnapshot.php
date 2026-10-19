@@ -17,7 +17,7 @@ final readonly class OwnershipSnapshot
     /**
      * Retain explicit execution classification.
      *
-     * @param  array{kind: 'actor'|'system', type: string, id: string}|null  $principal
+     * @param  array{kind: 'actor'|'system'|'public', type: string, id: string}|null  $principal
      * @param  array<string, string>  $generations
      */
     public function __construct(
@@ -26,10 +26,13 @@ final readonly class OwnershipSnapshot
         public ?array $principal = null,
         public ?string $operation = null,
         public array $generations = [],
+        public ?VerifiedOwnerSiteContext $publicSite = null,
     ) {
         if (($mode === OwnershipContextMode::Owner) !== ($owner !== null)
             || (in_array($mode, [OwnershipContextMode::Owner, OwnershipContextMode::Central], true) !== ($principal !== null))
-            || ($mode === OwnershipContextMode::Central && $operation === null)) {
+            || ($mode === OwnershipContextMode::Central && $operation === null)
+            || (($principal['kind'] ?? null) === 'public') !== ($publicSite !== null)
+            || ($publicSite !== null && ($mode !== OwnershipContextMode::Owner || $publicSite->owner != $owner || $operation !== null))) {
             throw new OwnershipConfigurationInvalid('Ownership context mode and admission facts are inconsistent.');
         }
     }

@@ -68,10 +68,7 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
     private function validate(Model $record, string $resource): void
     {
         $definition = $this->definition($resource);
-        if ($this->configuration->get('nvl-ownership.enabled') === true
-            || in_array($definition->ownership->strategy, ['column', 'pivot'], true)) {
-            throw new OwnershipViolation('Declared ownership requires the enforcing runtime.');
-        }
+        $this->assertLegacyAuthority($definition);
         $canonical = new $definition->model;
         if ($record::class !== $definition->model || $record->getTable() !== $canonical->getTable()
             || $record->getConnection() !== $canonical->getConnection()) {
@@ -85,6 +82,15 @@ final readonly class LegacyOwnershipBoundary implements OwnershipBoundary
             throw new OwnershipViolation;
         }
         $this->container->make(PersistedTenantStorage::class)->assertUnadopted($record->getConnection(), $resource);
+    }
+
+    /** Reject every native declaration before entering any legacy resource fallback. */
+    private function assertLegacyAuthority(OwnershipResourceDefinition $definition): void
+    {
+        if ($this->configuration->get('nvl-ownership.enabled') === true
+            || $definition->ownership->strategy !== 'unscoped') {
+            throw new OwnershipViolation('Declared ownership requires the enforcing runtime.');
+        }
     }
 
     /** @return array<string, int|string|null> */

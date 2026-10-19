@@ -4875,6 +4875,24 @@
                     }
                 ],
                 "foreign_keys": []
+            },
+            "owner_tree_locks": {
+                "constant": "OwnerTreeLocks",
+                "legacy": "nvl_pages_owner_tree_locks",
+                "default": "nvl_pages_owner_tree_locks",
+                "columns": {
+                    "site": "string"
+                },
+                "create_migrations": [],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "site"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
             }
         },
         "migrations": {
@@ -5391,6 +5409,24 @@
                 "create_migrations": [
                     "2026_09_15_211750_create_seo_redirect_locks_table"
                 ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "name"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
+            },
+            "owner_redirect_locks": {
+                "constant": "OwnerRedirectLocks",
+                "legacy": "nvl_seo_owner_redirect_locks",
+                "default": "nvl_seo_owner_redirect_locks",
+                "columns": {
+                    "name": "string"
+                },
+                "create_migrations": [],
                 "keys": [
                     {
                         "type": "primary",

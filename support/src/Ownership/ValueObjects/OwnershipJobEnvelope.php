@@ -29,6 +29,10 @@ final readonly class OwnershipJobEnvelope
     /** Copy admitted state without retaining any actor, owner model, or context service. */
     public static function fromSnapshot(OwnershipSnapshot $snapshot): self
     {
+        if (($snapshot->principal['kind'] ?? null) === 'public') {
+            throw new OwnershipViolation('Public site admission cannot be promoted into queued actor or system authority.');
+        }
+
         return self::fromArray(['version' => 1, 'mode' => $snapshot->mode->value, 'owner' => $snapshot->owner?->toArray(), 'principal' => $snapshot->principal, 'operation' => $snapshot->operation, 'generations' => $snapshot->generations]);
     }
 

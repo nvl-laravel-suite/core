@@ -656,6 +656,16 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Ownership\\Services\\OwnerSiteContext": {
+            "kind": "class",
+            "file": "support/src/Ownership/Services/OwnerSiteContext.php",
+            "methods": [
+                "current",
+                "require"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Ownership\\Services\\OwnershipContextParticipants": {
             "kind": "class",
             "file": "support/src/Ownership/Services/OwnershipContextParticipants.php",
@@ -788,7 +798,23 @@
                 "mode",
                 "operation",
                 "owner",
-                "principal"
+                "principal",
+                "publicSite"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Ownership\\ValueObjects\\VerifiedOwnerSiteContext": {
+            "kind": "class",
+            "file": "support/src/Ownership/ValueObjects/VerifiedOwnerSiteContext.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "canonicalOrigin",
+                "owner",
+                "resources",
+                "site",
+                "writableResources"
             ],
             "constants": []
         },

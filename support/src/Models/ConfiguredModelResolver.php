@@ -49,7 +49,7 @@ final readonly class ConfiguredModelResolver
                 throw new OwnershipConfigurationInvalid('Configured models must retain required package casts.');
             }
         }
-        foreach (['save', 'delete', 'newQueryForRestoration', 'bootHasOwnership', 'newQuery', 'newModelQuery', 'registerGlobalScopes', 'newEloquentBuilder', 'newInstance', 'newFromBuilder', 'getConnection'] as $method) {
+        foreach (['save', 'delete', 'increment', 'decrement', 'incrementQuietly', 'decrementQuietly', 'incrementOrDecrement', 'newQueryForRestoration', 'bootHasOwnership', 'newQuery', 'newModelQuery', 'registerGlobalScopes', 'newEloquentBuilder', 'newInstance', 'newFromBuilder', 'getConnection'] as $method) {
             if ((new ReflectionMethod($model, $method))->getDeclaringClass()->getName() !== (new ReflectionMethod($base, $method))->getDeclaringClass()->getName()) {
                 throw new OwnershipConfigurationInvalid('Configured models must retain canonical query and persistence hooks.');
             }
