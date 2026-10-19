@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
+use Nvl\Support\Ownership\ValueObjects\OwnerReference;
 use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 use Nvl\Support\Tests\Fixtures\OwnershipCapableModel;
 use Nvl\Support\Tests\Fixtures\OwnershipDefinitionCompany;
@@ -44,5 +45,13 @@ it('rejects native key declarations that collide with technical partition fields
     foreach (['owner_scope_key', 'owner_reference'] as $field) {
         expect(fn () => OwnershipDefinition::column(OwnershipDefinitionCompany::class, $field))->toThrow(OwnershipConfigurationInvalid::class)
             ->and(fn () => OwnershipDefinition::pivot(OwnershipDefinitionCompany::class, 'owners', $field, 'company_id'))->toThrow(OwnershipConfigurationInvalid::class);
+    }
+});
+
+it('decodes stored owner references with a closed bounded JSON shape', function (): void {
+    $reference = new OwnerReference('company', 'actual-store', 'string', 'κλειδί');
+    expect(OwnerReference::fromJson(json_encode($reference->toArray(), JSON_THROW_ON_ERROR)))->toEqual($reference);
+    foreach (['null', '[]', '"owner"', '{"version":1}', '{invalid', str_repeat(' ', 4097)] as $invalid) {
+        expect(fn () => OwnerReference::fromJson($invalid))->toThrow(OwnershipConfigurationInvalid::class);
     }
 });

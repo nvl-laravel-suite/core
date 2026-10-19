@@ -47,6 +47,24 @@ final readonly class OwnerReference
         return ['version' => $this->version, 'type' => $this->type, 'storage' => $this->storage, 'keyType' => $this->keyType, 'key' => $this->key];
     }
 
+    /** Decode the bounded closed JSON shape persisted by captured resources. */
+    public static function fromJson(string $payload): self
+    {
+        if (strlen($payload) > 4096) {
+            throw new OwnershipConfigurationInvalid('Owner reference JSON exceeds its bounded scalar shape.');
+        }
+        try {
+            $decoded = json_decode($payload, true, 16, JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            throw new OwnershipConfigurationInvalid('Owner reference JSON is malformed.');
+        }
+        if (! is_array($decoded)) {
+            throw new OwnershipConfigurationInvalid('Owner reference JSON must contain a complete object.');
+        }
+
+        return self::fromArray($decoded);
+    }
+
     /**
      * Decode only the complete supported scalar reference shape.
      *
