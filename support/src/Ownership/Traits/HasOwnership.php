@@ -8,6 +8,7 @@ use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
 use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
+use Nvl\Support\Ownership\Services\OwnershipRefreshGuard;
 use Nvl\Support\Ownership\Services\OwnershipRestorationQuery;
 use Nvl\Support\Ownership\Services\OwnershipScope;
 use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
@@ -74,6 +75,35 @@ trait HasOwnership
     public function newQueryForRestoration(mixed $ids): Builder
     {
         return OwnershipRestorationQuery::for(static::class, $this, $ids);
+    }
+
+    /** Reload an admitted record through Laravel's native eager-loading behavior.
+     * @param  array<array-key,mixed>|string  $with
+     */
+    public function fresh($with = []): ?static
+    {
+        OwnershipRefreshGuard::assertReadable($this);
+
+        return parent::fresh(is_string($with) ? func_get_args() : $with);
+    }
+
+    /** Refresh this held model only after current canonical admission. */
+    public function refresh(): static
+    {
+        OwnershipRefreshGuard::assertReadable($this);
+
+        return parent::refresh();
+    }
+
+    /** Keep locked instance reloads guarded across both supported framework floors. */
+    public function refreshForUpdate(): static
+    {
+        OwnershipRefreshGuard::assertReadable($this);
+        if ($this->exists) {
+            $this->setKeysForSelectQuery($this->newQueryWithoutScopes())->useWritePdo()->lockForUpdate()->firstOrFail();
+        }
+
+        return $this->refresh();
     }
 
     /** Keep untouched models unscoped until explicitly declared and adopted. */
