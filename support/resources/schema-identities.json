@@ -7377,6 +7377,40 @@
                     }
                 ],
                 "foreign_keys": []
+            },
+            "owner_overrides": {
+                "constant": "OwnerOverrides",
+                "legacy": "nvl_translations_overrides",
+                "default": "nvl_translations_overrides",
+                "columns": {
+                    "id": "string",
+                    "key": "string",
+                    "locale": "string",
+                    "value": "text",
+                    "revision": "integer",
+                    "owner_scope_key": "string",
+                    "owner_reference": "json",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "owner_scope_key",
+                            "key",
+                            "locale"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
             }
         },
         "migrations": {
