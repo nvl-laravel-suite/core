@@ -16,6 +16,7 @@ final class ConsumerBoundaryInstallationTest extends TestCase
     /** Install runtime artifacts first, then add explicitly requested host development tools. */
     public function test_archived_consumer_and_normal_cache_invalidation(): void
     {
+        $versions = ['core' => '5.1.0', 'comments' => '5.1.0', 'filterable' => '5.0.1'];
         $root = dirname(__DIR__, 6);
         $workspace = sys_get_temp_dir().'/nvl-boundary-install-'.bin2hex(random_bytes(8));
         $filesystem = new Filesystem;
@@ -36,7 +37,7 @@ final class ConsumerBoundaryInstallationTest extends TestCase
                 }
                 self::assertTrue($zip->extractTo($directory));
                 $zip->close();
-                $repositories[] = ['type' => 'path', 'url' => $directory, 'options' => ['versions' => ['nvl/'.$package => '5.0.0'], 'symlink' => false]];
+                $repositories[] = ['type' => 'path', 'url' => $directory, 'options' => ['versions' => ['nvl/'.$package => $versions[$package]], 'symlink' => false]];
             }
             $installed = json_decode((string) file_get_contents($root.'/vendor/composer/installed.json'), true, flags: JSON_THROW_ON_ERROR);
             foreach ($installed['packages'] as $package) {
@@ -51,7 +52,7 @@ final class ConsumerBoundaryInstallationTest extends TestCase
             $repositories[] = ['packagist.org' => false];
             $manifest = [
                 'name' => 'consumer/boundary-proof',
-                'require' => ['php' => '^8.4', 'nvl/comments' => '5.0.0'],
+                'require' => ['php' => '^8.4', 'nvl/comments' => $versions['comments']],
                 'repositories' => $repositories,
                 'config' => ['allow-plugins' => false],
             ];
