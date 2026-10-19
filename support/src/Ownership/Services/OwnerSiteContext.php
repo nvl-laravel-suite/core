@@ -19,7 +19,9 @@ final class OwnerSiteContext
     /** Return the currently admitted public site, if any. */
     public static function current(): ?VerifiedOwnerSiteContext
     {
-        return Container::getInstance()->make(OwnershipContext::class)->snapshot()->publicSite;
+        $container = Container::getInstance();
+
+        return $container->bound(OwnershipContext::class) ? $container->make(OwnershipContext::class)->snapshot()->publicSite : null;
     }
 
     /** Require the admitted site before public identity, URL or cache work. */
