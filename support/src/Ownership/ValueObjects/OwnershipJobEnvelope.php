@@ -13,7 +13,7 @@ use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
  *
  * @api
  *
- * @phpstan-type Wire array{version: 1, mode: string, owner: array{version: int, type: string, storage: string, keyType: string, key: string}|null, principal: array{kind: 'actor'|'system', type: string, id: string}|null, operation: string|null, generations: array<string, string>}
+ * @phpstan-type Wire array{version: 1|2, mode: string, owner: array{version: int, type: string, storage: string, keyType: string, key: string}|null, principal: array{kind: 'actor'|'system', type: string, id: string}|null, operation: string|null, generations: array<string, string>}
  */
 final readonly class OwnershipJobEnvelope
 {
@@ -36,18 +36,31 @@ final readonly class OwnershipJobEnvelope
         return self::fromArray(['version' => 1, 'mode' => $snapshot->mode->value, 'owner' => $snapshot->owner?->toArray(), 'principal' => $snapshot->principal, 'operation' => $snapshot->operation, 'generations' => $snapshot->generations]);
     }
 
+    /**
+     * Explicitly capture zero authority for global work in an owned installation.
+     *
+     * @internal
+     *
+     * @param  array<string,string>  $generations
+     */
+    public static function unowned(array $generations): self
+    {
+        return self::fromArray(['version' => 2, 'mode' => OwnershipContextMode::Unresolved->value, 'owner' => null, 'principal' => null, 'operation' => null, 'generations' => $generations]);
+    }
+
     /** Validate a closed scalar wire contract before any native object restoration.
      * @param  array<array-key, mixed>  $data
      */
     public static function fromArray(array $data): self
     {
-        if (count($data) !== 6 || ($data['version'] ?? null) !== 1 || ! is_string($data['mode'] ?? null)
+        if (count($data) !== 6 || ! in_array($data['version'] ?? null, [1, 2], true) || ! is_string($data['mode'] ?? null)
             || ! array_key_exists('owner', $data) || ! array_key_exists('principal', $data)
             || ! array_key_exists('operation', $data) || ! is_array($data['generations'] ?? null)) {
             throw new OwnershipViolation('The ownership queue envelope is malformed or unsupported.');
         }
         $mode = OwnershipContextMode::tryFrom($data['mode']);
-        if (! in_array($mode, [OwnershipContextMode::Disabled, OwnershipContextMode::Owner, OwnershipContextMode::Central], true)) {
+        if (($data['version'] === 2 && $mode !== OwnershipContextMode::Unresolved)
+            || ($data['version'] === 1 && ! in_array($mode, [OwnershipContextMode::Disabled, OwnershipContextMode::Owner, OwnershipContextMode::Central], true))) {
             throw new OwnershipViolation('Unresolved authority cannot be captured into queued work.');
         }
         $owner = $data['owner'] === null ? null : (is_array($data['owner']) ? OwnerReference::fromArray($data['owner']) : throw new OwnershipViolation);
@@ -65,15 +78,16 @@ final readonly class OwnershipJobEnvelope
         }
         ksort($generations);
         if (($mode === OwnershipContextMode::Owner) !== ($owner !== null)
-            || (($mode !== OwnershipContextMode::Disabled) !== ($principal !== null))
+            || (in_array($mode, [OwnershipContextMode::Owner, OwnershipContextMode::Central], true) !== ($principal !== null))
             || ($mode === OwnershipContextMode::Disabled && ($operation !== null || $generations !== []))
+            || ($mode === OwnershipContextMode::Unresolved && $operation !== null)
             || ($mode === OwnershipContextMode::Central && ($operation === null || ($principal['kind'] ?? null) !== 'actor'))
             || (($principal['kind'] ?? null) === 'system' && ($operation === null || $principal['type'] !== 'operation' || $principal['id'] !== $operation))
             || ($mode === OwnershipContextMode::Owner && ($principal['kind'] ?? null) === 'actor' && $operation !== null)) {
             throw new OwnershipViolation('Queued classification and admission facts are inconsistent.');
         }
 
-        return new self(['version' => 1, 'mode' => $mode->value, 'owner' => $owner?->toArray(), 'principal' => $principal, 'operation' => $operation, 'generations' => $generations]);
+        return new self(['version' => $data['version'], 'mode' => $mode->value, 'owner' => $owner?->toArray(), 'principal' => $principal, 'operation' => $operation, 'generations' => $generations]);
     }
 
     /** @return Wire */
