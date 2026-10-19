@@ -12,4 +12,7 @@ return [
     'tenant_boundary_violation' => 'Ресурсът на наемателя е недостъпен.',
     'tenant_configuration_invalid' => 'Изолирането на наематели не е конфигурирано правилно.',
     'tenant_schema_not_ready' => 'Хранилището на наемателите не е готово.',
+    'ownership_schema_not_ready' => 'Хранилището за собственост не е готово.',
+    'ownership_boundary_violation' => 'Ресурсът на собственика е недостъпен.',
+    'ownership_configuration_invalid' => 'Изолацията по собственост не е конфигурирана правилно.',
 ];

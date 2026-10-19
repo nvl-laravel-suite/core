@@ -12,4 +12,7 @@ return [
     'tenant_boundary_violation' => 'The tenant resource is unavailable.',
     'tenant_configuration_invalid' => 'Tenant isolation is not configured correctly.',
     'tenant_schema_not_ready' => 'Tenant storage is not ready.',
+    'ownership_schema_not_ready' => 'Ownership storage is not ready.',
+    'ownership_boundary_violation' => 'The owned resource is unavailable.',
+    'ownership_configuration_invalid' => 'Ownership isolation is not configured correctly.',
 ];
