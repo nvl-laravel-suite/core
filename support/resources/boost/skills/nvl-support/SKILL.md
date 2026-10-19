@@ -5,6 +5,12 @@ description: Implement, integrate, test, or review the Support namespace shipped
 
 # NVL Support
 
+For major 6, use native Ownership for new isolated integrations and the installed
+Ownership README/UPGRADING runbook for configured subclasses and reviewed adoption.
+Ordinary unowned hosts keep unscoped declarations; installation does not enable
+isolation. Tenant-specific APIs below apply only to the explicitly selected
+deprecated Tenancy bridge; they never substitute for native owner admission.
+
 Keep Support capability-neutral, transport-neutral, and independent of other NVL packages.
 
 ## Model failures
@@ -24,8 +30,8 @@ Keep Support capability-neutral, transport-neutral, and independent of other NVL
 
 ## Host injection and fake recording
 
-- Inject existing LocaleCatalog and neutral Tenancy contracts into host orchestration; tag host DoctorContributor implementations for diagnostics. Pure owner identity/configuration APIs stay direct classes. Core owns no domain model factory or fake facade.
-- Preserve host defaults: LocaleCatalog is a conditional singleton, TenantContext a conditional scoped service and neutral disabled adapters conditional transients. OwnerRegistry also retains its singleton lifetime with a conditional default. Late replacement affects freshly resolved host services.
+- Inject existing LocaleCatalog and neutral Ownership contracts into host orchestration; tag host DoctorContributor implementations for diagnostics. Pure owner identity/configuration APIs stay direct classes. Core owns no domain model factory or fake facade.
+- Preserve host defaults: LocaleCatalog is a conditional singleton, OwnershipContext a scoped service and neutral disabled adapters conditional transients. OwnerRegistry also retains its singleton lifetime with a conditional default. Late replacement affects freshly resolved host services.
 - Use runtime Testing\FakeCalls for a fake's exact native method allowlist. Scripts are per-instance, per-method FIFO values or exceptions; Closure values remain inert. Script null for native void. Record attempts before returning, throwing, type failure and exhaustion.
 - Predicates for assertCalled receive immutable Testing\FakeCall objects with method and named arguments. Count exact matches, including zero; negative counts and unsupported names raise FakeExpectationFailed, exhausted scripts UnscriptedFakeCall. Both are RuntimeExceptions implementing the pure Contracts\PackageException marker, with no HTTP behavior or testing-framework imports.
 - Install leaf fakes in the explicit container before resolving host services. Two installations own separate history/scripts. Keep real authorization, persistence and provider lifecycle coverage; prepare fixtures before effect guards. Do not serialize stored model handles to compare records.
@@ -34,12 +40,12 @@ Keep Support capability-neutral, transport-neutral, and independent of other NVL
 
 Test code and status validation, exception chaining, serialization safety, enum completeness, standalone installation, and architecture constraints.
 
-## Configurable-tenancy release discipline
+## Ownership isolation and release discipline
 
-- Preserve disabled compatibility and package independence; tenant support never creates an undeclared Auth or Suite dependency.
+- Keep unowned applications independent of the enforcement runtime; native ownership never adds an undeclared Auth or Suite dependency. Tenancy-specific APIs are deprecated bridge compatibility.
 - Explicit package resource keys admit the registered model lineage only on its canonical table and connection. Exact host-model registration remains required; altered SQL sources, unions and persisted adoption still fail without the runtime.
-- Use registered package-owned resources, adoption adapters, Actions, and lifecycle APIs. Never add a generic tenant delete-all path or raw cross-package cleanup.
-- Treat mapping/configuration hashes, interruption checkpoints, conservation evidence, worker context, tenant-leading queries, and standalone consumption as release contracts.
+- Use registered package-owned resources, adoption adapters, Actions, and lifecycle APIs. Never add a generic owner delete-all path or raw cross-package cleanup.
+- Treat mapping/configuration hashes, interruption checkpoints, conservation evidence, worker context, owner-partitioned queries, and standalone consumption as release contracts.
 
 ## Shared owner identity
 
@@ -79,7 +85,7 @@ Native Laravel 13 `queue:retry` dispatches `Illuminate\Queue\Events\JobRetryRequ
 ## Canonical configuration ownership
 
 - Read/write `nvl-core` configuration and publish only canonical `nvl-<package>-<resource>` tags. Keep logical package/tenant resource identifiers unchanged.
-- Generic config roots and unprefixed package environment names are foreign by default. For an upgrading NVL host only, select `nvl-core.compatibility.legacy_config` package IDs and `legacy_env` explicitly; both default off. Canonical presence wins, including false/null/empty values. Legacy inputs are read without writing back and are removed in major 6.
+- Generic config roots and unprefixed package environment names are foreign by default. For an upgrading NVL host only, select `nvl-core.compatibility.legacy_config` package IDs and `legacy_env` explicitly; both default off. Canonical presence wins, including false/null/empty values. Legacy inputs are read without writing back and remain deprecated in major 6.
 - Use canonical `NVL_<PACKAGE>_*` variables only in config evaluation, then rebuild configuration caches and restart workers after cutover. Shared Laravel environment variables retain their names. Consult Core's versioned `support/resources/global-names.json` for all renames.
 - Old global aliases and legacy route families require separate explicit `global_aliases`/`legacy_routes` package selections. Preserve collisions and use Doctor diagnostics; never grant generic permissions automatically or claim signed-link compatibility without the same authorization/signature checks.
 
@@ -94,10 +100,10 @@ For a reviewed Comments `CommentBatchQueryScope` implementation, bind the host i
 
 ## Consumer runtime and testing contracts
 
-Start with the package README Quickstart and Testing your app sections. Use `nvl:install <package>` for loaded-package common config publication; it does not enable features, run schema or refresh caches. Preserve native host owner keys/morph maps and selected auth/tenancy defaults. Read full runtime defaults and publish advanced config only deliberately.
+Start with the package README Quickstart and Testing your app sections. Use `nvl:install <package>` for loaded-package common config publication; it does not enable features, run schema or refresh caches. Preserve native host owner keys/morph maps and selected host Auth and ownership defaults. Read full runtime defaults and publish advanced config only deliberately.
 
 Inject the supported focused interfaces and preserve host bindings. Returned model handles do not permit package-table queries/writes outside documented capability/extension seams. Host tests may substitute contracts in Laravel's container, use shipped model factories (ordinary make may persist parents; withoutParents()->make is detached), and use Laravel effect fakes deliberately. Only Media/Stripe have dedicated provider/library fakes; do not invent a universal package fake. Settings InteractsWithSettings is definition-only. Host PHPStan may include vendor/nvl/core/support/consumer-audit.neon; no unpublished workbench command is a consumer requirement.
 
-Read docs/events.md and the package README error table. Domain events use schemaVersion=1, model-free facts and actual source-connection commit callbacks; only six declared old Event suffix aliases remain for major 5. Migrate exact listeners/fakes and suffix wildcards, drain old queued payloads, rebuild event cache and restart workers. Delivery is not a durable outbox. The Core exception renderer is opt-in, JSON-only for respondable failures, with exactly message/code/context and host-selected locale. Do not expose diagnostics or reinterpret missing bindings as authorization denial.
+Read docs/events.md and the package README error table. Domain events use schemaVersion=1, model-free facts and actual source-connection commit callbacks; only six declared old Event suffix aliases remain deprecated through major 6. Migrate exact listeners/fakes and suffix wildcards, drain old queued payloads, rebuild event cache and restart workers. Delivery is not a durable outbox. The Core exception renderer is opt-in, JSON-only for respondable failures, with exactly message/code/context and host-selected locale. Do not expose diagnostics or reinterpret missing bindings as authorization denial.
 
 Core package logging uses nvl/normal with CSV quiet by default, stable message keys and bounded context; incidents survive quiet. Do not mutate global logger context or log raw row/provider/content/credential payloads. Run only authorized project checks and report new acceptance as pending until actual output exists.

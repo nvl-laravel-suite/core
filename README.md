@@ -3,7 +3,7 @@
 ## Quickstart
 
 ```sh
-composer require nvl/core:^5.0
+composer require nvl/core:^6.0
 php artisan nvl:install core --dry-run
 php artisan nvl:install core
 ```
@@ -34,7 +34,7 @@ See the [installation and publishing guide](https://github.com/nvl-laravel-suite
 
 | Item | Value |
 |---|---|
-| Installed through | `composer require nvl/core:^5.0` |
+| Installed through | `composer require nvl/core:^6.0` |
 | Package identifier | `nvl/core` |
 | PHP namespaces | `Nvl\Support`, `Nvl\Data` |
 | Service providers | `Nvl\Support\Providers\SupportServiceProvider`, `Nvl\Data\Providers\DataServiceProvider`, `Nvl\Support\Providers\LocaleServiceProvider` (deferrable) |
@@ -49,7 +49,7 @@ The Support namespace provides transport-neutral contracts and exceptions. The D
 ## Requirements and installation
 
 ```bash
-composer require nvl/core:^5.0
+composer require nvl/core:^6.0
 ```
 
 Laravel auto-discovers the Support, Data, and deferrable Locale providers. The Locale provider registers when `LocaleCatalog` is first resolved. Defaults work without publishing configuration. Publish only what the application needs:
@@ -251,7 +251,7 @@ Publish Core defaults with `php artisan vendor:publish --tag=nvl-core-config`, t
 
 Declare owner classes in `nvl-core.owners`, for example `'owners' => [Article::class]`, and reference the same model class from each package capability. Laravel's `getMorphClass()` is the stored owner identity: it returns the host-authored morph alias or the FQCN when no map exists. Core declarations and package allowlists do not add or enforce a host morph map and do not grant authorization.
 
-Legacy alias references remain read compatibility during major 5 and are removed in major 6. A legacy configured alias must agree with the model's current `getMorphClass()`; mismatches are diagnostics and require a host decision. Doctor can inspect declared package owner columns for stored-versus-current identities without rewriting them. If the host introduces or changes its morph map, review and convert only the affected stored columns and reconcile host relationships before cutover. No automatic owner-data conversion or `nvl:owners:upgrade` is provided. Rebuild configuration caches and restart workers after the coordinated change.
+Legacy alias references remain read compatibility during major 5 and remain deprecated in major 6. A legacy configured alias must agree with the model's current `getMorphClass()`; mismatches are diagnostics and require a host decision. Doctor can inspect declared package owner columns for stored-versus-current identities without rewriting them. If the host introduces or changes its morph map, review and convert only the affected stored columns and reconcile host relationships before cutover. No automatic owner-data conversion or `nvl:owners:upgrade` is provided. Rebuild configuration caches and restart workers after the coordinated change.
 
 `Nvl\Support\OwnerRegistry` declares capabilities and resolves classes and their native identities. The deprecated `register($alias, $modelClass)` interface remains for major 5, reports incompatible legacy declarations and never rewrites the host morph map. Package-owned Page and TemplateVersion aliases are separately collision-checked. Keep per-package allowlists, resolvers, scopes and mutation abilities.
 
@@ -334,7 +334,7 @@ All current package config files and roots use `nvl-<package>`. Old generic root
 
 Package HTTP routes, view and translation namespaces, middleware, rate limiters, permissions, publication tags, Blade directives, and container aliases use owned NVL names. HTTP APIs default to `/nvl/api/v1/<package>`; Media assets use `/nvl/media`, and SEO files use `/nvl/seo`. Existing host registrations keep their names and paths, including collisions with canonical NVL names, and Doctor reports the conflict. No package resources join the host's generic `config` publication tag.
 
-For major 5 migration only, select logical package IDs in `nvl-core.compatibility.global_aliases` for free legacy aliases and in `nvl-core.compatibility.legacy_routes` for legacy default URLs. Both default to `[]`, preserve occupied host names and paths, and emit strict Doctor warnings. Compatibility routes retain the same controllers, middleware, authorization, and signature checks. Retain legacy private asset URLs until issued signed links expire, then remove the selection, rebuild configuration and route caches, and restart workers. All legacy aliases and routes are removed in major 6. The complete owned-name inventory is `support/resources/global-names.json`.
+For major 5 migration only, select logical package IDs in `nvl-core.compatibility.global_aliases` for free legacy aliases and in `nvl-core.compatibility.legacy_routes` for legacy default URLs. Both default to `[]`, preserve occupied host names and paths, and emit strict Doctor warnings. Compatibility routes retain the same controllers, middleware, authorization, and signature checks. Retain legacy private asset URLs until issued signed links expire, then remove the selection, rebuild configuration and route caches, and restart workers. All legacy aliases and routes remain deprecated in major 6. The complete owned-name inventory is `support/resources/global-names.json`.
 
 Run `nvl:schema:preflight` with the same selected paths and repository connection before native migrations. The automatic `MigrationStarted` guard checks an exact owned file before its own operation; it does not promise that an entire batch is checked before earlier DDL. Core preserves native and custom migrator objects. Follow [the owned-storage runbook](UPGRADING.md#existing-package-storage) for exact published declarations and manual vendor/published reconciliation; NVL never edits migration files.
 

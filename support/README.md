@@ -1,6 +1,6 @@
 # NVL Support
 
-Support ships inside `nvl/core:^5.0`; it is not a separate Composer package. Read the [Core quickstart](../README.md#quickstart) and [Data guide](../data/README.md).
+Support ships inside `nvl/core:^6.0`; it is not a separate Composer package. Read the [Core quickstart](../README.md#quickstart) and [Data guide](../data/README.md).
 
 ## Quickstart
 

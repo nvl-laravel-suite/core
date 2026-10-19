@@ -5,6 +5,13 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [6.0.0] - 2026-10-20
+
+### Changed
+
+- Add neutral ownership contracts, configurable validated model subclasses, canonical morph identity, queue admission before restoration, and durable guards that deny access when the enforcing runtime is disabled or removed.
+- Align required/development NVL peers on `^6.0`, optional peer conflicts on major 6, and `dev-main` on `6.x-dev`. Review [UPGRADING.md](UPGRADING.md) before rollout.
+
 ## [5.0.1] - 2026-10-08
 
 ### Changed

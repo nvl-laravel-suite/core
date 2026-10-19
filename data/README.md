@@ -2,7 +2,7 @@
 
 ## Quickstart
 
-Install `nvl/core:^5.0`, register your supported DTO sources and keep routes/global Spatie adoption disabled unless explicitly required. Run `php artisan nvl:install core --dry-run` before publishing configuration. Generate with `php artisan nvl:data:types:generate --fail-on-warning` and detect stale artifacts with `php artisan nvl:data:types:check --fail-on-warning`. The default declaration entry point is resources/js/types/generated.d.ts; it contains ambient Nvl namespaces, not an npm runtime.
+Install `nvl/core:^6.0`, register your supported DTO sources and keep routes/global Spatie adoption disabled unless explicitly required. Run `php artisan nvl:install core --dry-run` before publishing configuration. Generate with `php artisan nvl:data:types:generate --fail-on-warning` and detect stale artifacts with `php artisan nvl:data:types:check --fail-on-warning`. The default declaration entry point is resources/js/types/generated.d.ts; it contains ambient Nvl namespaces, not an npm runtime.
 
 Data and Support ship as one Core package. The host validates/authorizes requests and selects locale; generated types do not perform runtime validation. See [Core](../README.md) and the suite [frontend guide](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/frontend-consumption.md).
 
@@ -12,7 +12,7 @@ Data and Support ship as one Core package. The host validates/authorizes request
 
 | Item | Value |
 |---|---|
-| Installed through | `composer require nvl/core:^5.0` |
+| Installed through | `composer require nvl/core:^6.0` |
 | Package identifier | `nvl/core` |
 | PHP namespace | `Nvl\Data` |
 | Service provider | `Nvl\Data\Providers\DataServiceProvider` |
@@ -29,7 +29,7 @@ NVL generation uses isolated TypeScript configuration. Global Spatie transformer
 ## Requirements and installation
 
 ```bash
-composer require nvl/core:^5.0
+composer require nvl/core:^6.0
 ```
 
 Laravel auto-discovers `DataServiceProvider`. Optional publish tags are:
