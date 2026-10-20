@@ -16,7 +16,7 @@ final class ConsumerBoundaryInstallationTest extends TestCase
     /** Install runtime artifacts first, then add explicitly requested host development tools. */
     public function test_archived_consumer_and_normal_cache_invalidation(): void
     {
-        $versions = ['core' => '5.1.0', 'comments' => '5.1.0', 'filterable' => '5.0.1'];
+        $versions = ['core' => '6.0.0', 'comments' => '6.0.0', 'filterable' => '6.0.0'];
         $root = dirname(__DIR__, 6);
         $workspace = sys_get_temp_dir().'/nvl-boundary-install-'.bin2hex(random_bytes(8));
         $filesystem = new Filesystem;
@@ -214,7 +214,7 @@ HOST;
      */
     private function command(array $command, string $directory): string
     {
-        $process = new Process($command, $directory, ['COMPOSER_DISABLE_NETWORK' => '1', 'COMPOSER_ROOT_VERSION' => '5.0.0'], timeout: 120);
+        $process = new Process($command, $directory, ['COMPOSER_DISABLE_NETWORK' => '1', 'COMPOSER_ROOT_VERSION' => '6.0.0'], timeout: 120);
         $process->mustRun();
 
         return $process->getOutput();

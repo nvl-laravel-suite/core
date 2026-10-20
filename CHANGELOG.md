@@ -10,6 +10,7 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 ### Release fixes
 
 - Apply the existing collision boundary to validated model-replacement morph registration and inventory Ownership publication tags.
+- Exercise major 6 package archives in the offline consumer-boundary installation proof.
 
 ### Changed
 
