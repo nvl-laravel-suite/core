@@ -7,6 +7,10 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [6.0.0] - 2026-10-20
 
+### Release fixes
+
+- Apply the existing collision boundary to validated model-replacement morph registration and inventory Ownership publication tags.
+
 ### Changed
 
 - Add neutral ownership contracts, configurable validated model subclasses, canonical morph identity, queue admission before restoration, and durable guards that deny access when the enforcing runtime is disabled or removed.

@@ -72,7 +72,16 @@ final class OwnerRegistry
             }
             $map[$base] = $effective;
         }
-        Relation::morphMap($map, false);
+        $names = new GlobalNames($this->configuration);
+        $installed = $names->reserve('core', 'morph.replacement', $base,
+            static fn (string $name): bool => isset(Relation::morphMap()[$name]) && ! in_array(Relation::getMorphedModel($name), [$base, $effective], true),
+            static function (string $name) use ($map): void {
+                Relation::morphMap($map, false);
+            },
+        );
+        if (! $installed) {
+            throw new OwnershipConfigurationInvalid('Configured model replacement conflicts with a reserved identity.');
+        }
         $this->replacements[$base] = $effective;
         $this->declare($effective, 'replacement.'.$alias, null);
     }

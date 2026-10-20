@@ -3033,6 +3033,30 @@
             "canonical": "nvl-content-placement",
             "compatibility": "none",
             "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/ownership",
+            "current": "nvl-ownership-config",
+            "canonical": "nvl-ownership-config",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/ownership",
+            "current": "nvl-ownership-migrations",
+            "canonical": "nvl-ownership-migrations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/ownership",
+            "current": "nvl-ownership-skills",
+            "canonical": "nvl-ownership-skills",
+            "compatibility": "none",
+            "removal": null
         }
     ],
     "route_families": [
