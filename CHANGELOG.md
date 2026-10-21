@@ -5,6 +5,12 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [6.0.1] - 2026-10-21
+
+### Changed
+
+- Share configured-model registration and queue-envelope capture across domain packages. Isolate retained legacy model stamping and immutable-field checks in the ownership compatibility layer while preserving existing 6.x contracts.
+
 ## [6.0.0] - 2026-10-20
 
 ### Release fixes

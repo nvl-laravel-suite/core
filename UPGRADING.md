@@ -1,5 +1,11 @@
 # Upgrading NVL Core
 
+## 6.0.1 consolidation patch
+
+The shared model-registration, queue-capture and legacy model-guard implementations first ship in Core 6.0.1. Domain patches using these internals declare `nvl/core:^6.0.1`; public model configuration, traits and contracts remain unchanged.
+
+This patch introduces no schema migration or data conversion. Keep existing model subclasses, ownership declarations, adoption cursors and queued payloads. Existing source transactions, immutable owner checks and legacy exception contracts are retained. Deploy with the normal configuration-cache rebuild and worker restart; a completed adoption does not need to be repeated.
+
 ## Major 6 ownership rollout
 
 Add neutral ownership contracts, configurable validated model subclasses, canonical morph identity, queue admission before restoration, and durable guards that deny access when the enforcing runtime is disabled or removed.

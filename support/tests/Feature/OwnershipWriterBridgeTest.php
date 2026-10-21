@@ -4,14 +4,25 @@ declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Nvl\Support\Ownership\Compatibility\LegacyModelOwnership;
 use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Contracts\OwnershipWriter;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 use Nvl\Support\Tenancy\Contracts\TenantBoundary;
+use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 use Nvl\Support\Tenancy\ValueObjects\TenantResourceDefinition;
+use Nvl\Support\Tests\Fixtures\OwnershipConfigurableModel;
 use Nvl\Support\Tests\Fixtures\UnscopedOwnershipBase;
+
+it('retains legacy identity immutability without resolving execution authority', function (string $attribute): void {
+    $model = (new OwnershipConfigurableModel)->forceFill([$attribute => 'original'])->syncOriginal();
+    LegacyModelOwnership::assertImmutable($model, [$attribute], 'Media');
+    $model->setAttribute($attribute, 'changed');
+    expect(fn () => LegacyModelOwnership::assertImmutable($model, [$attribute], 'Media'))
+        ->toThrow(TenantBoundaryViolation::class, 'Persisted Media ownership is immutable.');
+})->with(['tenant_id', 'ownership_key']);
 
 it('creates unowned package models without requiring the optional runtime', function (): void {
     DB::getSchemaBuilder()->create('ownership_claimed_models', static function (Blueprint $table): void {

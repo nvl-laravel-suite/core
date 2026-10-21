@@ -5,11 +5,17 @@ declare(strict_types=1);
 use Nvl\Support\Ownership\Contracts\OwnershipContext;
 use Nvl\Support\Ownership\Enums\OwnershipContextMode;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
+use Nvl\Support\Ownership\Services\OwnershipQueueCapture;
+use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Ownership\ValueObjects\OwnerReference;
+use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
+use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
 use Nvl\Support\Tests\Fixtures\CapturedOwnershipCommand;
+use Nvl\Support\Tests\Fixtures\OwnedOwnershipReplacement;
 use Nvl\Support\Tests\Fixtures\ReadonlyOwnershipFact;
+use Nvl\Support\Tests\Fixtures\UnscopedOwnershipBase;
 
 it('round trips only scalar versioned owner principal and generation metadata', function (): void {
     $snapshot = new OwnershipSnapshot(OwnershipContextMode::Owner, new OwnerReference('company', 'store.companies', 'string', '007'), ['kind' => 'actor', 'type' => 'actor', 'id' => '1'], generations: ['store' => 'generation']);
@@ -49,4 +55,26 @@ it('captures immutable scalar admission in readonly domain facts', function (): 
     $restored = unserialize(serialize($fact), ['allowed_classes' => [ReadonlyOwnershipFact::class, OwnershipJobEnvelope::class]]);
     expect($restored)->toBeInstanceOf(ReadonlyOwnershipFact::class)
         ->and($restored->ownershipJobEnvelope()->toArray())->toBe($fact->ownershipJobEnvelope()->toArray());
+});
+
+it('permits unresolved queue capture only while every registered graph is unscoped', function (): void {
+    $context = new class implements OwnershipContext
+    {
+        public function snapshot(): OwnershipSnapshot
+        {
+            return new OwnershipSnapshot(OwnershipContextMode::Unresolved);
+        }
+
+        public function requireOwner(): OwnerReference
+        {
+            throw new OwnershipViolation;
+        }
+    };
+    $resources = new OwnershipResourceRegistry;
+    $capture = new OwnershipQueueCapture($context, $resources);
+    expect($capture->capture()->context()->mode)->toBe(OwnershipContextMode::Disabled);
+    $resources->register(new OwnershipResourceDefinition('unowned.records', 'unowned', UnscopedOwnershipBase::class, OwnershipDefinition::unscoped()));
+    expect($capture->capture()->context()->mode)->toBe(OwnershipContextMode::Disabled);
+    $resources->register(new OwnershipResourceDefinition('owned.records', 'owned', OwnedOwnershipReplacement::class, OwnedOwnershipReplacement::ownershipDefinition()));
+    expect(fn () => $capture->capture())->toThrow(OwnershipViolation::class);
 });
