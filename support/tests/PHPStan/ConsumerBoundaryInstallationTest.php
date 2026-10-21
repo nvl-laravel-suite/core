@@ -16,8 +16,11 @@ final class ConsumerBoundaryInstallationTest extends TestCase
     /** Install runtime artifacts first, then add explicitly requested host development tools. */
     public function test_archived_consumer_and_normal_cache_invalidation(): void
     {
-        $versions = ['core' => '6.0.0', 'comments' => '6.0.0', 'filterable' => '6.0.0'];
         $root = dirname(__DIR__, 6);
+        $catalog = $root.'/tools/package-family.php';
+        $versions = is_file($catalog)
+            ? (require $catalog)['release_versions']
+            : ['core' => '6.0.1', 'comments' => '6.0.1', 'filterable' => '6.0.0'];
         $workspace = sys_get_temp_dir().'/nvl-boundary-install-'.bin2hex(random_bytes(8));
         $filesystem = new Filesystem;
         $filesystem->mkdir([$workspace.'/archives', $workspace.'/bootstrap/cache', $workspace.'/storage/framework/cache', $workspace.'/config', $workspace.'/app']);

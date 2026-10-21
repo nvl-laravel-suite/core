@@ -91,7 +91,7 @@ final class ConsumerBoundaryRuleTest extends RuleTestCase
             mkdir($directory, 0777, true);
         }
         $configuration = $directory.'/cache.neon';
-        file_put_contents($configuration, "parameters:\n    tmpDir: ".$directory."/cache\n");
+        file_put_contents($configuration, "parameters:\n    tmpDir: ".$directory."/cache\nservices:\n    cacheStorage:\n        arguments:\n            directory: ".$directory."/parser-cache\n");
 
         return $configuration;
     }
