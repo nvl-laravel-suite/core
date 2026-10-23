@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Composer\InstalledVersions;
 use Nvl\Support\Consumer\PHPStan\ConsumerBoundaryPolicy;
 use PHPStan\Reflection\ReflectionProvider;
 
@@ -51,4 +52,49 @@ it('hashes installed catalogs and normalized host options for stable result-cach
     expect($first->getKey())->toBe('nvl.consumer.boundary')
         ->and($first->getHash())->toBe($ordered->getHash())
         ->and($first->getHash())->not->toBe($changed->getHash());
+});
+
+it('invalidates cached analysis when installed host subclass permissions change', function (): void {
+    $root = sys_get_temp_dir().'/nvl-consumer-cache-'.bin2hex(random_bytes(8));
+    mkdir($root.'/src', 0700, true);
+    mkdir($root.'/resources', 0700, true);
+    $file = $root.'/resources/consumer-api.json';
+    $class = 'ConsumerCacheFixture\\Principal';
+    file_put_contents($root.'/src/Principal.php', '<?php throw new LogicException("Cache discovery must not execute source.");');
+    $catalog = [
+        'schema_version' => 1, 'package' => 'nvl/consumer-cache-fixture', 'psr4' => ['ConsumerCacheFixture\\' => 'src/'],
+        'symbols' => [$class => ['kind' => 'class', 'file' => 'src/Principal.php', 'methods' => [], 'properties' => [], 'constants' => []]],
+        'models' => [$class => ['read' => [], 'identity_methods' => [], 'capability_relations' => []]],
+        'capability_relations' => new stdClass, 'tables' => new stdClass,
+    ];
+    $original = InstalledVersions::getAllRawData()[0];
+    $installed = $original;
+    $installed['versions']['nvl/consumer-cache-fixture'] = ['install_path' => $root, 'version' => '6.0.0', 'reference' => 'fixture'];
+    file_put_contents($file, json_encode($catalog, JSON_THROW_ON_ERROR));
+    InstalledVersions::reload($installed);
+    try {
+        $policy = new ConsumerBoundaryPolicy(Mockery::mock(ReflectionProvider::class), dirname(__DIR__, 6));
+        $before = $policy->getHash();
+        $catalog['models'][$class]['host_subclasses'] = true;
+        $catalog['models'][$class]['capability_methods'] = ['assignRole'];
+        file_put_contents($file, json_encode($catalog, JSON_THROW_ON_ERROR));
+
+        $metadataChanged = $policy->getHash();
+        expect($metadataChanged)->not->toBe($before)
+            ->and(class_exists($class, false))->toBeFalse();
+        $installed['versions']['acme/principals'] = ['install_path' => $root.'/src', 'version' => '1.0.0', 'reference' => 'foreign-first'];
+        InstalledVersions::reload($installed);
+        $foreignInstalled = $policy->getHash();
+        expect($foreignInstalled)->not->toBe($metadataChanged);
+        $installed['versions']['acme/principals']['reference'] = 'foreign-upgraded';
+        InstalledVersions::reload($installed);
+        expect($policy->getHash())->not->toBe($foreignInstalled);
+    } finally {
+        InstalledVersions::reload($original);
+        unlink($file);
+        unlink($root.'/src/Principal.php');
+        rmdir($root.'/resources');
+        rmdir($root.'/src');
+        rmdir($root);
+    }
 });

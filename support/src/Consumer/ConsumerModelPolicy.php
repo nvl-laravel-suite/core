@@ -17,11 +17,14 @@ final readonly class ConsumerModelPolicy
      * @param  list<string>  $readableFields
      * @param  list<string>  $identityMethods
      * @param  list<string>  $capabilityRelations
+     * @param  list<string>  $capabilityMethods
      */
     public function __construct(
         public string $class,
         public array $readableFields,
         public array $identityMethods,
         public array $capabilityRelations,
+        public bool $hostSubclasses = false,
+        public array $capabilityMethods = [],
     ) {}
 }

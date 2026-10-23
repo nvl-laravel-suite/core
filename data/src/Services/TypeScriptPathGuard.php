@@ -33,7 +33,7 @@ final readonly class TypeScriptPathGuard
 
         $this->assertInsideAllowedRoot($resolvedPath);
 
-        return rtrim($resolvedPath, DIRECTORY_SEPARATOR);
+        return $resolvedPath;
     }
 
     /**
@@ -70,10 +70,9 @@ final readonly class TypeScriptPathGuard
         $relativeSuffix = ltrim(substr($path, strlen($existingAncestor)), DIRECTORY_SEPARATOR);
         $normalizedSuffix = $this->normalizeRelativePath($relativeSuffix);
 
-        return rtrim(
-            $resolvedAncestor.($normalizedSuffix === '' ? '' : DIRECTORY_SEPARATOR.$normalizedSuffix),
-            DIRECTORY_SEPARATOR,
-        );
+        return $normalizedSuffix === ''
+            ? $resolvedAncestor
+            : rtrim($resolvedAncestor, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$normalizedSuffix;
     }
 
     /**
@@ -232,6 +231,7 @@ final readonly class TypeScriptPathGuard
     private function isAbsolute(string $path): bool
     {
         return str_starts_with($path, DIRECTORY_SEPARATOR)
-            || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1;
+            || (DIRECTORY_SEPARATOR === '\\'
+                && preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1);
     }
 }

@@ -1,0 +1,210 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerPrincipalFixtures;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Concerns\HasAttributes;
+use Illuminate\Database\Eloquent\Concerns\HasRelationships;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Nvl\Auth\Models\PersonalAccessToken;
+use Nvl\Auth\Models\Role;
+use Nvl\Auth\Models\TotpCredential;
+use Nvl\Auth\Models\User;
+use Nvl\Taxonomy\Models\Term;
+use Spatie\Permission\Traits\HasRoles;
+
+trait HostRoleAliases
+{
+    use HasRoles {
+        assignRole as grantNative;
+        roles as nativeRoleRows;
+    }
+}
+
+class HostPrincipal extends User
+{
+    use HasAttributes {
+        getArrayableRelations as public nativeRelations;
+        getRelationshipFromMethod as public nativeRelationFromMethod;
+    }
+
+    use HasRelationships {
+        getRelation as nativeRelation;
+    }
+
+    use HasRoles {
+        assignRole as aliasAssignRole;
+        roles as aliasRoles;
+        detachRoles as public clearNativeRoles;
+        detachPermissions as public clearNativePermissions;
+        getStoredRole as public nativeRole;
+        collectRoles as public nativeRoleIds;
+        getStoredPermission as public nativePermission;
+        convertToPermissionModels as public nativePermissionModels;
+        collectPermissions as public nativePermissionIds;
+    }
+
+    use HostRoleAliases {
+        grantNative as grantAccount;
+    }
+
+    public string $businessLabel;
+
+    public function __construct()
+    {
+        throw new \LogicException('Consumer checks must never execute a host principal constructor.');
+    }
+
+    /** @return BelongsTo<HostBusiness, $this> */
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(HostBusiness::class);
+    }
+}
+
+class HostBusiness extends Model
+{
+    /** @return BelongsTo<HostPrincipal, $this> */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(HostPrincipal::class);
+    }
+}
+
+class ForeignHostChild extends \ConsumerForeignFixtures\PackagePrincipal {}
+
+class OverriddenHostAlias extends User
+{
+    use HasRoles {
+        assignRole as hostBusinessOperation;
+    }
+
+    public function hostBusinessOperation(): string
+    {
+        return 'host business';
+    }
+}
+
+function overriddenAlias(OverriddenHostAlias $host): void
+{
+    $host->hostBusinessOperation();
+}
+
+class ConfiguredRole extends Role {}
+class ConfiguredToken extends PersonalAccessToken {}
+class ConfiguredTerm extends Term {}
+
+/**
+ * @param Builder<HostPrincipal> $query
+ * @param Collection<int, HostPrincipal> $principals
+ * @param Builder<HostPrincipal|Role> $mixedQuery
+ * @param Collection<int, User> $nativePrincipals
+ */
+function hostPrincipal(HostPrincipal $host, User $native, Builder $query, Collection $principals, HostBusiness $business, HostPrincipal|Term $union, Builder $mixedQuery, ConfiguredRole $role, ConfiguredToken $token, ConfiguredTerm $term, TotpCredential $totp, \ConsumerForeignFixtures\PackagePrincipal $foreign, ForeignHostChild $foreignChild, Collection $nativePrincipals, Role $nativeRole): void
+{
+    $host->id;
+    $host->businessLabel = 'Visible business label';
+    $host->save();
+    $host->can('view-business');
+    $host->hasRole('operator');
+    $host->hasPermissionTo('view-business');
+    $host->tokenCan('read');
+    $host->tokenCant('write');
+    $host->currentAccessToken();
+    $host->business()->first();
+    $host->load('business');
+    HostPrincipal::query()->where('business_label', 'example')->get();
+    $query->where('business_label', 'example');
+    $principals->pluck('businessLabel');
+    $encode = json_encode(...);
+    json_encode($host); // boundary: capabilityRelation Nvl\Auth\Models\User::jsonSerialize
+    json_encode(flags: JSON_THROW_ON_ERROR, value: $host); // boundary: capabilityRelation Nvl\Auth\Models\User::jsonSerialize
+    json_encode(flags: JSON_THROW_ON_ERROR, value: $native); // boundary: packageQuery Nvl\Auth\Models\User::jsonSerialize
+    $host->getRelations(); // boundary: capabilityRelation Nvl\Auth\Models\User::getRelations
+    $host->nativeRelations(); // boundary: capabilityRelation Nvl\Auth\Models\User::getArrayableRelations
+    $host->toPrettyJson(); // boundary: capabilityRelation Nvl\Auth\Models\User::toPrettyJson
+    json_encode([$host]); // boundary: capabilityRelation Nvl\Auth\Models\User::jsonSerialize
+    $nativePrincipals->each->save(); // boundary: packageWrite Nvl\Auth\Models\User::save
+    $nativePrincipals->map->id; // boundary: packageQuery Nvl\Auth\Models\User::$id
+    $host->toArray(); // boundary: capabilityRelation Nvl\Auth\Models\User::toArray
+    $host->toJson(); // boundary: capabilityRelation Nvl\Auth\Models\User::toJson
+    $host->jsonSerialize(); // boundary: capabilityRelation Nvl\Auth\Models\User::jsonSerialize
+    $host->relationsToArray(); // boundary: capabilityRelation Nvl\Auth\Models\User::relationsToArray
+    $principals->toArray(); // boundary: capabilityRelation Nvl\Auth\Models\User::toArray
+    json_encode($principals); // boundary: capabilityRelation Nvl\Auth\Models\User::jsonSerialize
+    json_encode($host->getAttributes());
+    json_encode(['id' => $host->id, 'label' => $host->businessLabel]);
+    $host->{'assignRole'}('operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::assignRole
+    $host->{'roles'}; // boundary: capabilityRelation Nvl\Auth\Models\User::$roles
+    $native->{'save'}(); // boundary: packageWrite Nvl\Auth\Models\User::save
+    $native->{'id'}; // boundary: packageQuery Nvl\Auth\Models\User::$id
+    User::{'query'}(); // boundary: packageQuery Nvl\Auth\Models\User::query
+    $host->clearNativeRoles(); // boundary: capabilityRelation Nvl\Auth\Models\User::detachRoles
+    $host->clearNativePermissions(); // boundary: capabilityRelation Nvl\Auth\Models\User::detachPermissions
+    $host->nativeRole('operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::getStoredRole
+    $host->nativeRoleIds(['operator']); // boundary: capabilityRelation Nvl\Auth\Models\User::collectRoles
+    $host->nativePermission('read'); // boundary: capabilityRelation Nvl\Auth\Models\User::getStoredPermission
+    $host->nativePermissionModels(['read']); // boundary: capabilityRelation Nvl\Auth\Models\User::convertToPermissionModels
+    $host->nativePermissionIds(['read']); // boundary: capabilityRelation Nvl\Auth\Models\User::collectPermissions
+    $host->grantNative('operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::assignRole
+    $host->grantAccount('operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::assignRole
+    $host->nativeRoleRows(); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $principals->each->assignRole('operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::assignRole
+    $principals->map->getRoleNames(); // boundary: capabilityRelation Nvl\Auth\Models\User::getRoleNames
+    $principals->map->roles; // boundary: capabilityRelation Nvl\Auth\Models\User::$roles
+    $native->save(); // boundary: packageWrite Nvl\Auth\Models\User::save
+    $native->id; // boundary: packageQuery Nvl\Auth\Models\User::$id
+    $role->save(); // boundary: packageWrite Nvl\Auth\Models\Role::save
+    $token->delete(); // boundary: packageWrite Nvl\Auth\Models\PersonalAccessToken::delete
+    $term->refresh(); // boundary: packageQuery Nvl\Taxonomy\Models\Term::refresh
+    $totp->delete(); // boundary: packageWrite Nvl\Auth\Models\TotpCredential::delete
+    $foreign->save(); // boundary: packageWrite Nvl\Auth\Models\User::save
+    $foreignChild->save(); // boundary: packageWrite Nvl\Auth\Models\User::save
+    $host?->tokens(); // boundary: capabilityRelation Nvl\Auth\Models\User::tokens
+    $host?->roles; // boundary: capabilityRelation Nvl\Auth\Models\User::$roles
+    $native?->save(); // boundary: packageWrite Nvl\Auth\Models\User::save
+    $native?->id; // boundary: packageQuery Nvl\Auth\Models\User::$id
+    $host->getRelation('roles'); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $host->nativeRelation('roles'); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $host->nativeRelation('business');
+    $host->nativeRelationFromMethod('tokens'); // boundary: capabilityRelation Nvl\Auth\Models\User::tokens
+    $host->nativeRelationFromMethod('business');
+    $host->getAttribute('tokens'); // boundary: capabilityRelation Nvl\Auth\Models\User::tokens
+    $principals->pluck('roles.name'); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $business->load(['owner' => ['tokens']]); // boundary: capabilityRelation Nvl\Auth\Models\User::tokens
+    $query->withAggregate('business', 'roles');
+    $query->withWhereRelation('roles', 'name', '=', 'operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $query->whereAttachedTo($role, 'roles'); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $query->whereAttachedTo($nativeRole); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $query->whereAttachedTo($nativeRole, null); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $query->whereAttachedTo(relationshipName: 'roles', related: $role); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $query->orWhereAttachedTo($role, 'roles'); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $host->roles = []; // boundary: capabilityRelation Nvl\Auth\Models\User::$roles
+    $host['permissions'] = []; // boundary: capabilityRelation Nvl\Auth\Models\User::$permissions
+    $host->load('aliasRoles'); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $host->ASSIGNROLE('operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::assignRole
+    $host->roles; // boundary: capabilityRelation Nvl\Auth\Models\User::$roles
+    $host['permissions']; // boundary: capabilityRelation Nvl\Auth\Models\User::$permissions
+    $host->tokens(); // boundary: capabilityRelation Nvl\Auth\Models\User::tokens
+    $host->totpCredentials(); // boundary: capabilityRelation Nvl\Auth\Models\User::totpCredentials
+    $host->assignRole('operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::assignRole
+    $host->aliasAssignRole('operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::assignRole
+    $host->aliasRoles(); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $host->getPermissionNames(); // boundary: capabilityRelation Nvl\Auth\Models\User::getPermissionNames
+    $host->filterPermission('read'); // boundary: capabilityRelation Nvl\Auth\Models\User::filterPermission
+    $host->createToken('consumer'); // boundary: capabilityRelation Nvl\Auth\Models\User::createToken
+    HostPrincipal::role('operator'); // boundary: capabilityRelation Nvl\Auth\Models\User::scopeRole
+    $query->withoutPermission('read'); // boundary: capabilityRelation Nvl\Auth\Models\User::scopeWithoutPermission
+    $query->team('team-id'); // boundary: capabilityRelation Nvl\Auth\Models\User::scopeTeam
+    $query->withCount('roles as assigned_roles'); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $query->with(['tokens:id']); // boundary: capabilityRelation Nvl\Auth\Models\User::tokens
+    $principals->loadMissing('totpCredentials'); // boundary: capabilityRelation Nvl\Auth\Models\User::totpCredentials
+    $business->load('owner.tokens'); // boundary: capabilityRelation Nvl\Auth\Models\User::tokens
+    $union->save(); // boundary: packageWrite Nvl\Taxonomy\Models\Term::save
+    $union->roles; // boundary: packageQuery Nvl\Taxonomy\Models\Term::$roles boundary: capabilityRelation Nvl\Auth\Models\User::$roles
+    $mixedQuery->withCount('roles'); // boundary: packageQuery Nvl\Auth\Models\Role::withCount boundary: capabilityRelation Nvl\Auth\Models\User::roles
+}

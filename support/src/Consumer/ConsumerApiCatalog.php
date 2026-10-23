@@ -30,6 +30,7 @@ final readonly class ConsumerApiCatalog
      * @param  array<string, string>  $tables
      * @param  array<string, InstalledPackage>  $packages
      * @param  array<string, list<string>>  $traits
+     * @param  array<string, string>  $externalInstallations
      */
     private function __construct(
         private array $symbols,
@@ -37,6 +38,7 @@ final readonly class ConsumerApiCatalog
         private array $tables,
         private array $packages,
         private array $traits,
+        private array $externalInstallations,
     ) {}
 
     /**
@@ -162,11 +164,17 @@ final readonly class ConsumerApiCatalog
                 if (array_diff($identityMethods, self::IdentityMethods) !== []) {
                     throw self::invalid($package, "model [{$class}] identity_methods contain unsupported operations.");
                 }
+                $hostSubclasses = array_key_exists('host_subclasses', $declaration) ? $declaration['host_subclasses'] : false;
+                if (! is_bool($hostSubclasses)) {
+                    throw self::invalid($package, "model [{$class}] host_subclasses must be a boolean.");
+                }
                 $models[$class] = new ConsumerModelPolicy(
                     class: $class,
                     readableFields: self::names($declaration['read'] ?? null, $package, 'read'),
                     identityMethods: $identityMethods,
                     capabilityRelations: self::names($declaration['capability_relations'] ?? null, $package, 'capability_relations'),
+                    hostSubclasses: $hostSubclasses,
+                    capabilityMethods: self::names(array_key_exists('capability_methods', $declaration) ? $declaration['capability_methods'] : [], $package, 'capability_methods'),
                 );
             }
 
@@ -192,7 +200,7 @@ final readonly class ConsumerApiCatalog
 
         self::validateAliases($symbols);
 
-        return new self($symbols, $models, $tables, $packages, $traits);
+        return new self($symbols, $models, $tables, $packages, $traits, self::externalInstallations());
     }
 
     /**
@@ -257,6 +265,43 @@ final readonly class ConsumerApiCatalog
     }
 
     /**
+     * Resolve foreign Composer source ownership without granting it an NVL catalog or API surface.
+     *
+     * @internal
+     */
+    public function installedSourceOwner(string $file): ?string
+    {
+        $owner = $this->packageForFile($file);
+        if ($owner !== null) {
+            return $owner;
+        }
+        $path = str_contains($file, "\0") ? false : realpath($file);
+        if ($path === false || ! is_file($path)) {
+            return null;
+        }
+        $path = self::normalizePath($path);
+        foreach ($this->externalInstallations as $package => $root) {
+            if (self::within($path, $root)) {
+                return $package;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Retain external installation identities for analysis cache invalidation.
+     *
+     * @internal
+     *
+     * @return array<string, string>
+     */
+    public function externalInstalledRoots(): array
+    {
+        return $this->externalInstallations;
+    }
+
+    /**
      * Return a selected capability trait's exact relation names.
      *
      * @internal
@@ -302,6 +347,44 @@ final readonly class ConsumerApiCatalog
         ksort($paths);
 
         return $paths;
+    }
+
+    /**
+     * Retain actual non-NVL code installation roots while excluding every Composer root project.
+     *
+     * @return array<string, string>
+     */
+    private static function externalInstallations(): array
+    {
+        $datasets = InstalledVersions::getAllRawData();
+        $roots = [];
+        foreach ($datasets as $dataset) {
+            $roots[] = $dataset['root']['name'];
+        }
+        $installations = [];
+        foreach ($datasets as $dataset) {
+            foreach ($dataset['versions'] as $package => $version) {
+                if (str_starts_with($package, 'nvl/') || in_array($package, $roots, true)) {
+                    continue;
+                }
+                $installedPath = $version['install_path'] ?? null;
+                if ($installedPath === null) {
+                    continue;
+                }
+                $root = str_contains($installedPath, "\0") ? false : realpath($installedPath);
+                if ($root === false || ! is_dir($root)) {
+                    continue;
+                }
+                $root = self::normalizePath($root);
+                if (isset($installations[$package]) && $installations[$package] !== $root) {
+                    throw self::invalid($package, 'Conflicting Composer source installation paths.');
+                }
+                $installations[$package] = $root;
+            }
+        }
+        ksort($installations);
+
+        return $installations;
     }
 
     /**

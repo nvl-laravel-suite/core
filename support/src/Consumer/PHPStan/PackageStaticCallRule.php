@@ -9,6 +9,8 @@ use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
+use PHPStan\Rules\IdentifierRuleError;
+use PHPStan\Rules\LineRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Type\ObjectType;
 use Spatie\LaravelData\Contracts\BaseData;
@@ -32,10 +34,25 @@ final readonly class PackageStaticCallRule implements Rule
     /** Check model and exact public member semantics. */
     public function processNode(Node $node, Scope $scope): array
     {
-        if ($this->policy->excludes($scope) || ! $node->name instanceof Identifier) {
+        if ($this->policy->excludes($scope)) {
             return [];
         }
-        $method = $node->name->toString();
+        $methods = $node->name instanceof Identifier ? [$node->name->toString()] : array_map(static fn ($name): string => $name->getValue(), $scope->getType($node->name)->getConstantStrings());
+        $errors = [];
+        foreach ($methods as $method) {
+            array_push($errors, ...$this->staticCall($node, $scope, $method));
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Check one known static name without depending on literal identifier syntax.
+     *
+     * @return list<IdentifierRuleError&LineRuleError>
+     */
+    private function staticCall(StaticCall $node, Scope $scope, string $method): array
+    {
         $type = $node->class instanceof Name ? $scope->resolveTypeByName($node->class) : $scope->getType($node->class);
         $errors = [];
         foreach ($this->policy->models($type) as $model) {

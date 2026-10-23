@@ -12,11 +12,14 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HigherOrderCollectionProxy;
 use InvalidArgumentException;
 use Nvl\Support\Consumer\ConsumerApiCatalog;
 use Nvl\Support\Consumer\ConsumerModelPolicy;
 use Nvl\Support\Consumer\ConsumerSymbol;
 use PhpParser\Node;
+use PhpParser\Node\Arg;
+use PhpParser\Node\Expr\CallLike;
 use PHPStan\Analyser\ResultCache\ResultCacheMetaExtension;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
@@ -27,6 +30,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
+use PHPStan\Type\VerbosityLevel;
 use RuntimeException;
 
 /** Shares installed ownership, receiver classification and exact exceptions between opt-in analysis rules. */
@@ -121,6 +125,10 @@ final class ConsumerBoundaryPolicy implements ResultCacheMetaExtension
             }
             $inputs[$package] = [$roots, InstalledVersions::getVersion($package), InstalledVersions::getReference($package), hash('sha256', $bytes)];
         }
+        foreach ($fresh->externalInstalledRoots() as $package => $root) {
+            $inputs[$package] = [$root, InstalledVersions::getVersion($package), InstalledVersions::getReference($package)];
+        }
+        ksort($inputs);
 
         return hash('sha256', serialize([$inputs, $this->basePath, $this->testRoots, $this->tableNames, $this->normalizedExceptions]));
     }
@@ -163,6 +171,21 @@ final class ConsumerBoundaryPolicy implements ResultCacheMetaExtension
         return $this->reflectionProvider->hasClass($class) ? $this->reflectionProvider->getClass($class) : null;
     }
 
+    /** Resolve the selected call argument independently of named-argument source order. */
+    public function argumentType(CallLike $call, string $name, int $position, Scope $scope): ?Type
+    {
+        foreach ($call->getRawArgs() as $index => $argument) {
+            if (! $argument instanceof Arg || $argument->unpack) {
+                continue;
+            }
+            if ($argument->name?->toString() === $name || ($argument->name === null && $index === $position)) {
+                return $scope->getType($argument->value);
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Inspect each known constituent, preserving prohibited members of unions.
      *
@@ -192,39 +215,7 @@ final class ConsumerBoundaryPolicy implements ResultCacheMetaExtension
      */
     public function models(Type $type, bool $containers = true): array
     {
-        $models = [];
-        foreach ($this->constituents($type) as $part) {
-            foreach ($part->getObjectClassReflections() as $reflection) {
-                foreach ($reflection->getAncestors() as $ancestor) {
-                    $policy = $this->catalog->model($ancestor->getName());
-                    if ($policy !== null) {
-                        $models[$policy->class] = $policy;
-                        break;
-                    }
-                }
-            }
-            if (! $containers) {
-                continue;
-            }
-            if ($part->isArray()->yes()) {
-                $models += $this->models($part->getIterableValueType());
-            }
-            $receivers = [
-                Builder::class => $part->getTemplateType(Builder::class, 'TModel'),
-                Relation::class => $part->getTemplateType(Relation::class, 'TRelatedModel'),
-                Factory::class => $part->getTemplateType(Factory::class, 'TModel'),
-                Collection::class => $part->getTemplateType(Collection::class, 'TValue'),
-                Paginator::class => $part->getTemplateType(Paginator::class, 'TValue'),
-                CursorPaginator::class => $part->getTemplateType(CursorPaginator::class, 'TValue'),
-            ];
-            foreach ($receivers as $ancestor => $receiver) {
-                if ((new ObjectType($ancestor))->isSuperTypeOf($part)->yes()) {
-                    $models += $this->models($receiver, false);
-                }
-            }
-        }
-
-        return $models;
+        return $this->modelHandles($type, $containers, []);
     }
 
     /** Determine whether a receiver represents in-memory model containers. */
@@ -341,6 +332,97 @@ final class ConsumerBoundaryPolicy implements ResultCacheMetaExtension
         return $this->catalog->capabilityRelations($trait);
     }
 
+    /** Return the nearest catalogued host-extension declaration, without executing host constructors. */
+    public function hostExtension(ClassReflection $reflection): ?ConsumerModelPolicy
+    {
+        foreach ($reflection->getAncestors() as $ancestor) {
+            $policy = $this->catalog->model($ancestor->getName());
+            if ($policy !== null) {
+                return $this->isHostExtension($reflection, $policy) ? $policy : null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Follow nested container items without revisiting recursive generic receiver types.
+     *
+     * @param  array<string, true>  $seen
+     * @return array<string, ConsumerModelPolicy>
+     */
+    private function modelHandles(Type $type, bool $containers, array $seen): array
+    {
+        $models = [];
+        foreach ($this->constituents($type) as $part) {
+            $key = $part->describe(VerbosityLevel::precise());
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            foreach ($part->getObjectClassReflections() as $reflection) {
+                foreach ($reflection->getAncestors() as $ancestor) {
+                    $policy = $this->catalog->model($ancestor->getName());
+                    if ($policy !== null) {
+                        if (! $this->isHostExtension($reflection, $policy)) {
+                            $models[$policy->class] = $policy;
+                        }
+                        break;
+                    }
+                }
+            }
+            if (! $containers && ! (new ObjectType(HigherOrderCollectionProxy::class))->isSuperTypeOf($part)->yes()) {
+                continue;
+            }
+            if ($part->isArray()->yes()) {
+                $models += $this->modelHandles($part->getIterableValueType(), true, $seen);
+            }
+            $receivers = [
+                Builder::class => $part->getTemplateType(Builder::class, 'TModel'),
+                Relation::class => $part->getTemplateType(Relation::class, 'TRelatedModel'),
+                Factory::class => $part->getTemplateType(Factory::class, 'TModel'),
+                Collection::class => $part->getTemplateType(Collection::class, 'TValue'),
+                HigherOrderCollectionProxy::class => $part->getTemplateType(HigherOrderCollectionProxy::class, 'TValue'),
+                Paginator::class => $part->getTemplateType(Paginator::class, 'TValue'),
+                CursorPaginator::class => $part->getTemplateType(CursorPaginator::class, 'TValue'),
+            ];
+            foreach ($receivers as $ancestor => $receiver) {
+                if ((new ObjectType($ancestor))->isSuperTypeOf($part)->yes()) {
+                    $models += $this->modelHandles($receiver, true, $seen);
+                }
+            }
+        }
+
+        return $models;
+    }
+
+    /** Require both explicit package permission and concrete source outside installed package roots. */
+    private function isHostExtension(ClassReflection $reflection, ConsumerModelPolicy $policy): bool
+    {
+        if (! $policy->hostSubclasses || $reflection->getName() === $policy->class) {
+            return false;
+        }
+        $file = $reflection->getFileName();
+        if ($file === null || realpath($file) === false) {
+            return false;
+        }
+        foreach ($reflection->getAncestors() as $ancestor) {
+            if ($ancestor->isInterface() || $ancestor->isTrait()) {
+                continue;
+            }
+            if ($ancestor->getName() === $policy->class) {
+                return true;
+            }
+            $source = $ancestor->getFileName();
+            if ($this->ownedClass($ancestor->getName()) !== null
+                || ($source !== null && $this->catalog->installedSourceOwner($source) !== null)) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
     /** Validate concrete diagnostic members without invoking Laravel or host model constructors. */
     private function validateExceptionSymbol(string $identifier, string $symbol): void
     {
@@ -358,7 +440,13 @@ final class ConsumerBoundaryPolicy implements ResultCacheMetaExtension
             if ($member !== null && $reflection->isTrait() && $this->catalog->capabilityRelations($class) !== []) {
                 return;
             }
-            throw new InvalidArgumentException('Consumer capability exception requires an installed capability trait member.');
+            $model = $this->catalog->model($class);
+            $name = $member !== null ? ltrim($member, '$') : null;
+            if ($name !== null && $model?->hostSubclasses
+                && in_array($name, [...$model->capabilityRelations, ...$model->capabilityMethods], true)) {
+                return;
+            }
+            throw new InvalidArgumentException('Consumer capability exception requires an installed declared capability member.');
         }
         if ($member === null) {
             if ($identifier === 'nvl.consumer.internalApi') {

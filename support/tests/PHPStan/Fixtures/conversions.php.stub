@@ -9,9 +9,20 @@ use Nvl\Comments\Data\PublicCommentData;
 use Nvl\Comments\Models\Comment;
 use Nvl\Data\Services\TypeScriptSourceRegistry;
 
+/** @extends \Illuminate\Support\Collection<int, RecursiveCollection> */
+class RecursiveCollection extends \Illuminate\Support\Collection {}
+
 /** @param Collection<int, Comment> $comments */
 function conversions(Comment $comment, Collection $comments, PublicCommentData $data): void
 {
+    $comments->groupBy('body'); // boundary: packageQuery Nvl\Comments\Models\Comment::$body
+    $comments->groupBy(preserveKeys: true, groupBy: 'body'); // boundary: packageQuery Nvl\Comments\Models\Comment::$body
+    $comments->groupBy(preserveKeys: true, groupBy: 'id');
+    $comments->keyBy(keyBy: 'body'); // boundary: packageQuery Nvl\Comments\Models\Comment::$body
+    $comments->keyBy(keyBy: 'id');
+    $comments->pluck(key: 'id', value: 'body'); // boundary: packageQuery Nvl\Comments\Models\Comment::$body
+    $comments->pluck(key: 'body', value: 'id'); // boundary: packageQuery Nvl\Comments\Models\Comment::$body
+    $comments->pluck(key: 'id', value: 'id');
     PublicCommentData::from($comment); // boundary: packageQuery Nvl\Comments\Models\Comment::from
     PublicCommentData::collect($comments); // boundary: packageQuery Nvl\Comments\Models\Comment::collect
     $data->toArray();
@@ -24,6 +35,13 @@ function arrayConversions(Comment $comment): void
 {
     PublicCommentData::collect([$comment]); // boundary: packageQuery Nvl\Comments\Models\Comment::collect
     json_encode([$comment]); // boundary: packageQuery Nvl\Comments\Models\Comment::jsonSerialize
+}
+
+/** @param \Illuminate\Support\Collection<int, Collection<int, Comment>> $groups */
+function groupedConversions(\Illuminate\Support\Collection $groups): void
+{
+    $groups->toArray(); // boundary: packageQuery Nvl\Comments\Models\Comment::toArray
+    json_encode($groups); // boundary: packageQuery Nvl\Comments\Models\Comment::jsonSerialize
 }
 
 function internalProperty(TypeScriptSourceRegistry $registry): void

@@ -68,12 +68,12 @@ final readonly class PackagePropertyRule implements Rule
                 $fetch = $fetch->var;
             }
         }
-        if ($fetch instanceof PropertyFetch && $fetch->name instanceof Identifier) {
+        if ($fetch instanceof PropertyFetch) {
             if (! $write && $scope->isInExpressionAssign($fetch)) {
                 return [];
             }
             $type = $scope->getType($fetch->var);
-            $fields = [$fetch->name->toString()];
+            $fields = $fetch->name instanceof Identifier ? [$fetch->name->toString()] : array_map(static fn ($name): string => $name->getValue(), $scope->getType($fetch->name)->getConstantStrings());
         } elseif ($fetch instanceof ArrayDimFetch && $fetch->dim !== null) {
             if (! $write && $scope->isInExpressionAssign($fetch)) {
                 return [];

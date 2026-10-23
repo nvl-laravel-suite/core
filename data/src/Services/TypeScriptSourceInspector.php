@@ -176,7 +176,9 @@ final readonly class TypeScriptSourceInspector
         }
 
         foreach ($this->sources->descriptors() as $descriptor) {
-            if ($file === $descriptor['path'] || str_starts_with($file, $descriptor['path'].DIRECTORY_SEPARATOR)) {
+            $prefix = rtrim($descriptor['path'], DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+
+            if ($file === $descriptor['path'] || str_starts_with($file, $prefix)) {
                 return [
                     'file' => $file,
                     'descriptor' => $descriptor,
@@ -225,7 +227,9 @@ final readonly class TypeScriptSourceInspector
                     );
                 }
 
-                if (! str_starts_with($resolvedPath, $source['path'].DIRECTORY_SEPARATOR)) {
+                $prefix = rtrim($source['path'], DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+
+                if (! str_starts_with($resolvedPath, $prefix)) {
                     throw new RuntimeException(
                         'TypeScript source symlinks cannot leave their registered directory.',
                     );

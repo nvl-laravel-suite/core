@@ -26,8 +26,10 @@ use Nvl\Data\Traits\DataTransform;
 use Nvl\Data\TypeScript\SplitNamespaceWriter;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Optional;
+use Spatie\TypeScriptTransformer\Actions\DiscoverTypesAction;
 use Spatie\TypeScriptTransformer\Attributes\LiteralTypeScriptType;
 use Spatie\TypeScriptTransformer\Collections\TransformedCollection;
+use Spatie\TypeScriptTransformer\PhpNodes\PhpClassNode;
 use Spatie\TypeScriptTransformer\Transformed\Transformed;
 use Spatie\TypeScriptTransformer\TypeScriptTransformerConfig;
 use Spatie\TypeScriptTransformer\TypeScriptTransformerConfigFactory;
@@ -180,6 +182,51 @@ test('it only permits generated output inside explicitly configured roots', func
         ->toThrow(RuntimeException::class, 'outside nvl-data.typescript.allowed_roots')
         ->and($guard->existingDirectory(__DIR__.'/../../src'))
         ->toBe(realpath(__DIR__.'/../../src'));
+});
+
+test('it preserves a native filesystem root when resolving output directories', function (): void {
+    $root = realpath(DIRECTORY_SEPARATOR);
+    expect($root)->toBeString();
+    config()->set('nvl-data.typescript.allowed_roots', [$root]);
+
+    expect(app(TypeScriptPathGuard::class)->outputDirectory($root))->toBe($root);
+});
+
+test('it rejects foreign drive spellings instead of rebuilding them beneath the working directory', function (string $path): void {
+    if (DIRECTORY_SEPARATOR !== '/') {
+        $this->markTestSkipped('Foreign Windows drive spellings require a POSIX filesystem.');
+    }
+
+    config()->set('nvl-data.typescript.allowed_roots', [getcwd()]);
+
+    expect(fn (): string => app(TypeScriptPathGuard::class)->outputDirectory($path))
+        ->toThrow(RuntimeException::class, 'must be an absolute path');
+})->with(['C:\\nvl-output\\new-types', 'C:/nvl-output/new-types']);
+
+test('it preserves native source roots and recognizes their discovered file ownership', function (): void {
+    $root = realpath(DIRECTORY_SEPARATOR);
+    expect($root)->toBeString();
+    config()->set('nvl-data.typescript.allowed_roots', [$root]);
+    config()->set('nvl-data.typescript.source_paths', [$root]);
+    app()->forgetInstance(TypeScriptSourceRegistry::class);
+
+    expect(app(TypeScriptSourceRegistry::class)->all())->toBe([$root]);
+
+    $this->mock(DiscoverTypesAction::class)
+        ->shouldReceive('execute')
+        ->once()
+        ->with([$root])
+        ->andReturn([PhpClassNode::fromReflection(new ReflectionClass(DataTransformFixture::class))]);
+
+    $symbols = app(TypeScriptSourceInspector::class)->symbols();
+
+    expect($symbols)->toHaveCount(1)
+        ->and($symbols[0]['phpType'])->toBe(DataTransformFixture::class)
+        ->and($symbols[0]['source'])->toBe(str_replace(
+            DIRECTORY_SEPARATOR,
+            '/',
+            substr((string) realpath(__DIR__.'/../Fixtures/DataTransformFixture.php'), strlen($root)),
+        ));
 });
 
 test('it rejects ambiguous relative artifact paths before generation', function (): void {
@@ -655,15 +702,67 @@ test('its freshness check ignores checkout mtimes when declarations are byte ide
 
     $this->artisan('nvl:data:types:generate')->assertSuccessful();
 
-    foreach (app(GeneratedArtifactSet::class)->paths($this->generatedTypesDirectory) as $path) {
+    $publishedDirectory = app(TypeScriptPathGuard::class)->outputDirectory($this->generatedTypesDirectory);
+
+    foreach (app(GeneratedArtifactSet::class)->paths($publishedDirectory) as $path) {
         expect(touch(
-            $this->generatedTypesDirectory.DIRECTORY_SEPARATOR.$path,
+            $publishedDirectory.DIRECTORY_SEPARATOR.$path,
             time() + 60,
         ))->toBeTrue();
     }
 
     $this->artisan('nvl:data:types:check')->assertSuccessful();
 });
+
+test('checks declarations through a noncanonical mixed separator storage path without changing published files', function (bool $stale): void {
+    $originalStoragePath = app()->storagePath();
+    $checkStoragePath = str_replace('\\', '/', $originalStoragePath)
+        .'/./framework/testing/nvl-data-check-storage-'.str()->uuid();
+    File::ensureDirectoryExists($checkStoragePath);
+    app()->useStoragePath($checkStoragePath);
+
+    try {
+        config()->set('nvl-data.typescript.source_paths', [__DIR__.'/../Fixtures']);
+        app()->forgetInstance(TypeScriptSourceRegistry::class);
+        app()->forgetInstance(TypeScriptConfigurator::class);
+        app()->forgetInstance(TypeScriptTransformerConfig::class);
+        $this->artisan('nvl:data:types:generate')->assertSuccessful();
+
+        $publishedDirectory = app(TypeScriptPathGuard::class)->outputDirectory($this->generatedTypesDirectory);
+        $declarations = app(GeneratedArtifactSet::class)->paths($publishedDirectory);
+        expect($declarations)->not->toBeEmpty();
+        $declarationPath = $publishedDirectory.DIRECTORY_SEPARATOR.$declarations[0];
+
+        if ($stale) {
+            File::append($declarationPath, "\n// Unpublished declaration change.\n");
+        }
+
+        $publicationPaths = [...$declarations, 'typescript-transformer-manifest.json', 'generated.manifest.json'];
+        $publishedContents = array_map(
+            fn (string $path): string => File::get($publishedDirectory.DIRECTORY_SEPARATOR.$path),
+            $publicationPaths,
+        );
+        $checkDirectories = File::directories($checkStoragePath.'/app/nvl-data');
+        $command = $this->artisan('nvl:data:types:check');
+
+        if ($stale) {
+            $command->expectsOutputToContain('integrity manifest are stale')->assertFailed();
+        } else {
+            $command->assertSuccessful();
+        }
+
+        $command->run();
+
+        expect(array_map(
+            fn (string $path): string => File::get($publishedDirectory.DIRECTORY_SEPARATOR.$path),
+            $publicationPaths,
+        ))->toBe($publishedContents)
+            ->and(File::directories($checkStoragePath.'/app/nvl-data'))->toBe($checkDirectories);
+    } finally {
+        app()->useStoragePath($originalStoragePath);
+        File::deleteDirectory($checkStoragePath);
+    }
+})->with(['current declarations' => false, 'modified declarations' => true]);
 
 test('it restores the prior artifact set when staged publication fails', function (): void {
     writeDataPackagePublication($this->generatedTypesDirectory, [

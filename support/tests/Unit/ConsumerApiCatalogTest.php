@@ -137,6 +137,7 @@ try {
         'core_data' => $catalog->symbol('Nvl\\Data\\Data\\PaginationMeta')?->properties,
         'unknown' => $catalog->symbol('Nvl\\Media\\Models\\Media'),
         'model' => $model === null ? null : [$model->class, $model->readableFields, $model->identityMethods, $model->capabilityRelations],
+        'extension' => $model === null || ! property_exists($model, 'hostSubclasses') ? null : [$model->hostSubclasses, $model->capabilityMethods],
         'table' => $catalog->tableOwner('nvl_comments_comments'),
         'internal_table' => $catalog->tableOwner('nvl_comments_revisions'),
         'missing_table' => $catalog->tableOwner('nvl_media'),
@@ -145,6 +146,7 @@ try {
         'unknown_trait' => $catalog->capabilityRelations('Host\\HasComments'),
         'owner' => $comment === null ? null : $catalog->packageForFile($comment->sourcePath()),
         'contract_owner' => $symbol === null ? null : $catalog->packageForFile($symbol->sourcePath()),
+        'external_owner' => $catalog->installedSourceOwner($argv[2].'/external/src/Principal.php'),
         'host_owner' => $catalog->packageForFile($argv[2].'/host/Nvl/Comments/Models/Comment.php'),
         'core_roots' => $core,
         'leaf_roots' => $roots['nvl/comments'] ?? null,
@@ -425,6 +427,43 @@ it('accepts empty permission lists and empty object maps without executing sourc
         ->and($result['fixture_loaded'])->toBeFalse();
 });
 
+it('defaults model subclass ownership to package protection', function (): void {
+    $result = consumerCatalogProbe(consumerCatalogFixtures());
+
+    expect($result['error'])->toBeNull()
+        ->and($result['extension'])->toBe([false, []]);
+});
+
+it('retains an explicit host extension and its exact protected methods without executing models', function (): void {
+    $catalogs = consumerCatalogFixtures();
+    $catalogs['nvl/comments']['models']['Nvl\\Comments\\Models\\Comment']['host_subclasses'] = true;
+    $catalogs['nvl/comments']['models']['Nvl\\Comments\\Models\\Comment']['capability_methods'] = ['assignRole', 'scopeRole'];
+
+    $result = consumerCatalogProbe($catalogs);
+
+    expect($result['error'])->toBeNull()
+        ->and($result['extension'])->toBe([true, ['assignRole', 'scopeRole']])
+        ->and($result['fixture_loaded'])->toBeFalse();
+});
+
+it('rejects malformed host extension permissions', function (string $field, mixed $value): void {
+    $catalogs = consumerCatalogFixtures();
+    $catalogs['nvl/comments']['models']['Nvl\\Comments\\Models\\Comment'][$field] = $value;
+
+    $result = consumerCatalogProbe($catalogs);
+
+    expect($result['exception'])->toBe('RuntimeException')
+        ->and($result['error'])->toContain($field);
+})->with([
+    'nullable host permission' => ['host_subclasses', null],
+    'string host permission' => ['host_subclasses', 'true'],
+    'numeric host permission' => ['host_subclasses', 1],
+    'nullable methods' => ['capability_methods', null],
+    'method object' => ['capability_methods', new stdClass],
+    'wildcard method' => ['capability_methods', ['assign*']],
+    'duplicate method' => ['capability_methods', ['assignRole', 'assignRole']],
+]);
+
 it('supports a symlinked Composer install path and skips only explicit workbench names and virtual packages', function (): void {
     $result = consumerCatalogProbe(consumerCatalogFixtures(), function (array $roots, array &$versions): void {
         symlink($roots['nvl/core'], $roots['nvl/core'].'-linked');
@@ -644,4 +683,18 @@ it('marks only the reviewed Core roots and retains declared internal integration
         ->and(file_get_contents($core.'/support/src/Tenancy/Exceptions/TenancyException.php'))->toContain('@api')
         ->and(file_get_contents($core.'/support/src/Tenancy/Enums/TenancyResponseCode.php'))->toContain('@api')
         ->and(file_get_contents($core.'/support/src/Tenancy/Services/TenantResourceRegistry.php'))->toContain('@internal');
+});
+
+it('recognizes non NVL installed source ownership without requiring foreign catalogs or loading source', function (): void {
+    $result = consumerCatalogProbe(consumerCatalogFixtures(), function (array $roots, array &$versions): void {
+        $directory = dirname($roots['nvl/core']).'/external';
+        mkdir($directory.'/src', 0700, true);
+        file_put_contents($directory.'/src/Principal.php', '<?php throw new LogicException("Foreign source must never load.");');
+        $versions['acme/principals'] = ['install_path' => $directory, 'type' => 'library'];
+    });
+
+    expect($result['error'])->toBeNull()
+        ->and($result['external_owner'])->toBe('acme/principals')
+        ->and($result['host_owner'])->toBeNull()
+        ->and($result['loaded'])->toBe([]);
 });

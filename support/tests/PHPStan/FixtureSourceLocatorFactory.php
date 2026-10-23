@@ -22,6 +22,7 @@ final readonly class FixtureSourceLocatorFactory
         foreach (glob(__DIR__.'/Fixtures/*.php.stub') ?: [] as $file) {
             $locators[] = $this->files->getOrCreate($file);
         }
+        $locators[] = $this->files->getOrCreate(__DIR__.'/Fixtures/foreign-package/src/PackagePrincipal.php');
         $locators[] = $this->factory->create();
 
         return new AggregateSourceLocator($locators);

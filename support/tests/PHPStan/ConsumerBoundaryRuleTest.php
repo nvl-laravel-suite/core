@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nvl\Support\Tests\PHPStan;
 
 use Composer\Autoload\ClassLoader;
+use Composer\InstalledVersions;
 use Nvl\Support\Consumer\PHPStan\ConsumerBoundaryPolicy;
 use Nvl\Support\Consumer\PHPStan\HostCapabilityRelationRule;
 use Nvl\Support\Consumer\PHPStan\OwnedTableRule;
@@ -14,10 +15,12 @@ use Nvl\Support\Consumer\PHPStan\PackageStaticCallRule;
 use Nvl\Support\Consumer\PHPStan\SymbolUsageRule;
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
+use PHPStan\Cache\CacheStorage;
 use PHPStan\PhpDoc\TypeStringResolver;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 use PHPStan\Type\FileTypeMapper;
+use PHPStan\Type\ObjectType;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use ReflectionClass;
@@ -49,6 +52,27 @@ final class ConsumerBoundaryRuleTest extends RuleTestCase
 
     /** @var array<string,string> */
     private array $tableNames = [];
+
+    /** Cold rule-analysis cache lookups must not emit absent-file include warnings in PHPUnit workers. */
+    public function test_isolated_parser_cache_misses_emit_no_runtime_warnings(): void
+    {
+        $warnings = [];
+        $storage = self::getContainer()->getService('cacheStorage');
+        self::assertInstanceOf(CacheStorage::class, $storage);
+        set_error_handler(static function (int $severity, string $message) use (&$warnings): bool {
+            $warnings[] = [$severity, $message];
+
+            return true;
+        });
+        try {
+            $result = $storage->load('nvl-rule-cold-cache-'.bin2hex(random_bytes(8)), '1');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($result);
+        self::assertSame([], $warnings);
+    }
 
     /** Bootstrap PHPStan inside its isolated test process and remove only newly installed Laravel handlers. */
     protected function setUp(): void
@@ -83,7 +107,7 @@ final class ConsumerBoundaryRuleTest extends RuleTestCase
         return [__DIR__.'/test.neon', self::isolatedCacheConfiguration()];
     }
 
-    /** Keep each native PHPUnit worker's generated PHPStan files independent. */
+    /** Keep generated containers isolated and parser entries in their native PHPUnit worker's memory. */
     private static function isolatedCacheConfiguration(): string
     {
         $directory = sys_get_temp_dir().'/nvl-phpstan-rule-'.getmypid();
@@ -91,7 +115,7 @@ final class ConsumerBoundaryRuleTest extends RuleTestCase
             mkdir($directory, 0777, true);
         }
         $configuration = $directory.'/cache.neon';
-        file_put_contents($configuration, "parameters:\n    tmpDir: ".$directory."/cache\nservices:\n    cacheStorage:\n        arguments:\n            directory: ".$directory."/parser-cache\n");
+        file_put_contents($configuration, "parameters:\n    tmpDir: ".$directory."/cache\nservices:\n    cacheStorage!:\n        class: PHPStan\\Cache\\MemoryCacheStorage\n");
 
         return $configuration;
     }
@@ -254,6 +278,20 @@ final class ConsumerBoundaryRuleTest extends RuleTestCase
         $this->assertFixture('transfer.php.stub');
     }
 
+    /** Recursive host containers terminate without inventing package model handles. */
+    public function test_recursive_generic_model_discovery(): void
+    {
+        $policy = new ConsumerBoundaryPolicy(self::createReflectionProvider(), dirname(__DIR__, 6));
+        self::assertSame([], $policy->models(new ObjectType('ConsumerConversionFixtures\\RecursiveCollection')));
+    }
+
+    /** Actual receiver rules terminate on recursive containers within their isolated worker's memory budget. */
+    public function test_recursive_container_receiver_rules(): void
+    {
+        ini_set('memory_limit', '256M');
+        $this->assertFixture('recursive-containers.php.stub');
+    }
+
     /** Assert source positions and identifiers from the hand-reviewed fixture expectations. */
     private function assertFixture(string $name): void
     {
@@ -278,6 +316,49 @@ final class ConsumerBoundaryRuleTest extends RuleTestCase
         sort($actual);
         sort($identifiers);
         self::assertSame($identifiers, $actual);
+    }
+
+    /** Host principal extensions retain native capability boundaries and strict configured model handles. */
+    public function test_explicit_host_principal_extensions(): void
+    {
+        $this->assertPrincipalFixture();
+        self::assertFalse(class_exists('ConsumerPrincipalFixtures\\HostPrincipal', false));
+    }
+
+    /** Exercise an installed foreign subclass with genuine source ownership and no fixture execution. */
+    private function assertPrincipalFixture(string $package = 'nvl/consumer-fixture'): void
+    {
+        $original = InstalledVersions::getAllRawData()[0];
+        $installed = $original;
+        $directory = __DIR__.'/Fixtures/foreign-package';
+        $installed['versions'][$package] = ['install_path' => $directory, 'type' => 'library'];
+        InstalledVersions::reload($installed);
+        try {
+            $this->assertFixture('principals.php.stub');
+            self::assertFalse(class_exists('ConsumerForeignFixtures\\PackagePrincipal', false));
+        } finally {
+            InstalledVersions::reload($original);
+        }
+    }
+
+    /** Non-NVL Composer packages cannot inherit host permission for their own source or its descendants. */
+    public function test_non_nvl_installed_principal_subclasses_remain_protected(): void
+    {
+        $this->assertPrincipalFixture('acme/principals');
+    }
+
+    /** Explicit test roots never waive capabilities on a non-NVL package subclass. */
+    public function test_non_nvl_installed_principal_capabilities_in_test_roots(): void
+    {
+        $this->testPaths = [__DIR__.'/Fixtures'];
+        $this->assertPrincipalFixture('acme/principals');
+    }
+
+    /** Test setup grants never waive native principal capability relations or helper writes. */
+    public function test_host_principal_capabilities_remain_protected_in_test_roots(): void
+    {
+        $this->testPaths = [__DIR__.'/Fixtures'];
+        $this->assertPrincipalFixture();
     }
 
     public function test_allowed_handles_and_host_tables(): void

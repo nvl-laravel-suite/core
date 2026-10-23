@@ -1,0 +1,19 @@
+{
+    "schema_version": 1,
+    "package": "nvl/consumer-fixture",
+    "psr4": {
+        "ConsumerForeignFixtures\\": "src/"
+    },
+    "symbols": {
+        "ConsumerForeignFixtures\\PackagePrincipal": {
+            "kind": "class",
+            "file": "src/PackagePrincipal.php",
+            "methods": [],
+            "properties": [],
+            "constants": []
+        }
+    },
+    "models": {},
+    "capability_relations": {},
+    "tables": {}
+}

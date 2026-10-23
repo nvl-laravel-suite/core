@@ -57,6 +57,7 @@ final class CheckTypesCommand extends Command
         $files->ensureDirectoryExists($temporaryDirectory);
 
         try {
+            $temporaryDirectory = $pathGuard->outputDirectory($temporaryDirectory);
             $diagnostics = new TypeScriptDiagnosticsLogger(new NullLogger);
             $exitCode = $runner->run(
                 logger: $diagnostics,

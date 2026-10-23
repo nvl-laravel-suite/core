@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ConsumerRecursiveFixtures;
+
+use ConsumerConversionFixtures\RecursiveCollection;
+use ConsumerPrincipalFixtures\HostPrincipal;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Nvl\Auth\Models\Role;
+
+/** @extends Collection<int, RecursiveRoles|Role> */
+class RecursiveRoles extends Collection {}
+
+/** @extends Collection<int, RecursivePrincipals|HostPrincipal> */
+class RecursivePrincipals extends Collection {}
+
+/** @param Builder<HostPrincipal> $query */
+function recursiveReceiverCalls(RecursiveCollection $groups, Builder $query, RecursiveRoles $roles, RecursivePrincipals $principals): void
+{
+    $groups->all();
+    $query->whereAttachedTo($groups);
+    $query->whereAttachedTo($roles); // boundary: capabilityRelation Nvl\Auth\Models\User::roles
+    $principals->toArray(); // boundary: capabilityRelation Nvl\Auth\Models\User::toArray
+}

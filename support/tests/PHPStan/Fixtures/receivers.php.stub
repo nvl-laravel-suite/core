@@ -25,6 +25,17 @@ class Article extends Model
 
 class CommentSubclass extends Term {}
 
+class InheritedArticle extends Article {}
+
+function inheritedCapabilities(InheritedArticle $article): void
+{
+    $article->comments(); // boundary: capabilityRelation Nvl\Comments\Traits\InteractsWithComments::comments
+    $article->tags; // boundary: capabilityRelation Nvl\Taxonomy\Concerns\HasTaxonomies::$tags
+    $article->load('comments'); // boundary: capabilityRelation Nvl\Comments\Traits\InteractsWithComments::comments
+    $article->loadCount('tags'); // boundary: capabilityRelation Nvl\Taxonomy\Concerns\HasTaxonomies::tags
+    $article->withAnyTerms('tag', ['x']);
+}
+
 class Holder
 {
     public Comment $comment;
