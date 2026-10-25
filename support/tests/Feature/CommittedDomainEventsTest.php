@@ -183,6 +183,30 @@ it('retains custom host dispatchers while registering legacy listeners through t
     expect($aliases->canonicalName(C4NativeConnectionFact::class))->toBe(C4NativeConnectionFact::class);
 });
 
+it('rejects malformed raw legacy listener maps before invoking a bridged listener', function (): void {
+    $legacy = 'Nvl\\Support\\Tests\\Fixtures\\MalformedLegacyEvent';
+    $native = new class(new Container) extends Dispatcher
+    {
+        public bool $malformed = false;
+
+        public function getRawListeners(): array
+        {
+            $listeners = parent::getRawListeners();
+            if ($this->malformed) {
+                $listeners['Nvl\\Support\\Tests\\Fixtures\\MalformedLegacyEvent'] = ['named' => static fn (): null => null];
+            }
+
+            return $listeners;
+        }
+    };
+    $aliases = new EventAliases($native);
+    $aliases->register(C4NativeConnectionFact::class, $legacy);
+    $native->malformed = true;
+
+    expect(fn () => $native->dispatch(new C4NativeConnectionFact(30, true)))
+        ->toThrow(InvalidArgumentException::class, 'Raw event registrations must be listener lists.');
+});
+
 it('preserves object callables and callable method arrays in the dormant alias adapter', function (): void {
     $native = new Dispatcher(new Container);
     $aliases = new EventAliases($native);

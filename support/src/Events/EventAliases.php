@@ -42,9 +42,9 @@ final class EventAliases
         $events = $this->events;
         $events->listen($canonical, static function (object $event) use ($events, $canonical, $legacy): ?bool {
             $listeners = $events->getRawListeners();
-            $legacyListeners = $listeners[$legacy] ?? [];
-            $canonicalListeners = $listeners[$canonical] ?? [];
-            if (! is_array($legacyListeners) || ! is_array($canonicalListeners)) {
+            $legacyListeners = self::listenerList($listeners[$legacy] ?? []);
+            $canonicalListeners = self::listenerList($listeners[$canonical] ?? []);
+            if ($legacyListeners === null || $canonicalListeners === null) {
                 throw new InvalidArgumentException('Raw event registrations must be listener lists.');
             }
             foreach ($legacyListeners as $listener) {
@@ -93,5 +93,15 @@ final class EventAliases
         }
 
         throw new InvalidArgumentException('Event listeners require a native class listener or PHP callable.');
+    }
+
+    /** @return list<mixed>|null */
+    private static function listenerList(mixed $listeners): ?array
+    {
+        if (! is_array($listeners) || ! array_is_list($listeners)) {
+            return null;
+        }
+
+        return $listeners;
     }
 }

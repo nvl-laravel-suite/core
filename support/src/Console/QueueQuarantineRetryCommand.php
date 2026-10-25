@@ -20,7 +20,13 @@ final class QueueQuarantineRetryCommand extends Command
     /** Retry the selected native records and leave rejected or unsupported records available for inspection. */
     public function handle(TenantQueueQuarantine $quarantine): int
     {
-        foreach ($this->argument('id') as $id) {
+        $ids = self::nativeIds($this->argument('id'));
+        if ($ids === null) {
+            $this->error('Native failed-job IDs must be non-empty strings.');
+
+            return self::FAILURE;
+        }
+        foreach ($ids as $id) {
             try {
                 $quarantine->retry($id);
                 $this->info("Requeued raw NVL payload [{$id}].");
@@ -32,5 +38,20 @@ final class QueueQuarantineRetryCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /** @return list<string>|null */
+    private static function nativeIds(mixed $value): ?array
+    {
+        if (! is_array($value) || $value === [] || ! array_is_list($value)) {
+            return null;
+        }
+        foreach ($value as $id) {
+            if (! is_string($id) || trim($id) === '') {
+                return null;
+            }
+        }
+
+        return $value;
     }
 }
