@@ -7,7 +7,7 @@ namespace ConsumerConversionFixtures;
 use Illuminate\Database\Eloquent\Collection;
 use Nvl\Comments\Data\PublicCommentData;
 use Nvl\Comments\Models\Comment;
-use Nvl\Data\Services\TypeScriptSourceRegistry;
+use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 
 /** @extends \Illuminate\Support\Collection<int, RecursiveCollection> */
 class RecursiveCollection extends \Illuminate\Support\Collection {}
@@ -44,7 +44,7 @@ function groupedConversions(\Illuminate\Support\Collection $groups): void
     json_encode($groups); // boundary: packageQuery Nvl\Comments\Models\Comment::jsonSerialize
 }
 
-function internalProperty(TypeScriptSourceRegistry $registry): void
+function internalProperty(OwnershipResourceRegistry $registry): void
 {
-    $registry->paths; // boundary: internalApi Nvl\Data\Services\TypeScriptSourceRegistry::$paths
+    $registry->resources; // boundary: internalApi Nvl\Support\Ownership\Services\OwnershipResourceRegistry::$resources
 }

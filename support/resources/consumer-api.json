@@ -2,65 +2,9 @@
     "schema_version": 1,
     "package": "nvl/core",
     "psr4": {
-        "Nvl\\Data\\": "data/src",
         "Nvl\\Support\\": "support/src"
     },
     "symbols": {
-        "Nvl\\Data\\Data\\PaginatedCollection": {
-            "kind": "class",
-            "file": "data/src/Data/PaginatedCollection.php",
-            "methods": [
-                "__construct",
-                "fromPaginator"
-            ],
-            "properties": [
-                "items",
-                "meta"
-            ],
-            "constants": []
-        },
-        "Nvl\\Data\\Data\\PaginationMeta": {
-            "kind": "class",
-            "file": "data/src/Data/PaginationMeta.php",
-            "methods": [
-                "__construct"
-            ],
-            "properties": [
-                "currentPage",
-                "lastPage",
-                "perPage",
-                "total"
-            ],
-            "constants": []
-        },
-        "Nvl\\Data\\Services\\TypeScriptSourceRegistry": {
-            "kind": "class",
-            "file": "data/src/Services/TypeScriptSourceRegistry.php",
-            "methods": [
-                "__construct",
-                "all",
-                "descriptors",
-                "register",
-                "registerMany"
-            ],
-            "properties": [],
-            "constants": []
-        },
-        "Nvl\\Data\\Traits\\DataTransform": {
-            "kind": "trait",
-            "file": "data/src/Traits/DataTransform.php",
-            "methods": [
-                "scopedRules",
-                "toArray",
-                "toModel",
-                "toModelFiltered",
-                "toModelPatch",
-                "translatedAttributes",
-                "translatedMessages"
-            ],
-            "properties": [],
-            "constants": []
-        },
         "Nvl\\Support\\Bindings\\RequiredBindingDefinition": {
             "kind": "class",
             "file": "support/src/Bindings/RequiredBindingDefinition.php",
@@ -273,6 +217,32 @@
                 "BindingRequired",
                 "EventCommitUnavailable",
                 "OperationFailed"
+            ]
+        },
+        "Nvl\\Support\\Enums\\PublicActor": {
+            "kind": "enum",
+            "file": "support/src/Enums/PublicActor.php",
+            "methods": [
+                "cases"
+            ],
+            "properties": [
+                "name"
+            ],
+            "constants": [
+                "Anonymous"
+            ]
+        },
+        "Nvl\\Support\\Enums\\SystemActor": {
+            "kind": "enum",
+            "file": "support/src/Enums/SystemActor.php",
+            "methods": [
+                "cases"
+            ],
+            "properties": [
+                "name"
+            ],
+            "constants": [
+                "Background"
             ]
         },
         "Nvl\\Support\\Events\\ConnectionCommitCallbacks": {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Bus\BatchRepository;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Nvl\Support\Ownership\Contracts\OwnershipQueueContext;
 use Nvl\Support\Ownership\Enums\OwnershipContextMode;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\OwnerReference;
@@ -12,7 +13,7 @@ use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
 use Nvl\Support\Tests\Fixtures\OwnershipQueueProbe;
 
-it('keeps owned native batch callbacks inert when the ownership runtime is absent', function (bool $owned): void {
+it('admits batch callback bytes through the explicit queue context before native restoration', function (bool $owned): void {
     config()->set('queue.batching.database', DB::getDefaultConnection());
     OwnershipQueueProbe::$restored = 0;
     DB::getSchemaBuilder()->create('job_batches', static function (Blueprint $table): void {
@@ -34,7 +35,7 @@ it('keeps owned native batch callbacks inert when the ownership runtime is absen
     DB::table('job_batches')->insert(['id' => 'batch', 'name' => 'native', 'total_jobs' => 1, 'pending_jobs' => 1, 'failed_jobs' => 0, 'failed_job_ids' => '[]', 'options' => serialize($options), 'created_at' => time()]);
     $repository = app(BatchRepository::class);
     if ($owned) {
-        expect(fn () => $repository->find('batch'))->toThrow(OwnershipViolation::class)
+        expect(fn () => app(OwnershipQueueContext::class)->run(OwnershipJobEnvelope::fromArray($options['nvl_ownership']), fn () => $repository->find('batch')))->toThrow(OwnershipViolation::class)
             ->and(OwnershipQueueProbe::$restored)->toBe(0);
     } else {
         expect($repository->find('batch')->id)->toBe('batch')

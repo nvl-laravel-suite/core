@@ -7,6 +7,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Nvl\Support\Schema\SchemaIdentities;
+use Nvl\Support\Tests\Fixtures\RetiredSchemaServiceProvider;
+
+beforeEach(function (): void {
+    $this->app->register(RetiredSchemaServiceProvider::class);
+});
 
 it('protects host storage and history for every schema-owning package', function (string $package): void {
     $manifest = SchemaIdentities::package($package);

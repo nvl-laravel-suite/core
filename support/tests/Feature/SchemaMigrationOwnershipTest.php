@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Schema;
 use Nvl\Support\Schema\SchemaIdentities;
 use Nvl\Support\Schema\SchemaMigrationPaths;
 use Nvl\Support\Schema\SchemaPreflight;
+use Nvl\Support\Tests\Fixtures\RetiredSchemaServiceProvider;
+
+beforeEach(function (): void {
+    $this->app->register(RetiredSchemaServiceProvider::class);
+});
 
 it('preflights an explicitly selected batch without running earlier host DDL', function (): void {
     Schema::create('nvl_settings_settings', fn (Blueprint $table) => $table->id());

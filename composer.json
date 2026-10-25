@@ -1,23 +1,19 @@
 {
     "name": "nvl/core",
-    "description": "Shared NVL support contracts and data transformation infrastructure for Laravel",
+    "description": "Native Laravel support contracts, configuration, model identity, and ownership ports",
     "type": "library",
     "license": "MIT",
     "keywords": [
         "laravel",
         "support",
-        "data-transfer-object",
-        "typescript"
+        "ownership"
     ],
     "require": {
         "php": "^8.4",
         "composer-runtime-api": "^2.2",
         "ext-ctype": "*",
         "ext-mbstring": "*",
-        "laravel/framework": "^12.0 || ^13.0",
-        "spatie/laravel-data": "^4.23",
-        "spatie/laravel-typescript-transformer": "^3.3",
-        "spatie/typescript-transformer": "^3.3",
+        "laravel/framework": "^13.0",
         "symfony/http-foundation": "^7.0 || ^8.0"
     },
     "require-dev": {
@@ -48,7 +44,7 @@
         "nvl/tenancy": "^6.0",
         "nvl/translatable": "^6.0",
         "nvl/translations": "^6.0",
-        "orchestra/testbench": "^10.0 || ^11.0",
+        "orchestra/testbench": "^11.0",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-laravel": "^4.0",
         "phpstan/phpstan": "^2.2.5",
@@ -59,19 +55,14 @@
         "symfony/filesystem": "^7.0 || ^8.0",
         "symfony/process": "^7.0 || ^8.0"
     },
-    "suggest": {
-        "ext-zip": "Enables downloadable archives for the generated TypeScript declaration API.",
-        "larastan/larastan": "Provide Laravel-aware receiver types for optional consumer boundary analysis (^3.10).",
-        "phpstan/phpstan": "Enable optional consumer boundary analysis with PHPStan ^2.2.5 and support/consumer-audit.neon."
-    },
     "autoload": {
         "psr-4": {
-            "Nvl\\Support\\": "support/src/",
-            "Nvl\\Data\\": "data/src/"
+            "Nvl\\Support\\": "support/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
+            "Nvl\\Data\\": "data/src/",
             "Nvl\\Support\\Tests\\": "support/tests/",
             "Nvl\\Data\\Tests\\": "data/tests/"
         },
@@ -100,7 +91,6 @@
         "laravel": {
             "providers": [
                 "Nvl\\Support\\Providers\\SupportServiceProvider",
-                "Nvl\\Data\\Providers\\DataServiceProvider",
                 "Nvl\\Support\\Providers\\LocaleServiceProvider"
             ]
         }
@@ -128,14 +118,11 @@
             "/support/phpstan.neon.dist",
             "/support/phpunit.xml.dist",
             "/support/composer.json",
-            "/data/.temp",
-            "/data/.gitattributes",
-            "/data/.gitignore",
-            "/data/composer-require-checker.json",
-            "/data/tests",
-            "/data/phpstan.neon.dist",
-            "/data/phpunit.xml.dist",
-            "/data/composer.json",
+            "/support/consumer-audit.neon",
+            "/support/resources/consumer-api.json",
+            "/support/src/Consumer",
+            "/support/stubs-events.stub",
+            "/data",
             "/.DS_Store",
             "/**/.DS_Store",
             "/.gitattributes",

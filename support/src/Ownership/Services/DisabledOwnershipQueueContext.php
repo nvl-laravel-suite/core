@@ -12,7 +12,6 @@ use Nvl\Support\Ownership\Enums\OwnershipContextMode;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
-use Nvl\Support\Tenancy\Services\PersistedTenantStorage;
 
 /** Preserves native unowned scheduling while denying captured authority without its runtime. @internal */
 final readonly class DisabledOwnershipQueueContext implements OwnershipQueueContext
@@ -32,7 +31,7 @@ final readonly class DisabledOwnershipQueueContext implements OwnershipQueueCont
     /** Keep ordinary native batches available on unadopted storage. */
     public function captureBatch(PendingBatch $batch): PendingBatch
     {
-        $this->container->make(PersistedTenantStorage::class)->assertQueueUsable();
+        $this->assertUnownedStorage();
 
         return $batch;
     }
@@ -51,8 +50,23 @@ final readonly class DisabledOwnershipQueueContext implements OwnershipQueueCont
                 throw new OwnershipViolation('Declared ownership requires its enforcing runtime.');
             }
         }
-        $this->container->make(PersistedTenantStorage::class)->assertQueueUsable();
+        $this->assertUnownedStorage();
 
         return $operation();
+    }
+
+    /** Reject persisted or declared ownership only when explicitly captured work is scheduled. */
+    private function assertUnownedStorage(): void
+    {
+        if ($this->container->make('config')->get('nvl-ownership.enabled') === true) {
+            throw new OwnershipViolation('Captured ownership requires its enforcing runtime.');
+        }
+        foreach ($this->container->make(OwnershipResourceRegistry::class)->all() as $resource) {
+            if ($resource->ownership->strategy !== 'unscoped') {
+                throw new OwnershipViolation('Declared ownership requires its enforcing runtime.');
+            }
+            $model = new $resource->model;
+            $this->container->make(PersistedOwnershipStorage::class)->assertUnadopted($model->getConnection(), $resource->key, $model->getTable());
+        }
     }
 }

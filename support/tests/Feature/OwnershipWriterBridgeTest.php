@@ -7,13 +7,14 @@ use Illuminate\Support\Facades\DB;
 use Nvl\Support\Ownership\Compatibility\LegacyModelOwnership;
 use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Contracts\OwnershipWriter;
+use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
+use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 use Nvl\Support\Tenancy\Contracts\TenantBoundary;
 use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
-use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
-use Nvl\Support\Tenancy\ValueObjects\TenantResourceDefinition;
 use Nvl\Support\Tests\Fixtures\OwnershipConfigurableModel;
+use Nvl\Support\Tests\Fixtures\OwnershipDefinitionCompany;
 use Nvl\Support\Tests\Fixtures\UnscopedOwnershipBase;
 
 it('retains legacy identity immutability without resolving execution authority', function (string $attribute): void {
@@ -39,48 +40,39 @@ it('creates unowned package models without requiring the optional runtime', func
     expect(DB::table('ownership_claimed_models')->pluck('name')->all())->toBe(['native']);
 });
 
-it('delegates legacy query and attribute admission without asserting a transient persisted record', function (): void {
+it('admits native unowned queries without consulting the retired boundary', function (): void {
     DB::getSchemaBuilder()->create('ownership_claimed_models', static function (Blueprint $table): void {
         $table->id();
         $table->string('name');
     });
-    DB::table('ownership_claimed_models')->insert(['name' => 'legacy']);
-    app(TenantResourceRegistry::class)->register(new TenantResourceDefinition('test.bridge', 'test', UnscopedOwnershipBase::class));
-    $legacy = Mockery::mock(TenantBoundary::class);
-    $legacy->shouldReceive('query')->once()->andReturnUsing(static fn ($query) => $query->where('name', 'legacy'));
-    $legacy->shouldReceive('attributes')->once()->andReturn(['ownership_key' => 'platform']);
-    $legacy->shouldReceive('key')->once()->with('test.bridge', 'cache')->andReturn('legacy:cache');
-    $legacy->shouldReceive('assertRecord')->once()->andThrow(new RuntimeException('Persisted record guard still applies.'));
-    app()->instance(TenantBoundary::class, $legacy);
+    DB::table('ownership_claimed_models')->insert(['name' => 'native']);
+    app(OwnershipResourceRegistry::class)->register(new OwnershipResourceDefinition('test.writer', 'test', UnscopedOwnershipBase::class, UnscopedOwnershipBase::ownershipDefinition()));
+    app()->beforeResolving(TenantBoundary::class, static function (): never {
+        throw new LogicException('Native unowned access resolved retired authority.');
+    });
     $boundary = app(OwnershipBoundary::class);
     $model = new UnscopedOwnershipBase;
-    expect($boundary->query($model->newModelQuery(), 'test.bridge')->count())->toBe(1)
-        ->and($boundary->attributes('test.bridge'))->toBe(['ownership_key' => 'platform'])
-        ->and($boundary->key('test.bridge', 'cache'))->toBe('legacy:cache')
-        ->and(fn () => $boundary->assertRecord($model, 'test.bridge'))->toThrow(RuntimeException::class, 'Persisted record guard still applies.');
+    expect($boundary->query($model->newModelQuery()->where('name', 'native'), 'test.writer')->count())->toBe(1)
+        ->and($boundary->attributes('test.writer'))->toBe([])
+        ->and($boundary->key('test.writer', 'cache'))->toBe('cache');
+    $boundary->assertRecord($model, 'test.writer');
 });
 
-it('checks legacy creation after native stamping and rolls back a forged quiet assignment', function (): void {
+it('denies declared ownership before writer callbacks and quiet model persistence', function (): void {
     DB::getSchemaBuilder()->create('ownership_claimed_models', static function (Blueprint $table): void {
         $table->id();
         $table->string('name');
-        $table->string('ownership_key');
+        $table->string('company_id');
     });
-    app(OwnershipResourceRegistry::class)->register(new OwnershipResourceDefinition('test.bridge', 'test', UnscopedOwnershipBase::class, UnscopedOwnershipBase::ownershipDefinition()));
-    app(TenantResourceRegistry::class)->register(new TenantResourceDefinition('test.bridge', 'test', UnscopedOwnershipBase::class));
-    $legacy = Mockery::mock(TenantBoundary::class);
-    $legacy->shouldReceive('query')->andReturnUsing(static fn ($query) => $query);
-    $legacy->shouldReceive('attributes')->andReturn(['ownership_key' => 'admitted']);
-    $legacy->shouldReceive('assertRecord')->twice()->andReturnUsing(static function ($record): void {
-        if (! $record->exists || $record->getRawOriginal('ownership_key') !== 'admitted') {
-            throw new RuntimeException('Foreign persisted assignment.');
-        }
-    });
-    app()->instance(TenantBoundary::class, $legacy);
-    UnscopedOwnershipBase::creating(static fn ($record) => $record->forceFill(['ownership_key' => 'admitted']));
-    $valid = new UnscopedOwnershipBase(['name' => 'native stamp']);
-    expect($valid->save())->toBeTrue();
-    $forged = new UnscopedOwnershipBase(['name' => 'forged', 'ownership_key' => 'foreign']);
-    expect(fn () => $forged->saveQuietly())->toThrow(RuntimeException::class, 'Foreign persisted assignment.')
-        ->and(DB::table('ownership_claimed_models')->pluck('name')->all())->toBe(['native stamp']);
+    app(OwnershipResourceRegistry::class)->register(new OwnershipResourceDefinition('test.writer', 'test', UnscopedOwnershipBase::class, OwnershipDefinition::column(OwnershipDefinitionCompany::class, 'company_id')));
+    $called = false;
+    expect(fn () => app(OwnershipWriter::class)->create(UnscopedOwnershipBase::class, function (array $ownership) use (&$called): UnscopedOwnershipBase {
+        $called = true;
+
+        return UnscopedOwnershipBase::query()->create([...$ownership, 'name' => 'forged', 'company_id' => 'foreign']);
+    }))->toThrow(OwnershipViolation::class);
+    $forged = new UnscopedOwnershipBase(['name' => 'forged', 'company_id' => 'foreign']);
+    expect(fn () => $forged->saveQuietly())->toThrow(OwnershipViolation::class)
+        ->and($called)->toBeFalse()
+        ->and(DB::table('ownership_claimed_models')->count())->toBe(0);
 });

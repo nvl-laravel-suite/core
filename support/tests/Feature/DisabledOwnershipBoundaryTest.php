@@ -30,8 +30,8 @@ it('denies a declared owner or enabled runtime configuration when its enforcing 
     expect(fn () => app(OwnershipBoundary::class)->query(OwnershipCapableModel::query(), 'test.products'))->toThrow(OwnershipViolation::class);
 });
 
-it('does not treat enabled legacy tenancy as an unowned query escape', function (): void {
+it('does not treat enabled ownership without its runtime as an unowned query escape', function (): void {
     app(OwnershipResourceRegistry::class)->register(new OwnershipResourceDefinition('test.products', 'test', OwnershipCapableModel::class, OwnershipDefinition::unscoped()));
-    config(['nvl-tenancy.enabled' => true]);
+    config(['nvl-ownership.enabled' => true]);
     expect(fn () => app(OwnershipBoundary::class)->query(OwnershipCapableModel::query(), 'test.products'))->toThrow(OwnershipViolation::class);
 });

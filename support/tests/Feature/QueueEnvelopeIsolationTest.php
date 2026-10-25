@@ -15,15 +15,12 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
-use Nvl\Support\Tenancy\Contracts\TenantContext;
-use Nvl\Support\Tenancy\Contracts\TenantQueueHandler;
-use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
-use Nvl\Support\Tenancy\Exceptions\TenantConfigurationInvalid;
-use Nvl\Support\Tenancy\Services\PersistedTenantStorage;
-use Nvl\Support\Tenancy\Services\TenantQueueQuarantine;
-use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
-use Nvl\Support\Tenancy\ValueObjects\TenantResourceDefinition;
-use Nvl\Support\Tests\Fixtures\DisabledBoundaryRecord;
+use Nvl\Support\Ownership\Contracts\OwnershipContext;
+use Nvl\Support\Ownership\Contracts\OwnershipQueueHandler;
+use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
+use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
+use Nvl\Support\Ownership\Services\OwnershipQueueQuarantine;
+use Nvl\Support\Ownership\Services\PersistedOwnershipStorage;
 
 /** Records native command restoration and both execution entry points. */
 final class QueueIsolationProbeJob implements ShouldQueue
@@ -56,24 +53,24 @@ final class QueueIsolationProbeJob implements ShouldQueue
 }
 
 /** Models an explicitly enforcing host handler with a separate unguarded method. */
-final class QueueIsolationGuardedHostHandler extends CallQueuedHandler implements TenantQueueHandler
+final class QueueIsolationGuardedHostHandler extends CallQueuedHandler implements OwnershipQueueHandler
 {
     /** @param array<string, mixed> $data */
     public function validate(array $data): void
     {
-        throw new TenantBoundaryViolation('Fixture tenant payload admission denied.');
+        throw new OwnershipViolation('Fixture tenant payload admission denied.');
     }
 
     /** @param array<string, mixed> $data */
     public function call(Job $job, array $data): void
     {
-        throw new TenantBoundaryViolation('Fixture tenant execution admission denied.');
+        throw new OwnershipViolation('Fixture tenant execution admission denied.');
     }
 
     /** @param array<string, mixed> $data */
     public function failed(array $data, mixed $e, string $uuid, ?Job $job = null): void
     {
-        throw new TenantBoundaryViolation('Fixture tenant failure admission denied.');
+        throw new OwnershipViolation('Fixture tenant failure admission denied.');
     }
 
     /** @param array<string, mixed> $data */
@@ -119,7 +116,7 @@ it('runs unrelated jobs before resolving package context or storage', function (
         app()->instance('nvl.tenancy.runtime', true);
         config()->set('nvl-tenancy.enabled', true);
     }
-    foreach ([TenantContext::class, PersistedTenantStorage::class] as $service) {
+    foreach ([OwnershipContext::class, PersistedOwnershipStorage::class] as $service) {
         app()->beforeResolving($service, static function (): void {
             throw new LogicException('Unrelated queue work resolved package state.');
         });
@@ -147,15 +144,15 @@ it('quarantines captured work before a terminal native worker can restore its co
         ->and(QueueIsolationProbeJob::$failed)->toBe(0)
         ->and(DB::table('jobs')->count())->toBe(0)
         ->and($failure->payload)->toBe($raw)
-        ->and($failure->exception)->toContain('TenantBoundaryViolation');
+        ->and($failure->exception)->toContain('OwnershipViolation');
 
     expect(fn () => Artisan::call('queue:retry', ['id' => [$failure->uuid]]))
-        ->toThrow(TenantBoundaryViolation::class, 'nvl:queue:retry');
+        ->toThrow(OwnershipViolation::class, 'nvl:queue:retry');
     expect(QueueIsolationProbeJob::$restored)->toBe(0)
         ->and(DB::table('jobs')->count())->toBe(0)
         ->and(DB::table('failed_jobs')->count())->toBe(1);
 
-    Artisan::call('nvl:queue:retry', ['id' => [$failure->uuid]]);
+    app(OwnershipQueueQuarantine::class)->retry($failure->uuid);
     expect(DB::table('jobs')->value('payload'))->toBe($raw)
         ->and(QueueIsolationProbeJob::$restored)->toBe(0);
     app('queue.worker')->process('database', $queue->pop(), new WorkerOptions(maxTries: 1));
@@ -170,13 +167,13 @@ it('quarantines captured work before a terminal native worker can restore its co
 
 it('rejects sync dispatch without invoking restoration or native failure callbacks', function (): void {
     Queue::createPayloadUsing(static fn (): array => ['data' => ['commandName' => QueueIsolationProbeJob::class, 'command' => serialize(new QueueIsolationProbeJob), 'nvl_tenancy' => ['version' => 1, 'mode' => 'tenant', 'tenant_id' => '01954c28-56ec-7bda-9721-e5c05d7e1a54']]]);
-    expect(fn () => Queue::push(new QueueIsolationProbeJob))->toThrow(TenantBoundaryViolation::class)
+    expect(fn () => Queue::push(new QueueIsolationProbeJob))->toThrow(OwnershipViolation::class)
         ->and(QueueIsolationProbeJob::$restored)->toBe(0)
         ->and(QueueIsolationProbeJob::$handled)->toBe(0)
         ->and(QueueIsolationProbeJob::$failed)->toBe(0)
         ->and(DB::table('failed_jobs')->count())->toBe(1);
     $id = DB::table('failed_jobs')->value('uuid');
-    expect(Artisan::call('nvl:queue:retry', ['id' => [$id]]))->toBe(1)
+    expect(fn () => app(OwnershipQueueQuarantine::class)->retry($id))->toThrow(OwnershipViolation::class)
         ->and(DB::table('failed_jobs')->count())->toBe(1)
         ->and(QueueIsolationProbeJob::$restored)->toBe(0);
 });
@@ -188,7 +185,7 @@ it('preserves native retry behavior for unrelated failed host work', function ()
     DB::table('jobs')->delete();
     $id = app('queue.failer')->log('database', 'default', $record->payload, new RuntimeException('Host failure.'));
 
-    expect(Artisan::call('nvl:queue:retry', ['id' => [$id]]))->toBe(1)
+    expect(fn () => app(OwnershipQueueQuarantine::class)->retry($id))->toThrow(OwnershipViolation::class)
         ->and(DB::table('failed_jobs')->count())->toBe(1)
         ->and(QueueIsolationProbeJob::$restored)->toBe(0);
 
@@ -204,7 +201,7 @@ it('rejects identified quarantine records before native restoration for every re
     $queue->push(new QueueIsolationProbeJob);
     $record = DB::table('jobs')->first();
     DB::table('jobs')->delete();
-    $id = app('queue.failer')->log('database', 'default', $record->payload, new TenantBoundaryViolation(TenantQueueQuarantine::REJECTION_PREFIX.'Captured tenant work requires the enforcing runtime.'));
+    $id = app('queue.failer')->log('database', 'default', $record->payload, new OwnershipViolation(OwnershipQueueQuarantine::REJECTION_PREFIX.'Captured tenant work requires the enforcing runtime.'));
     $arguments = match ($selector) {
         'id' => ['id' => [$id]],
         'all' => ['id' => ['all']],
@@ -217,7 +214,7 @@ it('rejects identified quarantine records before native restoration for every re
     }
 
     expect(fn () => Artisan::call('queue:retry', $arguments))
-        ->toThrow(TenantBoundaryViolation::class, 'nvl:queue:retry');
+        ->toThrow(OwnershipViolation::class, 'nvl:queue:retry');
     expect(QueueIsolationProbeJob::$restored)->toBe(0)
         ->and(QueueIsolationProbeJob::$handled)->toBe(0)
         ->and(QueueIsolationProbeJob::$failed)->toBe(0)
@@ -251,7 +248,7 @@ it('quarantines captured work on enabled workers retaining an incompatible host 
         ->and(QueueIsolationProbeJob::$failed)->toBe(0)
         ->and(DB::table('jobs')->count())->toBe(0)
         ->and(DB::table('failed_jobs')->value('payload'))->toBe($raw)
-        ->and(DB::table('failed_jobs')->value('exception'))->toContain('TenantConfigurationInvalid');
+        ->and(DB::table('failed_jobs')->value('exception'))->toContain('Queued ownership requires its native scalar envelope.');
 })->with([false, true]);
 
 it('quarantines enabled sync work retaining an incompatible host handler before restoration', function (): void {
@@ -261,16 +258,16 @@ it('quarantines enabled sync work retaining an incompatible host handler before 
     config()->set('nvl-tenancy.enabled', true);
     Queue::createPayloadUsing(static fn (): array => ['data' => ['commandName' => QueueIsolationProbeJob::class, 'command' => serialize(new QueueIsolationProbeJob), 'nvl_tenancy' => ['version' => 1, 'mode' => 'tenant', 'tenant_id' => '01954c28-56ec-7bda-9721-e5c05d7e1a54']]]);
 
-    expect(fn () => Queue::push(new QueueIsolationProbeJob))->toThrow(TenantBoundaryViolation::class)
+    expect(fn () => Queue::push(new QueueIsolationProbeJob))->toThrow(OwnershipViolation::class)
         ->and(app(CallQueuedHandler::class))->toBe($handler)
         ->and(QueueIsolationProbeJob::$restored)->toBe(0)
         ->and(QueueIsolationProbeJob::$handled)->toBe(0)
         ->and(QueueIsolationProbeJob::$failed)->toBe(0)
         ->and(DB::table('failed_jobs')->count())->toBe(1)
-        ->and(DB::table('failed_jobs')->value('exception'))->toContain('TenantConfigurationInvalid');
+        ->and(DB::table('failed_jobs')->value('exception'))->toContain('Queued ownership requires its native scalar envelope.');
 });
 
-it('quarantines invalid enabled metadata before delegating to a compatible handler', function (mixed $metadata, bool $runtime = true): void {
+it('rejects retired wire metadata before delegating to a host handler', function (mixed $metadata, bool $runtime = true): void {
     $queue = Queue::connection('database');
     $queue->push(new QueueIsolationProbeJob);
     $record = DB::table('jobs')->first();
@@ -287,12 +284,12 @@ it('quarantines invalid enabled metadata before delegating to a compatible handl
     app('queue.worker')->process('database', $queue->pop(), new WorkerOptions(maxTries: 1));
 
     expect(DB::table('failed_jobs')->value('payload'))->toBe($raw)
-        ->and(DB::table('failed_jobs')->value('exception'))->toContain(TenantQueueQuarantine::REJECTION_PREFIX)
+        ->and(DB::table('failed_jobs')->value('exception'))->toContain(OwnershipQueueQuarantine::REJECTION_PREFIX)
         ->and(QueueIsolationProbeJob::$restored)->toBe(0)
         ->and(QueueIsolationProbeJob::$handled)->toBe(0)
         ->and(QueueIsolationProbeJob::$failed)->toBe(0);
     expect(fn () => Artisan::call('queue:retry', ['id' => [DB::table('failed_jobs')->value('uuid')]]))
-        ->toThrow(TenantBoundaryViolation::class, 'nvl:queue:retry');
+        ->toThrow(OwnershipViolation::class, 'nvl:queue:retry');
     expect(QueueIsolationProbeJob::$restored)->toBe(0)
         ->and(DB::table('jobs')->count())->toBe(0)
         ->and(DB::table('failed_jobs')->count())->toBe(1);
@@ -303,7 +300,7 @@ it('quarantines invalid enabled metadata before delegating to a compatible handl
     'enabled without runtime' => [['version' => 1, 'mode' => 'disabled', 'tenant_id' => null], false],
 ]);
 
-it('quarantines compatible host admission failures before execution or terminal callbacks', function (string $mode): void {
+it('rejects retired wire authority before any host handler or terminal callback', function (string $mode): void {
     $metadata = ['version' => 1, 'mode' => 'tenant', 'tenant_id' => '01954c28-56ec-7bda-9721-e5c05d7e1a54'];
     $queue = Queue::connection('database');
     $queue->push(new QueueIsolationProbeJob);
@@ -324,7 +321,7 @@ it('quarantines compatible host admission failures before execution or terminal 
             'nvl_tenancy' => $metadata,
         ]]);
         expect(fn () => Queue::push(new QueueIsolationProbeJob))
-            ->toThrow(TenantBoundaryViolation::class, TenantQueueQuarantine::REJECTION_PREFIX);
+            ->toThrow(OwnershipViolation::class, OwnershipQueueQuarantine::REJECTION_PREFIX);
     } elseif ($mode === 'terminal') {
         expect(fn () => app('queue.worker')->process('database', $queue->pop(), new WorkerOptions(maxTries: 1)))
             ->toThrow(MaxAttemptsExceededException::class);
@@ -337,10 +334,10 @@ it('quarantines compatible host admission failures before execution or terminal 
         ->and(QueueIsolationProbeJob::$failed)->toBe(0)
         ->and(DB::table('jobs')->count())->toBe(0)
         ->and(DB::table('failed_jobs')->count())->toBe(1)
-        ->and(DB::table('failed_jobs')->value('exception'))->toContain('Fixture tenant payload admission denied.');
+        ->and(DB::table('failed_jobs')->value('exception'))->toContain('Queued ownership requires its native scalar envelope.');
 })->with(['worker', 'terminal', 'sync']);
 
-it('validates the actual queued handler and method before trusting a compatible default binding', function (string $handlerName): void {
+it('rejects retired wire authority regardless of the queued handler and method', function (string $handlerName): void {
     $queue = Queue::connection('database');
     $queue->push(new QueueIsolationProbeJob);
     $record = DB::table('jobs')->first();
@@ -363,7 +360,7 @@ it('validates the actual queued handler and method before trusting a compatible 
         ->and(QueueIsolationProbeJob::$handled)->toBe(0)
         ->and(QueueIsolationProbeJob::$failed)->toBe(0)
         ->and(DB::table('failed_jobs')->value('payload'))->toBe($raw)
-        ->and(DB::table('failed_jobs')->value('exception'))->toContain('TenantConfigurationInvalid');
+        ->and(DB::table('failed_jobs')->value('exception'))->toContain('Queued ownership requires its native scalar envelope.');
 })->with(['host.queue.raw@call', 'host.queue.guard@unguarded']);
 
 it('never restores rejected work when native failed-job persistence is unavailable', function (bool $disabled): void {
@@ -380,30 +377,26 @@ it('never restores rejected work when native failed-job persistence is unavailab
     DB::table('jobs')->where('id', $record->id)->update(['payload' => json_encode($payload, JSON_THROW_ON_ERROR)]);
 
     expect(fn () => app('queue.worker')->process('database', $queue->pop(), new WorkerOptions(maxTries: 1)))
-        ->toThrow($disabled ? TenantConfigurationInvalid::class : QueryException::class);
+        ->toThrow($disabled ? OwnershipConfigurationInvalid::class : QueryException::class);
     expect(QueueIsolationProbeJob::$restored)->toBe(0)
         ->and(QueueIsolationProbeJob::$handled)->toBe(0)
         ->and(QueueIsolationProbeJob::$failed)->toBe(0)
         ->and(DB::table('jobs')->count())->toBe(0);
 })->with([true, false]);
 
-it('admits disabled legacy envelopes only while registered storage is unadopted', function (bool $adopted): void {
-    app(TenantResourceRegistry::class)->register(new TenantResourceDefinition('fixture.records', 'fixture', DisabledBoundaryRecord::class));
+it('rejects every retired envelope even when storage has no ownership marker', function (bool $adopted): void {
     if ($adopted) {
-        Schema::create('nvl_tenancy_installation_state', function (Blueprint $table): void {
+        Schema::create('nvl_ownership_installation_state', function (Blueprint $table): void {
             $table->string('resource');
+            $table->string('physical_table');
         });
-        DB::table('nvl_tenancy_installation_state')->insert(['resource' => 'fixture.records']);
+        DB::table('nvl_ownership_installation_state')->insert(['resource' => 'fixture.records', 'physical_table' => 'disabled_boundary_records']);
     }
     Queue::createPayloadUsing(static fn (): array => ['data' => ['commandName' => QueueIsolationProbeJob::class, 'command' => serialize(new QueueIsolationProbeJob), 'nvl_tenancy' => ['version' => 1, 'mode' => 'disabled', 'tenant_id' => null]]]);
 
-    if ($adopted) {
-        expect(fn () => Queue::push(new QueueIsolationProbeJob))->toThrow(TenantBoundaryViolation::class);
-    } else {
-        Queue::push(new QueueIsolationProbeJob);
-    }
-    expect(QueueIsolationProbeJob::$restored)->toBe($adopted ? 0 : 1)
-        ->and(QueueIsolationProbeJob::$handled)->toBe($adopted ? 0 : 1)
+    expect(fn () => Queue::push(new QueueIsolationProbeJob))->toThrow(OwnershipViolation::class)
+        ->and(QueueIsolationProbeJob::$restored)->toBe(0)
+        ->and(QueueIsolationProbeJob::$handled)->toBe(0)
         ->and(QueueIsolationProbeJob::$failed)->toBe(0)
-        ->and(DB::table('failed_jobs')->count())->toBe($adopted ? 1 : 0);
+        ->and(DB::table('failed_jobs')->count())->toBe(1);
 })->with([true, false]);

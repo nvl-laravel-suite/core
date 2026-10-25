@@ -8,8 +8,8 @@ use Illuminate\Queue\WorkerOptions;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipQueueQuarantine;
-use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
 use Nvl\Support\Tests\Fixtures\OwnershipQueueProbe;
 
 it('quarantines ownership wire work on Core-only workers before terminal restoration', function (mixed $envelope): void {
@@ -47,7 +47,7 @@ it('quarantines ownership wire work on Core-only workers before terminal restora
         ->and(DB::table('failed_jobs')->count())->toBe(1)
         ->and(DB::table('failed_jobs')->value('exception'))->toContain('NVL queue envelope rejected:');
     $failure = DB::table('failed_jobs')->sole();
-    expect(fn () => Artisan::call('queue:retry', ['id' => [$failure->uuid]]))->toThrow(TenantBoundaryViolation::class, 'nvl:queue:retry')
+    expect(fn () => Artisan::call('queue:retry', ['id' => [$failure->uuid]]))->toThrow(OwnershipViolation::class, 'nvl:queue:retry')
         ->and(OwnershipQueueProbe::$restored)->toBe(0);
     app(OwnershipQueueQuarantine::class)->retry($failure->uuid);
     expect(DB::table('jobs')->value('payload'))->toBe($failure->payload)
