@@ -6039,6 +6039,26 @@
                     }
                 ],
                 "foreign_keys": []
+            },
+            "graph_lock": {
+                "constant": "GraphLock",
+                "legacy": "nvl_tasks_graph_lock",
+                "default": "nvl_tasks_graph_lock",
+                "columns": {
+                    "id": "string"
+                },
+                "create_migrations": [
+                    "2026_10_25_212329_nvl_tasks_create_graph_lock_table"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
             }
         },
         "migrations": {
@@ -6111,6 +6131,15 @@
                 "legacy_checksum": "f53c0607639e52025ba48179b760752c02284847b5569b1045493562b49cabce",
                 "creates": [
                     "activity_outbox"
+                ]
+            },
+            "2026_10_25_212329_nvl_tasks_create_graph_lock_table": {
+                "name": "2026_10_25_212329_nvl_tasks_create_graph_lock_table",
+                "path": "database/migrations/2026_10_25_212329_nvl_tasks_create_graph_lock_table.php",
+                "create": true,
+                "legacy_checksum": "3d7c30d9e565adc70de47de8938aa524b9c91d6a1b0c3e4d20a79f839ba097e8",
+                "creates": [
+                    "graph_lock"
                 ]
             }
         }
