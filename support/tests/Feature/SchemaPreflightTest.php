@@ -3,16 +3,20 @@
 declare(strict_types=1);
 
 use Composer\InstalledVersions;
+use Illuminate\Console\OutputStyle;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Nvl\Support\Config\PackageStorage;
+use Nvl\Support\Console\SchemaPreflightCommand;
+use Nvl\Support\Console\SchemaUpgradeCommand;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Support\Schema\PackageMigrator;
 use Nvl\Support\Schema\SchemaIdentities;
 use Nvl\Support\Schema\SchemaPreflight;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 it('rejects the complete batch before an earlier table can be created', function (): void {
@@ -156,3 +160,24 @@ it('keeps the deprecated opt-in migrator batch guard and duplicate-owner diagnos
         rmdir($directory);
     }
 });
+
+it('rejects scalar list options from custom console inputs without running dormant schema work', function (string $class, string $option): void {
+    $input = Mockery::mock(InputInterface::class);
+    $input->shouldReceive('getOption')->with('format')->andReturn('json');
+    $input->shouldReceive('getOption')->with('package')->andReturn($option === 'package' ? 'settings' : []);
+    if ($option === 'path') {
+        $input->shouldReceive('getOption')->with('path')->andReturn('database/migrations');
+    }
+    $output = new BufferedOutput;
+    $command = app($class);
+    $command->setLaravel(app());
+    $command->setInput($input);
+    $command->setOutput(new OutputStyle($input, $output));
+
+    expect(app()->call([$command, 'handle']))->toBe(1)
+        ->and($output->fetch())->toContain('The --'.$option.' option must be a list.');
+})->with([
+    'preflight package' => [SchemaPreflightCommand::class, 'package'],
+    'preflight paths' => [SchemaPreflightCommand::class, 'path'],
+    'upgrade package' => [SchemaUpgradeCommand::class, 'package'],
+]);

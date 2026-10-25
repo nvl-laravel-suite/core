@@ -30,15 +30,23 @@ final class SchemaPreflightCommand extends Command
             if (! in_array($format, ['text', 'json'], true)) {
                 throw new InvalidArgumentException('The format must be text or json.');
             }
+            $packageOptions = $this->option('package');
+            if (! is_array($packageOptions)) {
+                throw new InvalidArgumentException('The --package option must be a list.');
+            }
             $packages = [];
-            foreach ($this->option('package') as $package) {
+            foreach ($packageOptions as $package) {
                 if (! is_string($package) || SchemaIdentities::package($package) === []) {
                     throw new InvalidArgumentException('Each --package must select a known logical schema package.');
                 }
                 $packages[] = $package;
             }
+            $pathOptions = $this->option('path');
+            if (! is_array($pathOptions)) {
+                throw new InvalidArgumentException('The --path option must be a list.');
+            }
             $paths = [];
-            foreach ($this->option('path') as $path) {
+            foreach ($pathOptions as $path) {
                 if (! is_string($path) || $path === '') {
                     throw new InvalidArgumentException('Each --path must name a migration file or directory.');
                 }

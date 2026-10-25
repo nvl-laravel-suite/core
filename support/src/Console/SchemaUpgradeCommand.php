@@ -26,6 +26,9 @@ final class SchemaUpgradeCommand extends Command
                 throw new InvalidArgumentException('The format must be text or json.');
             }
             $packages = $this->option('package');
+            if (! is_array($packages)) {
+                throw new InvalidArgumentException('The --package option must be a list.');
+            }
             $selected = [];
             foreach ($packages as $package) {
                 if (! is_string($package) || $package === '') {

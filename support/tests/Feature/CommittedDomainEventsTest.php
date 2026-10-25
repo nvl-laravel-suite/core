@@ -182,3 +182,21 @@ it('retains custom host dispatchers while registering legacy listeners through t
     $aliases->listen(C4NativeConnectionFact::class, $listener);
     expect($aliases->canonicalName(C4NativeConnectionFact::class))->toBe(C4NativeConnectionFact::class);
 });
+
+it('preserves object callables and callable method arrays in the dormant alias adapter', function (): void {
+    $native = new Dispatcher(new Container);
+    $aliases = new EventAliases($native);
+    $listener = new class
+    {
+        public int $calls = 0;
+
+        public function __invoke(C4NativeConnectionFact $event): void
+        {
+            $this->calls++;
+        }
+    };
+    $aliases->listen(C4NativeConnectionFact::class, $listener);
+    $aliases->listen(C4NativeConnectionFact::class, [$listener, '__invoke']);
+    $native->dispatch(new C4NativeConnectionFact(30, true));
+    expect($listener->calls)->toBe(2);
+});

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Events;
 
+use Closure;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Events\Dispatcher as LaravelDispatcher;
+use InvalidArgumentException;
 
 /** Bridges deprecated exact event registrations without redispatching or replacing the host dispatcher.
  *
@@ -40,11 +42,16 @@ final class EventAliases
         $events = $this->events;
         $events->listen($canonical, static function (object $event) use ($events, $canonical, $legacy): ?bool {
             $listeners = $events->getRawListeners();
-            foreach ($listeners[$legacy] ?? [] as $listener) {
-                if (in_array($listener, $listeners[$canonical] ?? [], true)) {
+            $legacyListeners = $listeners[$legacy] ?? [];
+            $canonicalListeners = $listeners[$canonical] ?? [];
+            if (! is_array($legacyListeners) || ! is_array($canonicalListeners)) {
+                throw new InvalidArgumentException('Raw event registrations must be listener lists.');
+            }
+            foreach ($legacyListeners as $listener) {
+                if (in_array($listener, $canonicalListeners, true)) {
                     continue;
                 }
-                if ($events->makeListener($listener)($canonical, [$event]) === false) {
+                if ($events->makeListener(self::nativeListener($listener))($canonical, [$event]) === false) {
                     return false;
                 }
             }
@@ -66,6 +73,25 @@ final class EventAliases
      */
     public function listen(string $event, callable|array|string $listener): void
     {
-        $this->events->listen($this->canonicalName($event), $listener);
+        $native = is_array($listener) || is_string($listener) || $listener instanceof Closure
+            ? $listener : Closure::fromCallable($listener);
+        $this->events->listen($this->canonicalName($event), $native);
+    }
+
+    /** Preserve native class listener resolution and adapt other declared PHP callables. */
+    private static function nativeListener(mixed $listener): Closure|string
+    {
+        if (is_string($listener) || $listener instanceof Closure) {
+            return $listener;
+        }
+        if (is_array($listener) && array_is_list($listener) && count($listener) === 2
+            && is_string($listener[0]) && is_string($listener[1])) {
+            return $listener[0].'@'.$listener[1];
+        }
+        if (is_callable($listener)) {
+            return Closure::fromCallable($listener);
+        }
+
+        throw new InvalidArgumentException('Event listeners require a native class listener or PHP callable.');
     }
 }
