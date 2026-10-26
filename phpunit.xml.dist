@@ -12,13 +12,13 @@
     <testsuites>
         <testsuite name="NVL Core">
             <directory>support/tests</directory>
-            <directory>data/tests</directory>
+            <exclude>support/tests/Historical</exclude>
+            <exclude>support/tests/Fixtures</exclude>
         </testsuite>
     </testsuites>
     <source>
         <include>
             <directory suffix=".php">support/src</directory>
-            <directory suffix=".php">data/src</directory>
         </include>
     </source>
     <php>

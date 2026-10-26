@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Traits;
 
-use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Nvl\Support\Globals\GlobalNames;
 use Nvl\Support\Installation\PackageInstallation;
 use RuntimeException;
 
-/** Publishes only package-owned tags and preserves existing host routes and aliases. @mixin ServiceProvider */
+/** Publishes only package-owned tags while preserving host publication groups. @mixin ServiceProvider */
 trait RegistersNamespacedResources
 {
     /** Derive a package's public component name from its provider namespace. */
@@ -109,14 +108,5 @@ trait RegistersNamespacedResources
         }
 
         return $validated;
-    }
-
-    /** Preserve host route names and method paths while loading a package-owned route file. */
-    protected function loadRoutesFrom(mixed $path): void
-    {
-        $this->app->make(GlobalNames::class)->loadRoutes($this->publicationPackage(), $this->app->make(Router::class),
-            function () use ($path): void {
-                parent::loadRoutesFrom($path);
-            });
     }
 }

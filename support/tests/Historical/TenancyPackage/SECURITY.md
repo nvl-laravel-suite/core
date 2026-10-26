@@ -1,0 +1,31 @@
+# Security Policy
+
+Submit reports through [this package's private vulnerability reporting form](https://github.com/nvl-laravel-suite/tenancy/security/advisories/new).
+
+Security fixes are provided for the published `5.x` release line and the `6.x` line once published. Prepared 6.0.0 source does not establish release certification. Enabled Ownership requires Laravel 13; disabled/unowned hosts keep the declared framework range. Composer declares PHP `^8.4` and Laravel `^12.0|^13.0`. The local Dagger release gate verifies PHP 8.4/Laravel 13 with MySQL 8.4 and PostgreSQL 17 persistence contracts; PHP 8.5, Laravel 12 and MariaDB require separate compatibility evidence. Upstream security lifecycle limits still apply.
+
+Report vulnerabilities privately through the repository host's
+security-advisory feature. Include the configured strategy and profile, context
+mode, adapter source, and the stable tenancy response code. Do not include
+credentials, tenant data, SQL, tokens, or unredacted configuration secrets.
+
+Provider registration is not tenant isolation. Keep the feature disabled until
+the complete schema, context runner, resource boundaries, adoption, and worker
+restoration milestones are installed and verified.
+
+Registered boundaries validate canonical persisted ownership and current status.
+Callers must reload and lock business records under the predicate before mutation;
+loaded relationships and dirty attributes are not authorization evidence. Existing
+adoption markers remain mandatory when a feature is disabled or the configured
+core store changes. Marker cache invalidation is internal adoption infrastructure,
+and all other worker processes must restart at cutover.
+
+Adoption requires authenticated host platform authorization and actual application
+maintenance, with durable audits before mutations. CLI actor fields confer no
+authority. Immutable mapping/configuration fingerprints are checked on resumption
+and before phase checkpoints. Prepared graphs remain blocked through partial DDL;
+only a fully verified graph becomes active. Adapters preserve existing ownership
+and reject unsupported re-adoption; this protocol is not a tenant-transfer API.
+No adoption callback may publish queue, after-response, deferred or background work.
+Drain and restart other processes at cutover; local lock/probe state cannot replace
+that operational boundary. Local SQLite file locks require a local filesystem.

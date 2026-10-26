@@ -14,11 +14,8 @@
 /support/phpstan.neon.dist export-ignore
 /support/phpunit.xml.dist export-ignore
 /support/composer.json export-ignore
-/support/consumer-audit.neon export-ignore
 /support/resources/consumer-api.json export-ignore
-/support/src/Consumer export-ignore
 /support/stubs-events.stub export-ignore
-/data export-ignore
 /.DS_Store export-ignore
 /**/.DS_Store export-ignore
 /.gitattributes export-ignore
@@ -26,4 +23,5 @@
 /.gitignore export-ignore
 /**/.gitignore export-ignore
 /**/.gitkeep export-ignore
+.DS_Store export-ignore
 # END NVL COMPOSER EXPORTS

@@ -111,7 +111,7 @@ it('recognizes shipped NVL option fingerprints for every formerly generic config
     config([$package => $legacy]);
     expect(PackageConfiguration::detectedLegacy(config()))->toHaveKey($package)
         ->and(config($package))->toBe($legacy);
-})->with(['activity', 'billing', 'comments', 'content', 'forms', 'mail-notifications', 'media', 'metafields', 'pages', 'payments', 'primitives', 'seo', 'settings', 'tasks', 'taxonomy', 'templates', 'tenancy', 'translatable', 'translations']);
+})->with(['activity', 'billing', 'comments', 'content', 'forms', 'mail-notifications', 'media', 'metafields', 'pages', 'payments', 'primitives', 'seo', 'settings', 'tasks', 'taxonomy', 'templates', 'translatable', 'translations']);
 
 it('preserves canonical null and empty env values', function (string $raw, mixed $expected): void {
     putenv('MEDIA_QUEUE=foreign-work');

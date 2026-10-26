@@ -36,17 +36,7 @@ One canonical object is emitted once. Native wildcard/interface listeners see th
 
 Drain old queued model-bearing payloads and restart workers before upgrade. New serialized alias instances restore the canonical versioned class without model restoration.
 
-Event fakes/filters and assertions use canonical class names. EventAliases::canonicalName() helps migrate old names; old fake filters are not automatically rewritten.
-
-Host custom dispatchers are retained. Explicit EventAliases::listen($event, $listener) maps through the canonical adapter; absent native bridging/host adapter, Doctor reports the deprecated-name limitation.
-
-```php
-$aliases = app(\Nvl\Support\Events\EventAliases::class);
-$canonical = $aliases->canonicalName($legacyClass);
-$aliases->listen($canonical, $listener);
-```
-
-Exactly six aliases are supported: ActivityLogPurgeQueuedEvent, FormChangedEvent, FormEntryChangedEvent, MediaUploadedEvent, MetafieldSetEvent and MetafieldsSyncedEvent. Other canonical event names are retained.
+Event listeners, fakes and filters use canonical class names. Core preserves the host dispatcher and supplies no retired-name aliases or listener bridge.
 
 ## Deferred acceptance checks
 

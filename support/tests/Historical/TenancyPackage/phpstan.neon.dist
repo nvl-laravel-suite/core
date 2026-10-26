@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    phpVersion: 80400
+    excludePaths:
+        analyseAndScan:
+            - .temp/*
+
+    paths:
+        - database/factories
+        - src
+        - tests/Fixtures
+
+    level: max
+
+    tmpDir: .temp/phpstan

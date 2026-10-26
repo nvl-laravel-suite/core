@@ -10,8 +10,6 @@ use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
-use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
-use Nvl\Support\Tenancy\ValueObjects\TenantResourceDefinition;
 use Nvl\Support\Tests\Fixtures\OwnedOwnershipReplacement;
 use Nvl\Support\Tests\Fixtures\OwnershipCapableModel;
 use Nvl\Support\Tests\Fixtures\PackageOwner;
@@ -68,8 +66,7 @@ it('denies the unscoped base model when an owned replacement claims its storage 
         ->and(fn () => (new UnscopedOwnershipBase)->newQueryForRestoration(1)->first())->toThrow(OwnershipViolation::class);
 });
 
-it('rejects native inherited declarations without a runtime even when a legacy resource exists', function (): void {
+it('rejects native inherited declarations without a runtime', function (): void {
     app(OwnershipResourceRegistry::class)->register(new OwnershipResourceDefinition('test.inherited', 'test', OwnershipCapableModel::class, OwnershipDefinition::inherited('parent'), parentResource: 'test.parents'));
-    app(TenantResourceRegistry::class)->register(new TenantResourceDefinition('test.inherited', 'test', OwnershipCapableModel::class));
     expect(fn () => app(OwnershipBoundary::class)->key('test.inherited', 'probe'))->toThrow(OwnershipViolation::class);
 });

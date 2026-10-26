@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Contracts\Bus\Dispatcher as BusDispatcher;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\QueryException;
@@ -16,7 +15,6 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
-use Nvl\Support\Console\QueueQuarantineRetryCommand;
 use Nvl\Support\Ownership\Contracts\OwnershipContext;
 use Nvl\Support\Ownership\Contracts\OwnershipQueueHandler;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
@@ -112,16 +110,6 @@ beforeEach(function (): void {
 afterEach(function (): void {
     Queue::createPayloadUsing(null);
 });
-
-it('rejects malformed native quarantine retry identifiers before contacting failed storage', function (mixed $id): void {
-    app(Kernel::class)->registerCommand(new QueueQuarantineRetryCommand);
-    $result = Artisan::call('nvl:queue:retry', ['id' => [$id]]);
-
-    expect($result)->toBe(1)
-        ->and(Artisan::output())->toContain('Native failed-job IDs must be non-empty strings.')
-        ->and(DB::table('jobs')->count())->toBe(0)
-        ->and(DB::table('failed_jobs')->count())->toBe(0);
-})->with(['null' => null, 'integer' => 42, 'empty' => '']);
 
 it('runs unrelated jobs before resolving package context or storage', function (bool $enabled): void {
     if ($enabled) {

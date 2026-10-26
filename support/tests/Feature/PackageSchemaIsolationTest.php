@@ -39,4 +39,4 @@ it('protects host storage and history for every schema-owning package', function
     expect(DB::table($table['legacy'])->sole()->host_payload)->toBe('untouched')
         ->and(Schema::getColumnListing($table['legacy']))->toBe(['id', 'host_payload'])
         ->and(DB::table('migrations')->where('migration', $migrationName)->value('batch'))->toBe(7);
-})->with(array_keys(SchemaIdentities::all()));
+})->with(array_values(array_diff(array_keys(SchemaIdentities::all()), ['tenancy'])));

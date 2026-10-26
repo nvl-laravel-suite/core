@@ -1,0 +1,26 @@
+{
+    "schema_version": 1,
+    "configs": {
+        "nvl-tenancy": {
+            "common": [
+                "connection",
+                "enabled",
+                "migrations.enabled",
+                "resources",
+                "sharing.media",
+                "sharing.metafields",
+                "sharing.templates"
+            ],
+            "advanced": [
+                "access.membership",
+                "access.platform",
+                "directory.adapter",
+                "directory.driver",
+                "profile",
+                "resolvers.http",
+                "resolvers.public_site",
+                "strategy"
+            ]
+        }
+    }
+}

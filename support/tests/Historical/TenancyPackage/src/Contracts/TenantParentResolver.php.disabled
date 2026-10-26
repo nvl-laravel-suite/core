@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Nvl\Tenancy\Contracts;
+
+use Nvl\Support\Tenancy\Contracts\TenantParentResolver;
+use Nvl\Tenancy\Support\LegacyNeutralAlias;
+
+/** @deprecated Use \Nvl\Support\Tenancy\Contracts\TenantParentResolver; retained for one major release. */
+LegacyNeutralAlias::register(TenantParentResolver::class, 'Nvl\\Tenancy\\Contracts\\TenantParentResolver');

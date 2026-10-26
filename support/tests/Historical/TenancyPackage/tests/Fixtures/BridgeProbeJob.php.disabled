@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Nvl\Tenancy\Tests\Fixtures;
+
+use Nvl\Support\Ownership\Contracts\OwnershipQueuedJob;
+use Nvl\Support\Ownership\Enums\OwnershipContextMode;
+use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
+use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
+
+/** Exercises a converted package command under the single legacy queue authority. */
+final class BridgeProbeJob extends ProbeTenantJob implements OwnershipQueuedJob
+{
+    /** Legacy authority carries its own admitted envelope until the application cuts over. */
+    public function ownershipJobEnvelope(): OwnershipJobEnvelope
+    {
+        return OwnershipJobEnvelope::fromSnapshot(new OwnershipSnapshot(OwnershipContextMode::Disabled));
+    }
+}

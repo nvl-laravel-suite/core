@@ -3,25 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\ServiceProvider;
-use Nvl\Support\Traits\RegistersNamespacedResources;
-
-/** Exercises publication registration without booting optional domain services. */
-final class NamespacedPublicationProvider extends ServiceProvider
-{
-    use RegistersNamespacedResources;
-
-    /** Declare the fixture's package ownership. */
-    protected function publicationPackage(): string
-    {
-        return 'media';
-    }
-
-    /** Publish the same resources used by old package providers. */
-    public function boot(): void
-    {
-        $this->publishes(['/nvl/media/config.php' => '/host/config/nvl-media.php'], ['media-config', 'config']);
-    }
-}
+use Nvl\Support\Tests\Fixtures\NamespacedPublicationProvider;
 
 it('publishes canonical resource groups while preserving host generic groups', function (): void {
     $groups = ServiceProvider::$publishGroups;

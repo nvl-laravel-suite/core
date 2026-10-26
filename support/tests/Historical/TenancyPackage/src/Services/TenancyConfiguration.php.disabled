@@ -1,0 +1,370 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Nvl\Tenancy\Services;
+
+use Closure;
+use Illuminate\Config\Repository;
+use Illuminate\Container\Container;
+use Nvl\Support\Tenancy\Contracts\TenantDirectory;
+use Nvl\Support\Tenancy\Contracts\TenantHttpResolver;
+use Nvl\Support\Tenancy\Contracts\TenantMembershipAccess;
+use Nvl\Support\Tenancy\Exceptions\TenantConfigurationInvalid;
+use Nvl\Support\Tenancy\Services\DisabledTenantDirectory;
+use Nvl\Support\Tenancy\Services\DisabledTenantMembershipAccess;
+use Nvl\Tenancy\Contracts\PlatformAccess;
+use Nvl\Tenancy\Contracts\TenantSiteResolver;
+use ReflectionClass;
+use ReflectionFunction;
+
+/**
+ * Validates deployment-level tenancy configuration without resolving adapters.
+ */
+final readonly class TenancyConfiguration
+{
+    /**
+     * @var array<string, class-string>
+     */
+    private const array ADAPTER_CONTRACTS = [
+        'nvl-tenancy.directory.adapter' => TenantDirectory::class,
+        'nvl-tenancy.resolvers.http' => TenantHttpResolver::class,
+        'nvl-tenancy.resolvers.public_site' => TenantSiteResolver::class,
+        'nvl-tenancy.access.membership' => TenantMembershipAccess::class,
+        'nvl-tenancy.access.platform' => PlatformAccess::class,
+    ];
+
+    /**
+     * Create a tenancy configuration validator.
+     */
+    public function __construct(
+        private Repository $configuration,
+        private Container $container,
+    ) {}
+
+    /**
+     * Validate the complete cached configuration structure and adapter contracts.
+     *
+     * @throws TenantConfigurationInvalid When any configured value is unsupported
+     */
+    public function validate(): void
+    {
+        $tenancy = $this->configuration->get('nvl-tenancy');
+
+        if (! is_array($tenancy)) {
+            throw new TenantConfigurationInvalid('tenancy must be an array.');
+        }
+
+        if ($this->containsClosure($tenancy)) {
+            throw new TenantConfigurationInvalid('Tenancy configuration must not contain closures.');
+        }
+
+        $this->assertExactKeys($tenancy, [
+            'enabled',
+            'strategy',
+            'connection',
+            'profile',
+            'directory',
+            'resolvers',
+            'access',
+            'resources',
+            'sharing',
+            'migrations',
+            ...array_values(array_intersect(['tables', 'queue', 'locks', 'routes', 'auth', 'authorization'], array_keys($tenancy))),
+        ], 'tenancy');
+
+        if (! is_bool($tenancy['enabled'])) {
+            throw new TenantConfigurationInvalid('tenancy.enabled must be a boolean.');
+        }
+
+        if ($tenancy['strategy'] !== 'shared-database') {
+            throw new TenantConfigurationInvalid(sprintf(
+                'Unsupported tenancy strategy [%s].',
+                $this->displayValue($tenancy['strategy']),
+            ));
+        }
+
+        $this->validateConnection($tenancy['connection']);
+
+        if ($tenancy['profile'] !== 'application') {
+            throw new TenantConfigurationInvalid(sprintf(
+                'Unsupported tenancy profile [%s].',
+                $this->displayValue($tenancy['profile']),
+            ));
+        }
+
+        $this->validateDirectory($tenancy['directory']);
+        $this->validateAdapterMap($tenancy['resolvers'], ['http', 'public_site'], 'tenancy.resolvers');
+        $this->validateAdapterMap($tenancy['access'], ['membership', 'platform'], 'tenancy.access');
+        $this->validateResources($tenancy['resources']);
+        $this->validateSharing($tenancy['sharing']);
+        $this->validateMigrations($tenancy['migrations']);
+        $this->validateAdapterContracts();
+    }
+
+    /**
+     * Validate the tenant directory driver structure.
+     *
+     * @throws TenantConfigurationInvalid When the directory configuration is invalid
+     */
+    private function validateDirectory(mixed $directory): void
+    {
+        if (! is_array($directory)) {
+            throw new TenantConfigurationInvalid('tenancy.directory must be an array.');
+        }
+
+        $this->assertExactKeys($directory, ['driver', 'adapter'], 'tenancy.directory');
+
+        if (! in_array($directory['driver'], ['package', 'host'], true)) {
+            throw new TenantConfigurationInvalid(sprintf(
+                'Unsupported tenancy directory driver [%s].',
+                $this->displayValue($directory['driver']),
+            ));
+        }
+
+        if ($directory['adapter'] !== null && ! is_string($directory['adapter'])) {
+            throw new TenantConfigurationInvalid('tenancy.directory.adapter must be null or a class string.');
+        }
+    }
+
+    /**
+     * Require the optional core storage alias to name a configured Laravel connection.
+     *
+     * @throws TenantConfigurationInvalid When the connection value or alias is invalid
+     */
+    private function validateConnection(mixed $connection): void
+    {
+        if ($connection === null) {
+            return;
+        }
+        if (! is_string($connection) || trim($connection) === '') {
+            throw new TenantConfigurationInvalid('tenancy.connection must be null or a non-empty string.');
+        }
+        $connections = $this->configuration->get('database.connections');
+        if (! is_array($connections) || ! array_key_exists($connection, $connections)) {
+            throw new TenantConfigurationInvalid('tenancy.connection must name a configured Laravel database connection.');
+        }
+    }
+
+    /**
+     * Validate a closed map of nullable adapter class strings.
+     *
+     * @param  list<string>  $keys
+     *
+     * @throws TenantConfigurationInvalid When the adapter map is invalid
+     */
+    private function validateAdapterMap(mixed $adapters, array $keys, string $path): void
+    {
+        if (! is_array($adapters)) {
+            throw new TenantConfigurationInvalid("{$path} must be an array.");
+        }
+
+        $this->assertExactKeys($adapters, $keys, $path);
+
+        foreach ($adapters as $key => $adapter) {
+            if ($adapter !== null && ! is_string($adapter)) {
+                throw new TenantConfigurationInvalid("{$path}.{$key} must be null or a class string.");
+            }
+        }
+    }
+
+    /**
+     * Validate resource override structure before package registration completes.
+     *
+     * @throws TenantConfigurationInvalid When a family key or ownership mode is invalid
+     */
+    private function validateResources(mixed $resources): void
+    {
+        if (! is_array($resources)) {
+            throw new TenantConfigurationInvalid('tenancy.resources must be an array.');
+        }
+
+        foreach ($resources as $family => $mode) {
+            if (! is_string($family)) {
+                throw new TenantConfigurationInvalid('Tenancy resource family names must be strings.');
+            }
+
+            if (! in_array($mode, ['tenant', 'platform'], true)) {
+                throw new TenantConfigurationInvalid(sprintf('Unsupported tenancy resource mode for [%s].', $this->displayValue($family)));
+            }
+        }
+    }
+
+    /**
+     * Validate the closed sharing-mode map.
+     *
+     * @throws TenantConfigurationInvalid When a sharing mode is unsupported
+     */
+    private function validateSharing(mixed $sharing): void
+    {
+        if (! is_array($sharing)) {
+            throw new TenantConfigurationInvalid('tenancy.sharing must be an array.');
+        }
+
+        $this->assertExactKeys($sharing, ['media', 'metafields', 'templates'], 'tenancy.sharing');
+
+        foreach ($sharing as $family => $mode) {
+            if (! in_array($mode, ['none', 'copy'], true)) {
+                throw new TenantConfigurationInvalid(sprintf(
+                    'Unsupported tenancy sharing mode [%s] for [%s].',
+                    $this->displayValue($mode),
+                    $family,
+                ));
+            }
+        }
+    }
+
+    /**
+     * Validate explicit migration registration configuration.
+     *
+     * @throws TenantConfigurationInvalid When migration enablement is not boolean
+     */
+    private function validateMigrations(mixed $migrations): void
+    {
+        if (! is_array($migrations)) {
+            throw new TenantConfigurationInvalid('tenancy.migrations must be an array.');
+        }
+
+        $this->assertExactKeys($migrations, ['enabled'], 'tenancy.migrations');
+
+        if (! is_bool($migrations['enabled'])) {
+            throw new TenantConfigurationInvalid('tenancy.migrations.enabled must be a boolean.');
+        }
+    }
+
+    /**
+     * Validate class-string compatibility and configuration versus host binding ownership.
+     *
+     * @throws TenantConfigurationInvalid When an adapter is incompatible or contradictory
+     */
+    private function validateAdapterContracts(): void
+    {
+        foreach (self::ADAPTER_CONTRACTS as $path => $contract) {
+            $adapter = $this->configuration->get($path);
+
+            if ($adapter === null) {
+                continue;
+            }
+
+            if (! is_string($adapter) || ! is_a($adapter, $contract, true)) {
+                throw new TenantConfigurationInvalid(sprintf(
+                    'Configured adapter [%s] must implement [%s].',
+                    $this->displayValue($adapter),
+                    $contract,
+                ));
+            }
+
+            $reflection = new ReflectionClass($adapter);
+
+            if (! $reflection->isInstantiable()) {
+                throw new TenantConfigurationInvalid(sprintf(
+                    'Configured adapter [%s] must be an instantiable class implementing [%s].',
+                    $this->displayValue($adapter),
+                    $contract,
+                ));
+            }
+
+            if ($this->hasConflictingBinding($contract, $adapter)) {
+                throw new TenantConfigurationInvalid(
+                    "{$path} conflicts with an existing host binding for [{$contract}].",
+                );
+            }
+        }
+    }
+
+    /**
+     * Determine whether an existing binding differs from the configured class.
+     *
+     * Inspect binding metadata without resolving or constructing the adapter.
+     *
+     * @param  class-string  $contract
+     * @param  class-string  $adapter
+     */
+    private function hasConflictingBinding(string $contract, string $adapter): bool
+    {
+        if (! $this->container->bound($contract)) {
+            return false;
+        }
+
+        $binding = $this->container->getBindings()[$contract] ?? null;
+
+        if (! is_array($binding)) {
+            return true;
+        }
+
+        $concrete = $binding['concrete'] ?? null;
+
+        if (! $concrete instanceof Closure) {
+            return true;
+        }
+
+        $reflection = new ReflectionFunction($concrete);
+        $variables = $reflection->getStaticVariables();
+
+        if (in_array($variables['concrete'] ?? null, [
+            DisabledTenantDirectory::class,
+            DisabledTenantMembershipAccess::class,
+        ], true)) {
+            return false;
+        }
+
+        return $reflection->getClosureThis() !== $this->container
+            || ! in_array($variables['abstract'] ?? null, [$contract, str_replace('Nvl\\Support\\Tenancy\\', 'Nvl\\Tenancy\\', $contract)], true)
+            || ($variables['concrete'] ?? null) !== $adapter;
+    }
+
+    /**
+     * Assert that a closed configuration map has exactly the expected keys.
+     *
+     * @param  array<mixed>  $values
+     * @param  list<string>  $expected
+     *
+     * @throws TenantConfigurationInvalid When a required key is absent or unknown
+     */
+    private function assertExactKeys(array $values, array $expected, string $path): void
+    {
+        $actual = array_keys($values);
+        $unknown = array_values(array_diff($actual, $expected));
+        $missing = array_values(array_diff($expected, $actual));
+
+        if ($unknown !== []) {
+            throw new TenantConfigurationInvalid(sprintf('Unknown configuration key [%s].', $this->displayValue($path.'.'.$unknown[0])));
+        }
+
+        if ($missing !== []) {
+            throw new TenantConfigurationInvalid("Missing configuration key [{$path}.{$missing[0]}].");
+        }
+    }
+
+    /**
+     * Determine whether any cached configuration value contains a closure.
+     */
+    private function containsClosure(mixed $value): bool
+    {
+        if ($value instanceof Closure) {
+            return true;
+        }
+
+        if (! is_array($value)) {
+            return false;
+        }
+
+        foreach ($value as $nested) {
+            if ($this->containsClosure($nested)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Convert an invalid scalar or object into a bounded diagnostic label.
+     */
+    private function displayValue(mixed $value): string
+    {
+        $label = is_string($value) ? $value : (is_object($value) ? $value::class : get_debug_type($value));
+
+        return mb_strimwidth(preg_replace('/[\x00-\x1f\x7f]/u', '?', mb_convert_encoding($label, 'UTF-8', 'UTF-8')) ?? '', 0, 160, '...');
+    }
+}
