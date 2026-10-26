@@ -10,7 +10,11 @@ use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\OwnerReference;
 use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
 
-/** Keeps unowned applications inert when the optional runtime is not installed. */
+/**
+ * Keeps unowned applications inert when the optional runtime is not installed.
+ *
+ * @internal
+ */
 final readonly class DisabledOwnershipContext implements OwnershipContext
 {
     /** Report absence of an enforcing runtime without probing storage. */

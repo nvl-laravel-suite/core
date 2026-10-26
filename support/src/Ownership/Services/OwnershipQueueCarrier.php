@@ -11,7 +11,11 @@ use Nvl\Support\Ownership\Contracts\OwnershipQueuedJob;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 
-/** Fixed adapters for native commands and native delivery wrappers. @internal */
+/**
+ * Fixed adapters for native commands and native delivery wrappers.
+ *
+ * @internal
+ */
 final class OwnershipQueueCarrier
 {
     /** Detect only explicit carriers and exact native delivery wrappers. */

@@ -6,7 +6,9 @@ namespace Nvl\Support\Exceptions;
 
 use Nvl\Support\Enums\CoreResponseCode;
 
-/** A selected package capability requires a consumer-owned adapter.
+/**
+ * A selected package capability requires a consumer-owned adapter.
+ *
  * @api
  */
 final class BindingRequiredException extends BusinessException

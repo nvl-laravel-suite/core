@@ -6,7 +6,11 @@ namespace Nvl\Support\Ownership\Contracts;
 
 use Illuminate\Database\Eloquent\Model;
 
-/** Neutral persistence guard resolved at the Eloquent framework boundary. @internal */
+/**
+ * Neutral persistence guard resolved at the Eloquent framework boundary.
+ *
+ * @internal
+ */
 interface OwnershipModelGuard
 {
     /** Validate creation or a locked canonical update. */

@@ -6,7 +6,11 @@ namespace Nvl\Support\Ownership\Services;
 
 use Nvl\Support\Ownership\Contracts\OwnershipMaintenanceState;
 
-/** Keeps optional runtime maintenance inert for ordinary installations. @internal */
+/**
+ * Keeps optional runtime maintenance inert for ordinary installations.
+ *
+ * @internal
+ */
 final readonly class InactiveOwnershipMaintenance implements OwnershipMaintenanceState
 {
     /** No runtime means no coordinated maintenance callback can be active. */

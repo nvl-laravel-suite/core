@@ -6,7 +6,9 @@ namespace Nvl\Support\Bindings;
 
 use InvalidArgumentException;
 
-/** Immutable declaration of one consumer-owned capability adapter.
+/**
+ * Immutable declaration of one consumer-owned capability adapter.
+ *
  * @api
  */
 final readonly class RequiredBindingDefinition

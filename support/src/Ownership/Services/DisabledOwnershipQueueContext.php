@@ -13,7 +13,11 @@ use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
 
-/** Preserves native unowned scheduling while denying captured authority without its runtime. @internal */
+/**
+ * Preserves native unowned scheduling while denying captured authority without its runtime.
+ *
+ * @internal
+ */
 final readonly class DisabledOwnershipQueueContext implements OwnershipQueueContext
 {
     /** Resolve fresh compatibility storage from the current application. */

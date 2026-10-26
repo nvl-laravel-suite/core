@@ -7,7 +7,9 @@ namespace Nvl\Support\Exceptions;
 use InvalidArgumentException;
 use Nvl\Support\Contracts\ResponseCode;
 
-/** Immutable public presentation metadata, independent of an HTTP transport.
+/**
+ * Immutable public presentation metadata, independent of an HTTP transport.
+ *
  * @api
  */
 final readonly class ExceptionResponse

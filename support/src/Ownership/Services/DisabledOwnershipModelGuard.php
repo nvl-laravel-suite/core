@@ -11,7 +11,11 @@ use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Contracts\OwnershipModelGuard;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 
-/** Preserves ordinary models while denying declared or persisted ownership without its runtime. @internal */
+/**
+ * Preserves ordinary models while denying declared or persisted ownership without its runtime.
+ *
+ * @internal
+ */
 final readonly class DisabledOwnershipModelGuard implements OwnershipModelGuard
 {
     /** Resolve the current compatibility services on every persistence call. */

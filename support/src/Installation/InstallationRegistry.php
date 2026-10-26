@@ -7,7 +7,11 @@ namespace Nvl\Support\Installation;
 use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 
-/** Aggregates metadata from loaded providers without discovering or enabling other packages. @api */
+/**
+ * Aggregates metadata from loaded providers without discovering or enabling other packages.
+ *
+ * @api
+ */
 final readonly class InstallationRegistry
 {
     /** Retain only the host container's declared metadata contributors. */

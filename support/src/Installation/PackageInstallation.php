@@ -7,7 +7,11 @@ namespace Nvl\Support\Installation;
 use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 
-/** Describes the configuration resources supplied by one loaded package. @api */
+/**
+ * Describes the configuration resources supplied by one loaded package.
+ *
+ * @api
+ */
 final readonly class PackageInstallation implements InstallationContributor
 {
     /** @var array<string, array{source: string, target: string, tag: string}> */

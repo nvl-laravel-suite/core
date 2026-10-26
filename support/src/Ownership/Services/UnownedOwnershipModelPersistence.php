@@ -9,7 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Ownership\Contracts\OwnershipModelGuard;
 use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
 
-/** Preserves ordinary persistence after the absent-runtime model guard has admitted it. */
+/**
+ * Preserves ordinary persistence after the absent-runtime model guard has admitted it.
+ *
+ * @internal
+ */
 final readonly class UnownedOwnershipModelPersistence implements OwnershipModelPersistence
 {
     /** Retain the current model guard without legacy runtime dependencies. */

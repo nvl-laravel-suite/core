@@ -6,7 +6,9 @@ namespace Nvl\Support\Enums;
 
 use Nvl\Support\Contracts\ResponseCode;
 
-/** Stable response codes owned by Core, including its neutral components.
+/**
+ * Stable response codes owned by Core, including its neutral components.
+ *
  * @api
  */
 enum CoreResponseCode: string implements ResponseCode

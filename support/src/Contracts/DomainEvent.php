@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Contracts;
 
-/** Versioned, model-free package fact published on its source connection's commit.
+/**
+ * Versioned, model-free package fact published on its source connection's commit.
  *
  * @api
  */

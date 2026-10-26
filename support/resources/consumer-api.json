@@ -318,6 +318,65 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Installation\\ConfigPublisher": {
+            "kind": "class",
+            "file": "support/src/Installation/ConfigPublisher.php",
+            "methods": [
+                "__construct",
+                "publish"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Installation\\InstallReport": {
+            "kind": "class",
+            "file": "support/src/Installation/InstallReport.php",
+            "methods": [
+                "__construct",
+                "toArray"
+            ],
+            "properties": [
+                "bindings",
+                "configuration",
+                "missingEnabledBindings",
+                "packages"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Installation\\InstallationContributor": {
+            "kind": "interface",
+            "file": "support/src/Installation/InstallationContributor.php",
+            "methods": [
+                "installation"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Installation\\InstallationRegistry": {
+            "kind": "class",
+            "file": "support/src/Installation/InstallationRegistry.php",
+            "methods": [
+                "__construct",
+                "all",
+                "select"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Installation\\PackageInstallation": {
+            "kind": "class",
+            "file": "support/src/Installation/PackageInstallation.php",
+            "methods": [
+                "__construct",
+                "installation",
+                "register"
+            ],
+            "properties": [
+                "configuration",
+                "package"
+            ],
+            "constants": []
+        },
         "Nvl\\Support\\Locales\\LocaleCatalogDiagnostics": {
             "kind": "class",
             "file": "support/src/Locales/LocaleCatalogDiagnostics.php",
@@ -613,7 +672,6 @@
             "file": "support/src/Ownership/Services/OwnershipResourceRegistry.php",
             "methods": [
                 "all",
-                "assertUnclaimed",
                 "forModel",
                 "freeze",
                 "get",
@@ -637,7 +695,6 @@
             "kind": "trait",
             "file": "support/src/Ownership/Traits/HasOwnership.php",
             "methods": [
-                "bootHasOwnership",
                 "delete",
                 "fresh",
                 "newQueryForRestoration",

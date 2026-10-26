@@ -6,7 +6,9 @@ namespace Nvl\Support\Doctor;
 
 use Nvl\Support\Bindings\RequiredBindings;
 
-/** Reports selected missing adapters without booting capabilities or executing factories.
+/**
+ * Reports selected missing adapters without booting capabilities or executing factories.
+ *
  * @api
  */
 final readonly class RequiredBindingsDoctor implements DoctorContributor

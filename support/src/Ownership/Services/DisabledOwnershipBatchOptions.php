@@ -11,7 +11,11 @@ use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
 use Throwable;
 
-/** Rejects captured callback authority when the optional runtime is absent. @internal */
+/**
+ * Rejects captured callback authority when the optional runtime is absent.
+ *
+ * @internal
+ */
 final readonly class DisabledOwnershipBatchOptions implements OwnershipBatchOptions
 {
     /** Use the explicit disabled boundary even if a host replaces the general queue context. */

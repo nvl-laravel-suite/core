@@ -8,7 +8,11 @@ use Illuminate\Database\Connection;
 use Nvl\Support\Ownership\Exceptions\OwnershipSchemaNotReady;
 use stdClass;
 
-/** Reads fixed protocol identities without requiring the optional runtime. @internal */
+/**
+ * Reads fixed protocol identities without requiring the optional runtime.
+ *
+ * @internal
+ */
 final readonly class PersistedOwnershipStorage
 {
     /** Reject prepared and active storage on the supplied actual connection. */

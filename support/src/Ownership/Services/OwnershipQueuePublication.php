@@ -8,7 +8,11 @@ use Illuminate\Container\Container;
 use Illuminate\Queue\Queue;
 use Nvl\Support\Ownership\Contracts\OwnershipQueueContext;
 
-/** Supplies disabled scalar capture for opted-in native commands without requiring a runtime. @internal */
+/**
+ * Supplies disabled scalar capture for opted-in native commands without requiring a runtime.
+ *
+ * @internal
+ */
 abstract class OwnershipQueuePublication extends Queue
 {
     /** Preserve host callbacks and avoid capturing one application in process-wide state. */

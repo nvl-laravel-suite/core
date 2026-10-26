@@ -11,7 +11,9 @@ use InvalidArgumentException;
 use ReflectionFunction;
 use ReflectionProperty;
 
-/** Read-only capability inspection against native container registration metadata.
+/**
+ * Read-only capability inspection against native container registration metadata.
+ *
  * @api
  */
 final class RequiredBindings

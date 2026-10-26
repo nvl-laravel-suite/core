@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Contracts;
 
-/** Transport-neutral, explicitly public package failure metadata.
+/**
+ * Transport-neutral, explicitly public package failure metadata.
+ *
  * @api
  */
 interface RespondableException extends PackageException

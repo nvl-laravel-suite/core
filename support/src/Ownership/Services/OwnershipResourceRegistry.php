@@ -87,7 +87,11 @@ final class OwnershipResourceRegistry
         throw new OwnershipConfigurationInvalid('The concrete model has no registered ownership policy.');
     }
 
-    /** Reject stale base classes and alternate models over declared owned storage. @internal */
+    /**
+     * Reject stale base classes and alternate models over declared owned storage.
+     *
+     * @internal
+     */
     public function assertUnclaimed(Model $model): void
     {
         foreach ($this->resources as $resource) {

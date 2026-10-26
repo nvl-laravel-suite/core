@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Nvl\Support\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Nvl\Support\Console\DoctorCommand;
+use Nvl\Support\Console\Commands\DoctorCommand;
 use Nvl\Support\Doctor\CoreDoctor;
 use Nvl\Support\Doctor\DoctorRegistry;
 use Nvl\Support\Doctor\PackageDoctorContributor;

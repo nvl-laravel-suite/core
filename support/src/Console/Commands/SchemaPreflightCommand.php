@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Nvl\Support\Console;
+namespace Nvl\Support\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Database\Migrations\Migrator;

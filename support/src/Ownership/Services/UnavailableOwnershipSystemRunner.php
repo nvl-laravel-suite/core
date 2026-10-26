@@ -9,7 +9,11 @@ use Nvl\Support\Ownership\Contracts\OwnershipSystemRunner;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\OwnerReference;
 
-/** Denies owner system work when the optional enforcing runtime is absent. @internal */
+/**
+ * Denies owner system work when the optional enforcing runtime is absent.
+ *
+ * @internal
+ */
 final readonly class UnavailableOwnershipSystemRunner implements OwnershipSystemRunner
 {
     /** @template T

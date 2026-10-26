@@ -7,7 +7,11 @@ namespace Nvl\Support\Ownership\Contracts;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 
-/** Lets standalone packages create canonical models without depending on an optional runtime. @internal */
+/**
+ * Lets standalone packages create canonical models without depending on an optional runtime.
+ *
+ * @internal
+ */
 interface OwnershipWriter
 {
     /** @template T of Model

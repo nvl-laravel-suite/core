@@ -10,7 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 
-/** Admits only canonical unowned storage when no ownership runtime is active. */
+/**
+ * Admits only canonical unowned storage when no ownership runtime is active.
+ *
+ * @internal
+ */
 final readonly class UnownedOwnershipBoundary implements OwnershipBoundary
 {
     /** Retain declarations and absence checks without loading an enforcing runtime. */

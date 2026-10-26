@@ -10,7 +10,8 @@ use Illuminate\Log\LogManager;
 use InvalidArgumentException;
 use Throwable;
 
-/** Routes bounded package diagnostics without retaining request, tenant, or job context.
+/**
+ * Routes bounded package diagnostics without retaining request, tenant, or job context.
  *
  * @api
  */

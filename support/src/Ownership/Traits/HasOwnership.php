@@ -20,7 +20,11 @@ use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
  */
 trait HasOwnership
 {
-    /** Register framework metadata without loading current admission. @internal */
+    /**
+     * Register framework metadata without loading current admission.
+     *
+     * @internal
+     */
     public static function bootHasOwnership(): void
     {
         static::addGlobalScope(new OwnershipScope);

@@ -11,7 +11,11 @@ use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 use Throwable;
 
-/** Denies captured authority before command restoration when its optional runtime is absent. */
+/**
+ * Denies captured authority before command restoration when its optional runtime is absent.
+ *
+ * @internal
+ */
 final readonly class UnavailableOwnershipQueueAdmission
 {
     /** Resolve only the current worker's absence guard and rejection storage. */

@@ -7,7 +7,11 @@ namespace Nvl\Support\Ownership\Contracts;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 
-/** Wraps native persistence without embedding authorization or workflow in a model trait. @internal */
+/**
+ * Wraps native persistence without embedding authorization or workflow in a model trait.
+ *
+ * @internal
+ */
 interface OwnershipModelPersistence
 {
     /** @param Closure(): bool $persist */

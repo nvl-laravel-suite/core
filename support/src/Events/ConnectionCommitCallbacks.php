@@ -10,7 +10,8 @@ use Illuminate\Database\DatabaseTransactionRecord;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Nvl\Support\Exceptions\EventCommitRegistrationException;
 
-/** Attaches callbacks to the exact native source transaction without replacing host infrastructure.
+/**
+ * Attaches callbacks to the exact native source transaction without replacing host infrastructure.
  *
  * @api
  */

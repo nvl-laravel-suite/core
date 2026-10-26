@@ -6,7 +6,9 @@ namespace Nvl\Support\Traits;
 
 use Nvl\Support\Exceptions\ExceptionResponse;
 
-/** Adapts existing exception hierarchies to public response metadata.
+/**
+ * Adapts existing exception hierarchies to public response metadata.
+ *
  * @api
  */
 trait InteractsWithPackageFailure

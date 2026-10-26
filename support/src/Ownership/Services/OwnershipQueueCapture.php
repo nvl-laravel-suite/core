@@ -9,7 +9,11 @@ use Nvl\Support\Ownership\Enums\OwnershipContextMode;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
 
-/** Captures package work under the complete installation's current admission. @internal */
+/**
+ * Captures package work under the complete installation's current admission.
+ *
+ * @internal
+ */
 final readonly class OwnershipQueueCapture
 {
     /** Resolve execution state at dispatch time rather than retaining it in package metadata. */

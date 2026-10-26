@@ -9,7 +9,11 @@ use InvalidArgumentException;
 use Nvl\Support\Bindings\RequiredBindings;
 use RuntimeException;
 
-/** Publishes declared config templates while preserving host files and explicit capability choices. @api */
+/**
+ * Publishes declared config templates while preserving host files and explicit capability choices.
+ *
+ * @api
+ */
 final readonly class ConfigPublisher
 {
     /** Retain loaded metadata, host paths and the shared required-binding declarations. */

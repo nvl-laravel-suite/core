@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 
-/** Preserves the actual configured model and native eager loads during guarded restoration. @internal */
+/**
+ * Preserves the actual configured model and native eager loads during guarded restoration.
+ *
+ * @internal
+ */
 final readonly class OwnershipRestorationQuery
 {
     /** @template TModel of Model

@@ -10,7 +10,11 @@ use Nvl\Support\Ownership\Contracts\Ownable;
 use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 
-/** Guards Laravel's scope-free instance reloads without changing ordinary unadopted model semantics. @internal */
+/**
+ * Guards Laravel's scope-free instance reloads without changing ordinary unadopted model semantics.
+ *
+ * @internal
+ */
 final readonly class OwnershipRefreshGuard
 {
     /** Require current canonical ownership before Laravel reloads any held record or its relations. */

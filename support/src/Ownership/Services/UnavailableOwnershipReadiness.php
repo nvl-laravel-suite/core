@@ -7,7 +7,11 @@ namespace Nvl\Support\Ownership\Services;
 use Nvl\Support\Ownership\Contracts\OwnershipReadiness;
 use Nvl\Support\Ownership\Exceptions\OwnershipSchemaNotReady;
 
-/** Prevents package-specific readers from treating an absent runtime as active storage. @internal */
+/**
+ * Prevents package-specific readers from treating an absent runtime as active storage.
+ *
+ * @internal
+ */
 final readonly class UnavailableOwnershipReadiness implements OwnershipReadiness
 {
     /** Runtime removal cannot authorize a privileged package projection. */

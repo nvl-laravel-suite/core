@@ -10,7 +10,8 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Nvl\Support\Contracts\DomainEvent;
 
-/** Publishes one captured domain fact through the host dispatcher after its source commits.
+/**
+ * Publishes one captured domain fact through the host dispatcher after its source commits.
  *
  * @api
  */
@@ -23,7 +24,8 @@ final readonly class DomainEventDispatcher
      */
     public function __construct(private Closure $events, private ConnectionCommitCallbacks $commits) {}
 
-    /** Resolve the current host event boundary for compatible manually constructed callers.
+    /**
+     * Resolve the current host event boundary for compatible manually constructed callers.
      *
      * @internal
      */

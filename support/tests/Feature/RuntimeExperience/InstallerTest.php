@@ -7,7 +7,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Nvl\Support\Bindings\RequiredBindingDefinition;
 use Nvl\Support\Bindings\RequiredBindings;
-use Nvl\Support\Console\InstallCommand;
+use Nvl\Support\Console\Commands\InstallCommand;
 use Nvl\Support\Installation\ConfigPublisher;
 use Nvl\Support\Installation\InstallationRegistry;
 use Nvl\Support\Installation\PackageInstallation;

@@ -7,7 +7,8 @@ namespace Nvl\Support\Facades;
 use Illuminate\Support\Facades\Facade;
 use Nvl\Support\Logging\PackageLogger;
 
-/** Stateless package diagnostic entry point for transport and queued execution seams.
+/**
+ * Stateless package diagnostic entry point for transport and queued execution seams.
  *
  * @method static void log(string $package, string $level, string $key, array<string, mixed> $context = [], string $verbosity = 'normal')
  *

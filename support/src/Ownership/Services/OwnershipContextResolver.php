@@ -7,7 +7,11 @@ namespace Nvl\Support\Ownership\Services;
 use Illuminate\Container\Container;
 use Nvl\Support\Ownership\Contracts\OwnershipContext;
 
-/** Resolves execution-time scope for retained framework services without retaining a request's context. @internal */
+/**
+ * Resolves execution-time scope for retained framework services without retaining a request's context.
+ *
+ * @internal
+ */
 final readonly class OwnershipContextResolver
 {
     /** Retain only the application, never a previous actor, owner, snapshot or scoped adapter. */

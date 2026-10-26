@@ -7,8 +7,8 @@ namespace Nvl\Support\Tests\Fixtures;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Events\MigrationStarted;
 use Illuminate\Support\ServiceProvider;
-use Nvl\Support\Console\SchemaPreflightCommand;
-use Nvl\Support\Console\SchemaUpgradeCommand;
+use Nvl\Support\Console\Commands\SchemaPreflightCommand;
+use Nvl\Support\Console\Commands\SchemaUpgradeCommand;
 use Nvl\Support\Schema\SchemaMigrationEvents;
 
 /** Keeps dormant schema tooling covered until its planned removal; never discovered by Core. */

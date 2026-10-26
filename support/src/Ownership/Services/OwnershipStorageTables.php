@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Ownership\Services;
 
-/** Fixed protocol identities survive runtime removal and configuration replacement. @internal */
+/**
+ * Fixed protocol identities survive runtime removal and configuration replacement.
+ *
+ * @internal
+ */
 final class OwnershipStorageTables
 {
     public const string Stores = 'nvl_ownership_stores';

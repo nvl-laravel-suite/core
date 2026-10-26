@@ -6,7 +6,11 @@ namespace Nvl\Support\Installation;
 
 use Nvl\Support\Bindings\RequiredBindingStatus;
 
-/** Records configuration publication and metadata-only binding guidance. @api */
+/**
+ * Records configuration publication and metadata-only binding guidance.
+ *
+ * @api
+ */
 final readonly class InstallReport
 {
     /**

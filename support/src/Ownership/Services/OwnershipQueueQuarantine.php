@@ -15,7 +15,11 @@ use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Throwable;
 
-/** Stores rejected wire payloads without restoring command or failure callback objects. @internal */
+/**
+ * Stores rejected wire payloads without restoring command or failure callback objects.
+ *
+ * @internal
+ */
 final readonly class OwnershipQueueQuarantine
 {
     /** Identifies rejection records in the host's native failed-job storage. */

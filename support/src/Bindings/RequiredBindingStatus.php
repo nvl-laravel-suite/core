@@ -6,7 +6,9 @@ namespace Nvl\Support\Bindings;
 
 use InvalidArgumentException;
 
-/** Registration status without resolving or executing the adapter.
+/**
+ * Registration status without resolving or executing the adapter.
+ *
  * @api
  */
 final readonly class RequiredBindingStatus

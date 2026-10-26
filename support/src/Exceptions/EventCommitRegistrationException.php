@@ -6,7 +6,8 @@ namespace Nvl\Support\Exceptions;
 
 use Nvl\Support\Enums\CoreResponseCode;
 
-/** Rejects publication when the active source transaction has no tracked native record.
+/**
+ * Rejects publication when the active source transaction has no tracked native record.
  *
  * @api
  */

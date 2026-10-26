@@ -10,7 +10,11 @@ use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Contracts\OwnershipWriter;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 
-/** Owns transactional creation of an explicitly unowned package resource. */
+/**
+ * Owns transactional creation of an explicitly unowned package resource.
+ *
+ * @internal
+ */
 final readonly class UnownedOwnershipWriter implements OwnershipWriter
 {
     /** Retain canonical resource and storage admission. */
