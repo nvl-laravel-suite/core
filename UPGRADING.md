@@ -1,5 +1,13 @@
 # Upgrading NVL Core
 
+## NVL Light: family 7
+
+Core discovers native Support and Locale providers. Remove Data/type generation, the old consumer audit include, generic HTTP rendering and retired Tenancy integration. Consumers own transport and frontend types. Preserve native Ownership declarations, durable storage guards, queue envelopes and worker state restoration. The old schema/Doctor/install commands are not registered by Core; use native Laravel migrations and supported owning-package diagnostics and adoption procedures.
+
+## Historical notes: families 1–6
+
+The following APIs and commands belong to earlier releases. They are not setup instructions for family 7.
+
 ## 6.0.1 consolidation patch
 
 The shared model-registration, queue-capture and legacy model-guard implementations first ship in Core 6.0.1. Domain patches using these internals declare `nvl/core:^6.0.1`; public model configuration, traits and contracts remain unchanged.

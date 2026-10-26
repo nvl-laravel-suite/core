@@ -44,10 +44,13 @@ use Nvl\Support\Ownership\Services\UnavailableOwnershipSystemRunner;
 use Nvl\Support\Ownership\Services\UnownedOwnershipBoundary;
 use Nvl\Support\Ownership\Services\UnownedOwnershipModelPersistence;
 use Nvl\Support\Ownership\Services\UnownedOwnershipWriter;
+use Nvl\Support\Traits\RegistersNamespacedResources;
 
 /** Registers the native shared runtime without activating domain or legacy providers. */
 final class SupportServiceProvider extends ServiceProvider
 {
+    use RegistersNamespacedResources;
+
     /** Bind shared contracts and safe defaults without touching storage or host queues. */
     public function register(): void
     {
