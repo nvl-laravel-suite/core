@@ -139,7 +139,7 @@ it('keeps its source boundary minimal and transport-neutral', function (): void 
         ->implode("\n");
 
     expect($sourceDirectories)
-        ->toBe(['Bindings', 'Config', 'Console', 'Contracts', 'Doctor', 'Enums', 'Events', 'Exceptions', 'Facades', 'Globals', 'Installation', 'Integrations', 'Locales', 'Logging', 'Models', 'Owners', 'Ownership', 'Providers', 'Schema', 'Testing', 'Traits'])
+        ->toBe(['Auth', 'Bindings', 'Config', 'Console', 'Contracts', 'Doctor', 'Enums', 'Events', 'Exceptions', 'Facades', 'Globals', 'Installation', 'Integrations', 'Locales', 'Logging', 'Models', 'Owners', 'Ownership', 'Providers', 'Schema', 'Testing', 'Traits'])
         ->and($source)
         ->not->toMatch('/^use\s+Nvl\\\\(?!Support\\\\)/m')
         ->not->toMatch('/\b(?:abort|redirect|response)\s*\(/');
