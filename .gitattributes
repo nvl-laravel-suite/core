@@ -14,7 +14,6 @@
 /support/phpstan.neon.dist export-ignore
 /support/phpunit.xml.dist export-ignore
 /support/composer.json export-ignore
-/support/resources/consumer-api.json export-ignore
 /support/stubs-events.stub export-ignore
 /.DS_Store export-ignore
 /**/.DS_Store export-ignore

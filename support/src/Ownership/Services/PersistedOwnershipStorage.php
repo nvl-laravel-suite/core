@@ -25,8 +25,26 @@ final readonly class PersistedOwnershipStorage
         }
     }
 
+    /** Inspect shared storage once for one bounded operation, retaining fresh checks on every call.
+     *
+     * @param  list<string>  $tables
+     */
+    public function assertUnadoptedTables(Connection $connection, array $tables): void
+    {
+        if ($tables === []) {
+            return;
+        }
+        $probe = $this->probe($connection);
+        foreach (array_unique($tables) as $table) {
+            $this->assertMarkers($probe['markers'], physicalTable: $table);
+            if ($probe['protocol']) {
+                $this->assertNoPartition($connection, $table);
+            }
+        }
+    }
+
     /**
-     * Inspect both protocol catalogs in one native schema query per connection generation.
+     * Inspect both protocol catalogs in one fresh native schema query.
      *
      * @return array{legacy: bool, protocol: bool, markers: list<stdClass>}
      */

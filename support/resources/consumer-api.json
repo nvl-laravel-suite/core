@@ -5,6 +5,15 @@
         "Nvl\\Support\\": "support/src"
     },
     "symbols": {
+        "Nvl\\Support\\Auth\\CanonicalActorResolver": {
+            "kind": "class",
+            "file": "support/src/Auth/CanonicalActorResolver.php",
+            "methods": [
+                "resolve"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Bindings\\RequiredBindingDefinition": {
             "kind": "class",
             "file": "support/src/Bindings/RequiredBindingDefinition.php",

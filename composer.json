@@ -114,7 +114,6 @@
             "/support/phpstan.neon.dist",
             "/support/phpunit.xml.dist",
             "/support/composer.json",
-            "/support/resources/consumer-api.json",
             "/support/stubs-events.stub",
             "/.DS_Store",
             "/**/.DS_Store",
