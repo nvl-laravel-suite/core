@@ -44,17 +44,19 @@ use Nvl\Support\Ownership\Services\UnavailableOwnershipSystemRunner;
 use Nvl\Support\Ownership\Services\UnownedOwnershipBoundary;
 use Nvl\Support\Ownership\Services\UnownedOwnershipModelPersistence;
 use Nvl\Support\Ownership\Services\UnownedOwnershipWriter;
+use Nvl\Support\Traits\MergesPackageConfiguration;
 use Nvl\Support\Traits\RegistersNamespacedResources;
 
 /** Registers the native shared runtime without activating domain or legacy providers. */
 final class SupportServiceProvider extends ServiceProvider
 {
+    use MergesPackageConfiguration;
     use RegistersNamespacedResources;
 
     /** Bind shared contracts and safe defaults without touching storage or host queues. */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../../config/nvl-core.php', 'nvl-core');
+        $this->mergePackageConfiguration(__DIR__.'/../../config/nvl-core.php', 'core');
         $this->app->singletonIf(OwnerRegistry::class);
         $this->app->singletonIf(OwnershipResourceRegistry::class);
         $this->app->singletonIf(OwnershipContextParticipants::class);

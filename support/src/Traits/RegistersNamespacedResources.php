@@ -22,7 +22,7 @@ trait RegistersNamespacedResources
     }
 
     /**
-     * Namespace resource groups; legacy tags require explicit collision-safe compatibility.
+     * Register canonical resource groups and preserve host-owned names.
      *
      * @param  array<string, string>  $paths
      * @param  string|list<string>|null  $groups
@@ -31,7 +31,7 @@ trait RegistersNamespacedResources
     {
         $paths = $this->publicationPaths($paths);
         $package = $this->publicationPackage();
-        PackageInstallation::register($this->app, 'nvl/'.($package === 'data' ? 'core' : $package), []);
+        PackageInstallation::register($this->app, 'nvl/'.$package, []);
         $configurationPaths = [];
         foreach ($paths as $source => $target) {
             $name = basename($source);
@@ -49,7 +49,7 @@ trait RegistersNamespacedResources
         $groups = is_array($groups) ? $groups : ($groups === null ? [] : [$groups]);
         $names = $this->app->make(GlobalNames::class);
         $registered = [];
-        $owner = $package === 'data' ? 'core' : $package;
+        $owner = $package;
         $exists = function (string $name): bool {
             if (! array_key_exists($name, ServiceProvider::$publishGroups)) {
                 return false;
@@ -57,7 +57,7 @@ trait RegistersNamespacedResources
             $owned = $this->publicationPaths(ServiceProvider::$publishes[static::class] ?? []);
             if ($name === 'nvl-core-config') {
                 foreach (ServiceProvider::$publishes as $provider => $resources) {
-                    if (is_string($provider) && (str_starts_with($provider, 'Nvl\\Support\\') || str_starts_with($provider, 'Nvl\\Data\\'))) {
+                    if (is_string($provider) && str_starts_with($provider, 'Nvl\\Support\\')) {
                         $owned = array_merge($owned, $this->publicationPaths($resources));
                     }
                 }
@@ -69,23 +69,13 @@ trait RegistersNamespacedResources
             parent::publishes($paths, $name);
         };
         foreach ($groups as $group) {
-            if ($group === 'config') {
-                continue;
+            if (! str_starts_with($group, 'nvl-'.$package.'-')) {
+                throw new \InvalidArgumentException('Package publish tags must use their canonical nvl-'.$package.'- prefix.');
             }
-            $canonical = str_starts_with($group, 'nvl-') ? $group : 'nvl-'.($package === 'core' ? preg_replace('/^support-/', 'core-', $group) : $group);
+            $canonical = $group;
             if (! isset($registered[$canonical])) {
                 $names->reserve($owner, 'publish', $canonical, $exists, $install, append: true);
                 $registered[$canonical] = true;
-            }
-            if ($canonical !== $group) {
-                $names->register($package === 'data' ? 'core' : $package, 'publish', $group, $canonical,
-                    static fn (string $name): bool => array_key_exists($name, ServiceProvider::$publishGroups),
-                    function (string $name) use ($paths): void {
-                        parent::publishes($paths, $name);
-                    });
-            }
-            if (in_array($package, ['data', 'core'], true) && str_ends_with($canonical, '-config')) {
-                $names->reserve($owner, 'publish', 'nvl-core-config', $exists, $install, append: true);
             }
         }
         if ($groups === []) {

@@ -6,6 +6,7 @@ namespace Nvl\Support\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Console\Commands\DoctorCommand;
+use Nvl\Support\Console\Commands\InstallCommand;
 use Nvl\Support\Doctor\CoreDoctor;
 use Nvl\Support\Doctor\DoctorRegistry;
 use Nvl\Support\Doctor\PackageDoctorContributor;
@@ -30,7 +31,7 @@ final class DoctorServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([DoctorCommand::class]);
+            $this->commands([DoctorCommand::class, InstallCommand::class]);
         }
     }
 }

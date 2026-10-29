@@ -11,3 +11,7 @@ Native Ownership declarations, model guards, queue envelopes and committed-event
 Core preserves host bindings and Laravel bus/batch behavior. `DomainEventDispatcher` publishes on the actual source connection's outer commit; rollback discards publication. Local callbacks are not a durable outbox. See [event delivery](docs/events.md).
 
 Configuration defaults require no publication. The supported tags are `nvl-core-config`, `nvl-core-translations` and `nvl-core-skills`. Domain diagnostics and migrations remain with their owning packages.
+
+Canonical configuration uses `nvl-core` and each capability's `nvl-<package>` root. Legacy roots, environment fallbacks, option aliases and global-name compatibility switches are unavailable. Host registrations remain authoritative.
+
+For optional console setup and combined diagnostics, explicitly register `Nvl\Support\Providers\DoctorServiceProvider` in `bootstrap/providers.php`. It supplies `nvl:install` (including `--dry-run`) and `nvl:doctor`; Core's auto-discovered providers remain passive. See the [installation guide](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/installation.md) and [service and model extension contracts](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/consumer-api.md).

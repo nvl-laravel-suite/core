@@ -18,12 +18,7 @@
                 "queue.name",
                 "routes.middleware"
             ],
-            "advanced": [
-                "compatibility.global_aliases",
-                "compatibility.legacy_config",
-                "compatibility.legacy_env",
-                "compatibility.legacy_routes"
-            ]
+            "advanced": []
         }
     }
 }

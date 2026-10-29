@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Config\Repository;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Nvl\Support\Bindings\RequiredBindingDefinition;
@@ -11,6 +12,7 @@ use Nvl\Support\Console\Commands\InstallCommand;
 use Nvl\Support\Installation\ConfigPublisher;
 use Nvl\Support\Installation\InstallationRegistry;
 use Nvl\Support\Installation\PackageInstallation;
+use Nvl\Support\Providers\DoctorServiceProvider;
 use Symfony\Component\Console\Tester\CommandTester;
 
 beforeEach(function (): void {
@@ -89,4 +91,13 @@ it('recommends the consumer audit for statically enforced owner relations', func
     $tester = new CommandTester($command);
     expect($tester->execute(['packages' => ['example'], '--dry-run' => true]))->toBe(0)
         ->and($tester->getDisplay())->toContain('vendor/nvl/core/support/consumer-audit.neon', 'enforced statically, not at runtime');
+});
+
+it('exposes setup and diagnostics only through the explicitly registered tooling provider', function (): void {
+    $this->app->register(DoctorServiceProvider::class);
+    $commands = $this->app->make(Kernel::class)->all();
+    expect($commands)->toHaveKeys(['nvl:install', 'nvl:doctor'])
+        ->not->toHaveKeys(['nvl:schema:preflight', 'nvl:schema:upgrade']);
+    $this->artisan('nvl:install', ['packages' => ['core'], '--dry-run' => true, '--format' => 'json'])
+        ->assertSuccessful();
 });

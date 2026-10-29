@@ -64,7 +64,6 @@
             "methods": [
                 "authGuard",
                 "connection",
-                "deprecations",
                 "lockStore",
                 "migrationsEnabled",
                 "queueConnection",
@@ -423,7 +422,6 @@
                 "__construct",
                 "aliasFor",
                 "all",
-                "deprecations",
                 "errors",
                 "model",
                 "register",

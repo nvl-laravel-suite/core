@@ -21,7 +21,7 @@ it('publishes canonical resource groups while preserving host generic groups', f
     }
 });
 
-it('allows explicit free legacy publish tags but never the aggregate config group', function (): void {
+it('registers only canonical publish tags even when retired compatibility is selected', function (): void {
     $groups = ServiceProvider::$publishGroups;
     $providers = ServiceProvider::$publishes;
     unset(ServiceProvider::$publishGroups['media-config']);
@@ -29,7 +29,8 @@ it('allows explicit free legacy publish tags but never the aggregate config grou
     config(['nvl-core.compatibility.global_aliases' => ['media']]);
     try {
         (new NamespacedPublicationProvider(app()))->boot();
-        expect(ServiceProvider::pathsToPublish(null, 'media-config'))->toBe(ServiceProvider::pathsToPublish(null, 'nvl-media-config'))
+        expect(ServiceProvider::pathsToPublish(null, 'media-config'))->toBe([])
+            ->and(ServiceProvider::pathsToPublish(null, 'nvl-media-config'))->not->toBeEmpty()
             ->and(ServiceProvider::pathsToPublish(null, 'config'))->toBe(['/host/foreign.php' => '/host/config/foreign.php']);
     } finally {
         ServiceProvider::$publishGroups = $groups;

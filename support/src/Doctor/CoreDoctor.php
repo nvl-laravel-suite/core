@@ -7,7 +7,6 @@ namespace Nvl\Support\Doctor;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use InvalidArgumentException;
-use Nvl\Support\Config\PackageConfiguration;
 use Nvl\Support\Config\PackageOptions;
 use Nvl\Support\Globals\GlobalNames;
 use Nvl\Support\Locales\LocaleCatalogDiagnostics;
@@ -15,7 +14,7 @@ use Nvl\Support\OwnerRegistry;
 use Throwable;
 
 /**
- * Reports shared catalog conflicts and compatibility inputs without mutation.
+ * Reports native configuration and identity conflicts without mutation.
  */
 final readonly class CoreDoctor
 {
@@ -32,7 +31,7 @@ final readonly class CoreDoctor
     ) {}
 
     /**
-     * Inspect shared identity and locale compatibility.
+     * Inspect shared identity, locales and infrastructure.
      *
      * @return list<DoctorCheck>
      */
@@ -44,33 +43,6 @@ final readonly class CoreDoctor
         } catch (Throwable $exception) {
             $checks[] = new DoctorCheck('globals.configuration', 'error', false, $exception->getMessage());
         }
-        foreach (PackageConfiguration::detectedLegacy($this->config) as $package => $canonical) {
-            $checks[] = new DoctorCheck('configuration.legacy.'.$package, 'warning', false,
-                "Legacy NVL-shaped configuration [{$package}] was detected. Move options to [{$canonical}] or select [{$package}] in nvl-core.compatibility.legacy_config.");
-        }
-        foreach ((array) $this->config->get('nvl-core.configuration.legacy_reads', []) as $package => $canonical) {
-            if (! is_string($package) || ! is_string($canonical)) {
-                $checks[] = new DoctorCheck('configuration.legacy_metadata', 'error', false, 'Legacy configuration diagnostic declarations must map package names to canonical names.');
-
-                continue;
-            }
-            $checks[] = new DoctorCheck('configuration.legacy_read.'.$package, 'warning', false, "Legacy configuration [{$package}] is active; move options to [{$canonical}].");
-        }
-        foreach ((array) $this->config->get('nvl-core.configuration.legacy_env', []) as $legacy => $canonical) {
-            if (! is_string($legacy) || ! is_string($canonical)) {
-                $checks[] = new DoctorCheck('configuration.legacy_env_metadata', 'error', false, 'Legacy environment diagnostic declarations must map legacy names to canonical names.');
-
-                continue;
-            }
-            $checks[] = new DoctorCheck('configuration.legacy_env.'.$legacy, 'warning', false, "Legacy env input [{$legacy}] is active; use [{$canonical}].");
-        }
-        foreach (PackageOptions::deprecations() as $source => $deprecation) {
-            $message = "Configuration [{$source}] is deprecated; use [{$deprecation['replacement']}].";
-            if ($deprecation['conflict']) {
-                $message .= ' The explicit canonical value takes precedence over the legacy alias.';
-            }
-            $checks[] = new DoctorCheck('configuration.deprecated.'.$source, 'warning', false, $message);
-        }
 
         try {
             $this->owners->all();
@@ -78,14 +50,6 @@ final readonly class CoreDoctor
                 $checks[] = new DoctorCheck('owners.identity.'.substr(hash('sha256', $source), 0, 16), 'error', false, $message);
             }
             $checks = [...$checks, ...$this->ownerRows->inspect()];
-            foreach ($this->owners->deprecations() as $source => $deprecation) {
-                $checks[] = new DoctorCheck(
-                    'owners.deprecated.'.$source,
-                    'warning',
-                    false,
-                    "Owner configuration [{$source}] is deprecated; declare [{$deprecation['replacement']}] and reference its owner alias.",
-                );
-            }
         } catch (Throwable $exception) {
             $checks[] = new DoctorCheck('owners.configuration', 'error', false, $exception->getMessage());
         }

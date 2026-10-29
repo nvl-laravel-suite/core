@@ -18,9 +18,9 @@ final class NamespacedPublicationProvider extends ServiceProvider
         return 'media';
     }
 
-    /** Publish the same resources used by old package providers. */
+    /** Publish a canonical group without claiming generic host names. */
     public function boot(): void
     {
-        $this->publishes(['/nvl/media/config.php' => '/host/config/nvl-media.php'], ['media-config', 'config']);
+        $this->publishes(['/nvl/media/config.php' => '/host/config/nvl-media.php'], 'nvl-media-config');
     }
 }

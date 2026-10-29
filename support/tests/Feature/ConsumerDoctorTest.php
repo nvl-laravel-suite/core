@@ -122,19 +122,14 @@ it('reports legacy locale configuration through the shared strict gate', functio
         ->and(implode(' ', array_column($report['checks'], 'message')))->toContain('primitives.locales');
 });
 
-it('reports cached infrastructure deprecations once without disclosing host values', function (): void {
+it('ignores retired deprecation metadata without disclosing host values', function (): void {
     config(['nvl-core.configuration.deprecations' => [
         'nvl-media.mutation_lock.store' => ['replacement' => 'nvl-media.locks.mutation.store', 'value' => 'secret-host-value', 'conflict' => true],
     ]]);
-
-    expect(Artisan::call('nvl:doctor', ['--strict' => true, '--format' => 'json']))->toBe(1);
+    Artisan::call('nvl:doctor', ['--strict' => true, '--format' => 'json']);
     $report = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
-    $checks = array_values(array_filter($report['checks'], static fn (array $check): bool => str_starts_with($check['key'], 'configuration.deprecated.')));
-
-    expect($checks)->toHaveCount(1)
-        ->and($checks[0])->toMatchArray(['severity' => 'warning', 'result' => 'fail'])
-        ->and($checks[0]['message'])->toContain('media.locks.mutation.store')
-        ->not->toContain('secret-host-value');
+    expect(array_filter($report['checks'], static fn (array $check): bool => str_starts_with($check['key'], 'configuration.deprecated.')))->toBe([])
+        ->and(Artisan::output())->not->toContain('secret-host-value');
 });
 
 it('fails unconfigured or malformed shared infrastructure without domain contributors', function (string $option, mixed $value): void {
@@ -216,17 +211,15 @@ it('rejects malformed adapted Doctor payloads instead of fabricating readiness',
     'absent remediation' => [['key' => 'ready', 'passed' => false, 'message' => null]],
 ]);
 
-it('retains valid legacy diagnostic declarations while rejecting malformed metadata', function (): void {
+it('ignores retired diagnostic declarations and still reports native name collisions', function (): void {
     config(['nvl-core.configuration.legacy_reads' => ['media' => 'nvl-media', 'broken' => false],
         'nvl-core.configuration.legacy_env' => ['OLD_INPUT' => 'NVL_INPUT', 'broken' => false],
-        'nvl-core.compatibility.global_aliases' => true]);
+        'nvl-core.compatibility.global_aliases' => true,
+        'nvl-core.configuration.global_names' => ['host.conflict' => 'The host name was preserved.']]);
     Artisan::call('nvl:doctor', ['--format' => 'json']);
     $checks = array_column(json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR)['checks'], null, 'key');
-    expect($checks['configuration.legacy_read.media']['severity'])->toBe('warning')
-        ->and($checks['configuration.legacy_env.OLD_INPUT']['severity'])->toBe('warning')
-        ->and($checks['configuration.legacy_metadata']['severity'])->toBe('error')
-        ->and($checks['configuration.legacy_env_metadata']['severity'])->toBe('error')
-        ->and($checks['globals.configuration']['severity'])->toBe('error');
+    expect($checks)->not->toHaveKeys(['configuration.legacy_read.media', 'configuration.legacy_env.OLD_INPUT', 'configuration.legacy_metadata', 'configuration.legacy_env_metadata'])
+        ->and($checks['globals.host.conflict']['severity'])->toBe('warning');
 });
 
 it('reports unsupported database selection and malformed native failed-job destinations', function (): void {

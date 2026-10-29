@@ -35,7 +35,7 @@ final class OwnerRegistry
     public function __construct(private readonly Repository $configuration) {}
 
     /**
-     * Accept a historical registration without installing a host morph mapping.
+     * Declare a capability alias without installing a host morph mapping.
      *
      * @param  class-string<Model>  $model  Owner class
      */
@@ -87,7 +87,7 @@ final class OwnerRegistry
     }
 
     /**
-     * Resolve a class or one-major historical alias to its declared model.
+     * Resolve a declared class or capability alias to its model.
      *
      * @return class-string<Model>
      */
@@ -121,7 +121,7 @@ final class OwnerRegistry
     }
 
     /**
-     * Declare a package capability using a model class or a historical reference.
+     * Declare a package capability using a model class or configured reference.
      *
      * @return class-string<Model>
      *
@@ -175,7 +175,7 @@ final class OwnerRegistry
             }
             $owners[$identity] = $model;
             if ($declaration['alias'] !== null && $declaration['alias'] !== $identity) {
-                $this->diagnostics[$source] = "Owner declaration [{$source}] uses [{$declaration['alias']}] but Laravel uses [{$identity}] for [{$model}]. Add the desired mapping in the host's morph map with data reconciliation, or remove the legacy alias.";
+                $this->diagnostics[$source] = "Owner declaration [{$source}] uses [{$declaration['alias']}] but Laravel uses [{$identity}] for [{$model}]. Add the desired mapping in the host's morph map with data reconciliation, or remove the conflicting alias.";
             }
         }
         ksort($owners);
@@ -183,7 +183,7 @@ final class OwnerRegistry
         return $owners;
     }
 
-    /** @return array<string, string> Legacy identity mismatches for explicit Doctor checks */
+    /** @return array<string, string> Identity mismatches for explicit Doctor checks */
     public function errors(): array
     {
         $this->all();
@@ -192,24 +192,13 @@ final class OwnerRegistry
     }
 
     /**
-     * Matching historical declarations are accepted silently for this major.
-     *
-     * @return array<string, array{reference: string, replacement: string}>
-     */
-    public function deprecations(): array
-    {
-        return [];
-    }
-
-    /**
      * Register package-owned identities only, preserving all host-authored mappings.
      *
      * @param  string  $model  Package-owned class validated at this public boundary
-     * @param  list<string>  $legacy  Read-compatible package aliases
      *
      * @internal
      */
-    public function registerPackage(string $alias, string $model, array $legacy = [], string $package = 'core'): void
+    public function registerPackage(string $alias, string $model, string $package = 'core'): void
     {
         $this->validateAlias($alias);
         $this->validateModel($model);
@@ -230,21 +219,13 @@ final class OwnerRegistry
             return;
         }
         foreach ($map as $hostAlias => $hostModel) {
-            if ($hostModel === $model && $hostAlias !== $alias && ! isset($this->replacementReadAliases[$hostAlias]) && ! in_array($hostAlias, $legacy, true)) {
+            if ($hostModel === $model && $hostAlias !== $alias && ! isset($this->replacementReadAliases[$hostAlias])) {
                 $this->declare($model, 'package.'.$alias, null);
 
                 return;
             }
         }
         $names->reserve($package, 'morph', $alias, $occupied, $installCanonical);
-        foreach ($legacy as $candidate) {
-            $this->validateAlias($candidate);
-            $names->register($package, 'morph.legacy', $candidate, $alias, $occupied,
-                static function (string $name) use ($model): void {
-                    Relation::morphMap(Relation::morphMap() + [$name => $model], false);
-                },
-            );
-        }
         $this->declare($model, 'package.'.$alias, null);
     }
 
@@ -293,7 +274,7 @@ final class OwnerRegistry
         }
     }
 
-    /** Reject malformed compatibility labels without manufacturing a morph identity. */
+    /** Reject malformed capability labels without manufacturing a morph identity. */
     private function validateAlias(string $alias): void
     {
         if (preg_match('/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/D', $alias) !== 1 || ctype_digit($alias)) {

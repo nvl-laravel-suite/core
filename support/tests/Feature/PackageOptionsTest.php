@@ -68,37 +68,26 @@ it('inherits named database connections while preserving migration opt-in defaul
     expect(PackageOptions::connection('billing'))->toBe('billing-storage');
 });
 
-it('normalizes only declared package aliases and reports canonical conflicts once', function (): void {
-    $normalized = PackageOptions::normalize('templates', [
-        'queue' => ['connection' => 'canonical'],
-        'rendering' => ['connection' => 'historical', 'queue' => 'render-work', 'timeout' => 90],
-        'auth' => ['guard' => 'legacy-admin'],
+it('ignores historical queue and guard aliases', function (): void {
+    config([
+        'nvl-templates.queue.connection' => null,
+        'nvl-templates.rendering.connection' => 'historical',
+        'nvl-templates.auth.guard' => 'legacy-admin',
+        'nvl-core.queue.connection' => 'native-jobs',
+        'nvl-core.authorization.guard' => 'native-admin',
     ]);
-    PackageOptions::normalize('templates', $normalized);
-
-    expect($normalized['queue'])->toBe(['connection' => 'canonical', 'name' => 'render-work'])
-        ->and($normalized['authorization']['guard'])->toBe('legacy-admin')
-        ->and($normalized['rendering']['timeout'])->toBe(90)
-        ->and(PackageOptions::deprecations('templates'))->toHaveCount(3)
-        ->and(PackageOptions::deprecations('templates')['nvl-templates.rendering.connection'])
-        ->toBe(['replacement' => 'nvl-templates.queue.connection', 'value' => 'canonical', 'conflict' => true]);
-
-    expect(PackageOptions::normalize('content', ['rendering' => ['connection' => 'unrelated']], false))
-        ->toBe(['rendering' => ['connection' => 'unrelated']]);
+    expect(PackageOptions::queueConnection('templates'))->toBe('native-jobs')
+        ->and(PackageOptions::authGuard('templates'))->toBe('native-admin');
 });
 
-it('retains independent historical media lock stores instead of collapsing them', function (): void {
-    $normalized = PackageOptions::normalize('media', [
-        'mutation_lock' => ['store' => 'mutations', 'seconds' => 70],
-        'deduplication_lock' => ['store' => 'deduplication'],
-        'multipart' => ['lock' => ['store' => 'multipart']],
+it('selects independent canonical media lock stores without historical aliases', function (): void {
+    config([
+        'nvl-media.locks' => ['store' => 'general', 'mutation' => ['store' => 'mutations'], 'deduplication' => ['store' => 'deduplication'], 'multipart' => ['store' => 'uploads']],
+        'nvl-media.mutation_lock.store' => 'historical',
     ]);
-    config(['nvl-media' => $normalized]);
-
     expect(PackageOptions::lockStore('media', 'mutation'))->toBe('mutations')
         ->and(PackageOptions::lockStore('media', 'deduplication'))->toBe('deduplication')
-        ->and(PackageOptions::lockStore('media', 'multipart'))->toBe('multipart')
-        ->and($normalized['mutation_lock']['seconds'])->toBe(70);
+        ->and(PackageOptions::lockStore('media', 'multipart'))->toBe('uploads');
 });
 
 it('inherits route lists atomically and applies a selected authentication guard', function (): void {
@@ -117,40 +106,31 @@ it('inherits route lists atomically and applies a selected authentication guard'
     expect(PackageOptions::routeMiddleware('content', 'management'))->toBe(['auth:token']);
 });
 
-it('preserves normalized values and deprecations through a configuration cache round trip', function (): void {
-    config(['nvl-templates' => PackageOptions::normalize('templates', ['rendering' => ['connection' => 'historical']])]);
+it('preserves canonical infrastructure through a configuration cache round trip', function (): void {
+    config(['nvl-templates.queue.connection' => 'native-jobs']);
     $cache = tempnam(sys_get_temp_dir(), 'nvl-options-');
     expect($cache)->not->toBeFalse();
     file_put_contents($cache, '<?php return '.var_export(config()->all(), true).';');
-
     try {
-        $cached = require $cache;
-        config()->set($cached);
-        expect(PackageOptions::queueConnection('templates'))->toBe('historical')
-            ->and(PackageOptions::deprecations('templates'))->toHaveKey('nvl-templates.rendering.connection');
+        config()->set(require $cache);
+        expect(PackageOptions::queueConnection('templates'))->toBe('native-jobs');
     } finally {
         unlink($cache);
     }
 });
 
-it('does not report aliases from shipped defaults', function (): void {
-    PackageOptions::normalize('templates', ['rendering' => ['connection' => null, 'queue' => null]], false);
-    expect(PackageOptions::deprecations('templates'))->toBe([]);
+it('does not create deprecation reports while reading canonical settings', function (): void {
+    PackageOptions::queueConnection('templates');
+    expect(config('nvl-core.configuration.deprecations'))->toBeNull();
 });
 
-it('inherits Core when an explicit canonical null accompanies a historical override', function (): void {
-    $host = PackageOptions::normalize('templates', [
-        'queue' => ['connection' => null],
-        'rendering' => ['connection' => 'historical'],
-    ]);
+it('inherits Core for canonical null even when a historical override is present', function (): void {
     config([
-        'nvl-templates' => $host,
-        'nvl-core.options_explicit.templates' => ['queue.connection'],
+        'nvl-templates.queue.connection' => null,
+        'nvl-templates.rendering.connection' => 'historical',
         'nvl-core.queue.connection' => 'suite-jobs',
     ]);
-
-    expect($host['queue']['connection'])->toBeNull()
-        ->and(PackageOptions::queueConnection('templates'))->toBe('suite-jobs');
+    expect(PackageOptions::queueConnection('templates'))->toBe('suite-jobs');
 });
 
 it('rejects invalid names instead of silently inheriting them', function (string $key, mixed $value, string $method): void {

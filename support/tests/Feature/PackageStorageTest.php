@@ -18,21 +18,20 @@ it('inherits Core connections and preserves package overrides', function (): voi
     expect(PackageStorage::connection('forms'))->toBe('forms_storage');
 });
 
-it('normalizes explicit legacy storage before canonical defaults are merged', function (): void {
-    $host = ['storage' => ['connection' => 'historical', 'table' => 'host_audit']];
-    $normalized = PackageStorage::normalize('activity', $host);
-    expect($normalized['connection'])->toBe('historical')
-        ->and($normalized['tables']['log'])->toBe('host_audit');
+it('ignores historical storage options when inheriting canonical defaults', function (): void {
+    config(['nvl-core.connection' => 'native', 'nvl-activity' => ['storage' => ['connection' => 'historical', 'table' => 'host_audit']]]);
+    expect(PackageStorage::connection('activity'))->toBe('native')
+        ->and(PackageStorage::table('activity', 'log', 'nvl_activity_log'))->toBe('nvl_activity_log');
 });
 
-it('preserves an explicit canonical value when an old key is also configured', function (): void {
-    $normalized = PackageStorage::normalize('activity', [
+it('reads canonical overrides without translating historical keys', function (): void {
+    config(['nvl-activity' => [
         'connection' => 'canonical',
         'tables' => ['log' => 'canonical_audit'],
         'storage' => ['connection' => 'old', 'table' => 'old_audit'],
-    ]);
-    expect($normalized['connection'])->toBe('canonical')
-        ->and($normalized['tables']['log'])->toBe('canonical_audit');
+    ]]);
+    expect(PackageStorage::connection('activity'))->toBe('canonical')
+        ->and(PackageStorage::table('activity', 'log', 'nvl_activity_log'))->toBe('canonical_audit');
 });
 
 it('rejects malformed storage identifiers before executing SQL', function (mixed $value): void {
