@@ -1346,7 +1346,22 @@
                     "subscriptions",
                     "subscription_items",
                     "webhook_events"
-                ]
+                ],
+                "previous_checksum": "b284a4a1ce9713cf5909e64b3fc849f57826f0c492d339a4e8332ead6658b1b7"
+            },
+            "2026_11_01_080624_nvl_billing_complete_account_lifecycle_storage": {
+                "name": "2026_11_01_080624_nvl_billing_complete_account_lifecycle_storage",
+                "path": "database/migrations/billing/2026_11_01_080624_nvl_billing_complete_account_lifecycle_storage.php",
+                "create": false,
+                "legacy_checksum": "d5ca0cdb79240a95f074459e894f29367e212cd5eec9e9d312a0eadafa150a4b",
+                "creates": []
+            },
+            "2026_11_01_174311_nvl_billing_bind_checkout_request_identity": {
+                "name": "2026_11_01_174311_nvl_billing_bind_checkout_request_identity",
+                "path": "database/migrations/billing/2026_11_01_174311_nvl_billing_bind_checkout_request_identity.php",
+                "create": false,
+                "legacy_checksum": "21277984326bcda45c15903819a43bbebcfbe3747c6ce2653e92b3925c52867b",
+                "creates": []
             }
         }
     },
@@ -4468,6 +4483,20 @@
                 "create": false,
                 "legacy_checksum": "a0864f061e7da186b06753f77fa741edde7bae1b639176c91c8705083d6b8a88",
                 "creates": []
+            },
+            "2026_11_01_081233_nvl_metafields_expand_value_storage": {
+                "name": "2026_11_01_081233_nvl_metafields_expand_value_storage",
+                "path": "database/migrations/2026_11_01_081233_nvl_metafields_expand_value_storage.php",
+                "create": false,
+                "legacy_checksum": "a3762f1e83f28e74d35c2d403a10226899fa244de47acadc3c6e22ee19d7d17f",
+                "creates": []
+            },
+            "2026_11_01_183342_nvl_metafields_index_definition_owner_type": {
+                "name": "2026_11_01_183342_nvl_metafields_index_definition_owner_type",
+                "path": "database/migrations/2026_11_01_183342_nvl_metafields_index_definition_owner_type.php",
+                "create": false,
+                "legacy_checksum": "67d619aaf791880a16a9cc1400e85666ce90124e000ef37d5c98eda054c0592d",
+                "creates": []
             }
         }
     },
@@ -6141,6 +6170,20 @@
                 "creates": [
                     "graph_lock"
                 ]
+            },
+            "2026_11_01_123615_nvl_tasks_expand_calendar_datetime_range": {
+                "name": "2026_11_01_123615_nvl_tasks_expand_calendar_datetime_range",
+                "path": "database/migrations/2026_11_01_123615_nvl_tasks_expand_calendar_datetime_range.php",
+                "create": false,
+                "legacy_checksum": "29095ef56e36d1371503f4be5dc653d8cd94c31ee1f360b5da4ce8bd98d07d5b",
+                "creates": []
+            },
+            "2026_11_01_194707_nvl_tasks_add_activity_delivery_ready_index": {
+                "name": "2026_11_01_194707_nvl_tasks_add_activity_delivery_ready_index",
+                "path": "database/migrations/2026_11_01_194707_nvl_tasks_add_activity_delivery_ready_index.php",
+                "create": false,
+                "legacy_checksum": "337b2b3a31a61dea2a08982cb53b9e57729fb8b8725696d6ba57dabc7990360c",
+                "creates": []
             }
         }
     },
