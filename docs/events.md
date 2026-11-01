@@ -26,23 +26,17 @@ app(\Nvl\Support\Events\DomainEventDispatcher::class)->dispatch($event, $writerC
 
 The host must supply its actual writer connection and construct the immutable snapshot before scheduling. A live model in a listener payload is not a substitute for a stable reference. Framework events remain framework-owned and are outside the package catalogs.
 
-## Major 5 listener and queue migration
+## Canonical listeners and queue migration
 
-Legacy names are deprecated for major 5 and removed no earlier than major 6. class_alias preserves imports, instanceof, listener type hints and the new versioned constructor, not the former model-bearing API.
+Event listeners, fakes, subscribers, cached discovery and filters use canonical class names from the package event catalog. Core preserves the host dispatcher and supplies no retired-name aliases or listener bridge. Migrate old exact names and suffix-specific wildcards before enabling current producers.
 
-The native Laravel exact-listener bridge reads getRawListeners at delivery time and prepares legacy listeners through makeListener; strict-identical canonical registrations are skipped. Late registration, subscribers, cached discovery and queued listener preparation use the native dispatcher seams covered by Core’s committed-event and native host transaction regressions.
-
-One canonical object is emitted once. Native wildcard/interface listeners see the canonical event once; suffix-specific *Event wildcards must migrate. The bridge does not redispatch a legacy string.
-
-Drain old queued model-bearing payloads and restart workers before upgrade. New serialized alias instances restore the canonical versioned class without model restoration.
-
-Event listeners, fakes and filters use canonical class names. Core preserves the host dispatcher and supplies no retired-name aliases or listener bridge.
+Drain old queued model-bearing payloads and restart workers before upgrade. Current immutable event snapshots retain scalar identities and schema versions; they do not restore live models or translate retired serialized event classes.
 
 ## Deferred acceptance checks
 
-Final testing must compare catalog types/defaults/aliases with actual classes, recursively inspect producer payloads, and prove source outer commit, nested rollback, unrelated connection independence and retry behavior without an uncommitted test-harness transaction. Where applicable it must cover legacy exact/cached/queued listeners, canonical fakes and wildcard delivery, tenant capture, package no-op guards and observational failure containment. This document does not report those checks as passing.
+Final testing must compare catalog types and defaults with actual classes, recursively inspect producer payloads, and prove source outer commit, nested rollback, unrelated connection independence and retry behavior without an uncommitted test-harness transaction. Cover canonical exact/cached/queued listeners, fakes and wildcard delivery, captured owner context, package no-op guards and observational failure containment for the selected deployment profile.
 
 ## Consumer event assertions
 
-Use the canonical event class listed in the catalog for `Event::fake([...])` and `Event::assertDispatched(...)`. Laravel fake filters compare the emitted class name; an old alias import does not rename that canonical object. Legacy exact listeners are bridged at delivery time through Laravel’s native dispatcher. Keep compatibility listener tests on their exact legacy name, and migrate suffix-specific wildcards to canonical names.
+Use the canonical event class listed in the catalog for `Event::fake([...])` and `Event::assertDispatched(...)`. Laravel fake filters compare the emitted class name. Assert immutable snapshots and their captured owner identity, and migrate retired listener names to the current catalog before deployment.
 

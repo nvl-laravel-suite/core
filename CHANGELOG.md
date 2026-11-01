@@ -5,6 +5,12 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+### Changed
+
+- Align NVL peers and consumer contracts on the coordinated 7.x line. Review [UPGRADING.md](UPGRADING.md) for adoption and application-owned integration requirements.
+- Require Laravel 13.30 and patched dependency minimums so lowest-version runtime resolutions exclude known security advisories.
+- Keep explicit background actors compatible with Laravel `Authorizable` Gate hooks without creating an authenticated identity or granting permissions; correct installer and canonical event-listener guidance.
+
 ## [6.1.0] - 2026-10-23
 
 <!-- NVL GENERATED CHANGES START -->

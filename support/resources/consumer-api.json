@@ -198,6 +198,7 @@
             "kind": "enum",
             "file": "support/src/Enums/SystemActor.php",
             "methods": [
+                "can",
                 "cases"
             ],
             "properties": [

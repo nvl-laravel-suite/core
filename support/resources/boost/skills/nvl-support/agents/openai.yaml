@@ -1,4 +1,4 @@
 interface:
   display_name: "NVL Support"
-  short_description: "Build safe transport-neutral errors"
-  default_prompt: "Use $nvl-support to implement or review stable response codes, business exceptions, safe context, and foundation boundaries."
+  short_description: "Integrate native NVL foundation contracts"
+  default_prompt: "Use $nvl-support to integrate native owner identity, locale, configured models, connection-aware events and safe domain errors."

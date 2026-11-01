@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\GenericUser;
+use Illuminate\Contracts\Auth\Access\Authorizable;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Nvl\Support\Auth\CanonicalActorResolver;
+use Nvl\Support\Enums\SystemActor;
 
 beforeEach(function (): void {
     Schema::create('core_canonical_actor_test_users', static function (Blueprint $table): void {
@@ -16,6 +20,26 @@ beforeEach(function (): void {
         $table->boolean('can_manage')->default(false);
         $table->softDeletes();
     });
+});
+
+it('keeps explicit system abilities compatible with authorizable Gate hooks without creating a login identity', function (): void {
+    $seen = [];
+    Gate::before(static function (Authorizable $actor, string $ability) use (&$seen): ?bool {
+        $seen[] = $actor;
+
+        return $ability === 'core.system.blocked' ? false : null;
+    });
+    Gate::define('core.system.allowed', static fn (SystemActor $actor): bool => $actor === SystemActor::Background);
+    Gate::define('core.system.blocked', static fn (SystemActor $actor): bool => true);
+    $actor = SystemActor::Background;
+
+    expect(Gate::forUser($actor)->allows('core.system.allowed'))->toBeTrue()
+        ->and(Gate::forUser($actor)->allows('core.system.undefined'))->toBeFalse()
+        ->and(Gate::forUser($actor)->allows('core.system.blocked'))->toBeFalse()
+        ->and($actor)->not->toBeInstanceOf(Authenticatable::class)
+        ->and($actor->can('core.system.allowed'))->toBeTrue()
+        ->and($actor->can('core.system.undefined'))->toBeFalse()
+        ->and($seen)->toBe(array_fill(0, 5, $actor));
 });
 
 it('reloads Eloquent actor policy attributes and drops caller loaded relations', function (): void {

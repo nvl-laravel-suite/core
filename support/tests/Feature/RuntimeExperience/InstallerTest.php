@@ -84,13 +84,14 @@ it('returns a command failure only for selected enabled missing capabilities', f
         ->and(json_decode($tester->getDisplay(), true, flags: JSON_THROW_ON_ERROR)['healthy'])->toBeFalse();
 });
 
-it('recommends the consumer audit for statically enforced owner relations', function (): void {
+it('reports native runtime ownership prerequisites without retired static tooling', function (): void {
     $command = new InstallCommand;
     $command->setLaravel($this->app);
     $this->app->instance(ConfigPublisher::class, $this->publisher);
     $tester = new CommandTester($command);
     expect($tester->execute(['packages' => ['example'], '--dry-run' => true]))->toBe(0)
-        ->and($tester->getDisplay())->toContain('vendor/nvl/core/support/consumer-audit.neon', 'enforced statically, not at runtime');
+        ->and($tester->getDisplay())->toContain('host authorization', 'fail closed at runtime')
+        ->not->toContain('consumer-audit.neon', 'enforced statically, not at runtime');
 });
 
 it('exposes setup and diagnostics only through the explicitly registered tooling provider', function (): void {

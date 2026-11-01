@@ -15,9 +15,29 @@ use Nvl\Support\Console\Commands\SchemaUpgradeCommand;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Support\Schema\PackageMigrator;
 use Nvl\Support\Schema\SchemaIdentities;
+use Nvl\Support\Schema\SchemaMigrationPaths;
 use Nvl\Support\Schema\SchemaPreflight;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
+
+it('recognizes corrective migrations as vendor and explicitly published package history', function (string $package, string $name): void {
+    $migration = SchemaIdentities::package($package)['migrations'][$name];
+    $vendor = InstalledVersions::getInstallPath('nvl/'.$package).'/'.$migration['path'];
+    $published = sys_get_temp_dir().'/2099_11_01_000000_'.substr($name, 18).'.php';
+    copy($vendor, $published);
+    config(['nvl-core.migrations.published' => [$published => ['package' => $package, 'migration' => $name]]]);
+
+    try {
+        $paths = new SchemaMigrationPaths;
+        expect($paths->identity($vendor))->toMatchArray(['package' => $package, 'name' => $name, 'published' => false])
+            ->and($paths->identity($published))->toMatchArray(['package' => $package, 'name' => $name, 'published' => true]);
+    } finally {
+        unlink($published);
+    }
+})->with([
+    ['billing', '2026_11_01_080624_nvl_billing_complete_account_lifecycle_storage'],
+    ['metafields', '2026_11_01_081233_nvl_metafields_expand_value_storage'],
+]);
 
 it('rejects the complete batch before an earlier table can be created', function (): void {
     Schema::create('nvl_forms_entries', function (Blueprint $table): void {

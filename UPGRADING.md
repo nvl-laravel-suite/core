@@ -1,6 +1,6 @@
 # NVL Core Light
 
-Light targets PHP 8.4 and Laravel 13. It is a breaking family 7 API; install matching package versions.
+Light targets PHP 8.4 and Laravel 13 (minimum 13.30). It is a breaking family 7 API; install matching package versions.
 
 - Consumers own data classes, Actions, HTTP controllers, routes, resources and frontend types.
 - Native services own complete domain validation, authorization, ownership, transactions, revisions and recovery.

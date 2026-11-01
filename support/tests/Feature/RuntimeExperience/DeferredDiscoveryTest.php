@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Composer\Autoload\ClassLoader;
+use Composer\InstalledVersions;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 it('discovers the Core locale provider natively and preserves deferred resolution with cached config and host bindings', function (): void {
-    $vendor = dirname((new ReflectionClass(ClassLoader::class))->getFileName(), 2);
+    $vendor = dirname(InstalledVersions::getInstallPath('laravel/framework') ?? throw new RuntimeException('Laravel test dependencies are not installed.'), 2);
     $root = sys_get_temp_dir().'/nvl-e-discovery-'.bin2hex(random_bytes(8));
     mkdir($root.'/bootstrap/cache', 0755, true);
     mkdir($root.'/config');

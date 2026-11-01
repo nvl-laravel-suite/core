@@ -7,6 +7,14 @@ description: Use when integrating or reviewing the native Support namespace in n
 
 Core discovers Support and Locale providers. It supplies narrow shared contracts and safe unowned defaults. It does not activate a Data/TypeScript runtime, generic HTTP renderer, routes, Doctor/schema/install commands, consumer-policy analyzer or deprecated Tenancy bridge.
 
+## Read by task
+
+- [Installation and publication](references/installation.md): Composer discovery, exact config/skill tags and migration absence.
+- [Consumer recipes](references/usage.md): owner registration, locale state, safe errors, commit-aware events, required bindings and optional Ownership ports.
+- [Public API](references/api.md): exact namespaces, arguments, generic/array contracts, defaults and return values. Search the relevant capability rather than loading the whole catalog.
+
+The host must choose its model classes, policy and storage connection. Identity registration and actor normalization supply facts, not authorization. Read the complete operation's owning package skill when composing domain changes.
+
 ## Package and consumer ownership
 
 Package services own complete domain operations: validation, authorization seams, ownership, transactions, concurrency, idempotency and recovery. Consumers own DTOs, Actions, controllers, requests, routes, resources and frontend types. Use native typed arguments and documented arrays; keep useful models available through their documented safe-read contract. Do not add a generic DTO/Result framework or a forwarding Action layer.
