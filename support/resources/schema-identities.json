@@ -8262,322 +8262,732 @@
     "templates": {
         "config": "nvl-templates",
         "tables": {
-            "templates": {
-                "constant": "Templates",
-                "legacy": "templates",
-                "default": "nvl_templates_templates",
+            "groups": {
+                "constant": "Groups",
+                "legacy": "nvl_templates_groups",
+                "default": "nvl_templates_groups",
                 "columns": {
                     "id": "string",
-                    "key": "string",
-                    "renderer": "string",
-                    "status": "string",
-                    "schema": "json",
-                    "metadata": "json",
-                    "revision": "integer",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
                     "created_at": "datetime",
-                    "updated_at": "datetime"
+                    "updated_at": "datetime",
+                    "key": "string",
+                    "name": "string",
+                    "status": "string",
+                    "version": "integer",
+                    "current_revision_id": "string"
                 },
                 "create_migrations": [
-                    "2026_07_27_100001_create_templates_table"
+                    "2026_11_02_000001_nvl_templates_create_document_graph"
                 ],
                 "keys": [
                     {
-                        "type": "primary",
+                        "type": "unique",
                         "columns": [
+                            "scope_id",
                             "id"
                         ]
                     },
                     {
                         "type": "unique",
                         "columns": [
+                            "scope_id",
                             "key"
                         ]
                     },
                     {
-                        "type": "index",
+                        "type": "primary",
                         "columns": [
-                            "renderer"
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "scope_id",
+                            "id",
+                            "current_revision_id"
+                        ],
+                        "package": "templates",
+                        "table": "group_revisions",
+                        "references": [
+                            "scope_id",
+                            "group_id",
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "group_revisions": {
+                "constant": "GroupRevisions",
+                "legacy": "nvl_templates_group_revisions",
+                "default": "nvl_templates_group_revisions",
+                "columns": {
+                    "id": "string",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "group_id": "string",
+                    "revision": "integer",
+                    "source": "json",
+                    "document": "json",
+                    "checksum": "string",
+                    "published_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000001_nvl_templates_create_document_graph"
+                ],
+                "keys": [
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "group_id",
+                            "id"
                         ]
                     },
                     {
-                        "type": "index",
+                        "type": "unique",
                         "columns": [
-                            "status"
+                            "scope_id",
+                            "group_id",
+                            "revision"
                         ]
                     },
                     {
-                        "type": "index",
+                        "type": "unique",
                         "columns": [
-                            "status",
-                            "updated_at"
+                            "scope_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "scope_id",
+                            "group_id"
+                        ],
+                        "package": "templates",
+                        "table": "groups",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "group_id"
+                        ],
+                        "package": "templates",
+                        "table": "groups",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "templates": {
+                "constant": "Templates",
+                "legacy": "nvl_templates_templates",
+                "default": "nvl_templates_templates",
+                "columns": {
+                    "id": "string",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "key": "string",
+                    "name": "string",
+                    "status": "string",
+                    "version": "integer",
+                    "current_revision_id": "string",
+                    "group_id": "string"
+                },
+                "create_migrations": [
+                    "2026_11_02_000001_nvl_templates_create_document_graph"
+                ],
+                "keys": [
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "key"
+                        ]
+                    },
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "scope_id",
+                            "id",
+                            "current_revision_id"
+                        ],
+                        "package": "templates",
+                        "table": "revisions",
+                        "references": [
+                            "scope_id",
+                            "template_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "scope_id",
+                            "group_id"
+                        ],
+                        "package": "templates",
+                        "table": "groups",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "drafts": {
+                "constant": "Drafts",
+                "legacy": "nvl_templates_drafts",
+                "default": "nvl_templates_drafts",
+                "columns": {
+                    "id": "string",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "template_id": "string",
+                    "version": "integer",
+                    "document": "json",
+                    "proposed_basis": "json"
+                },
+                "create_migrations": [
+                    "2026_11_02_000001_nvl_templates_create_document_graph"
+                ],
+                "keys": [
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "template_id"
+                        ]
+                    },
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "scope_id",
+                            "template_id"
+                        ],
+                        "package": "templates",
+                        "table": "templates",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "template_id"
+                        ],
+                        "package": "templates",
+                        "table": "templates",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "revisions": {
+                "constant": "Revisions",
+                "legacy": "nvl_templates_revisions",
+                "default": "nvl_templates_revisions",
+                "columns": {
+                    "id": "string",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "template_id": "string",
+                    "revision": "integer",
+                    "group_id": "string",
+                    "group_revision_id": "string",
+                    "source": "json",
+                    "document": "json",
+                    "dependencies": "json",
+                    "checksum": "string",
+                    "published_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000001_nvl_templates_create_document_graph"
+                ],
+                "keys": [
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "template_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "template_id",
+                            "revision"
+                        ]
+                    },
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "scope_id",
+                            "group_id",
+                            "group_revision_id"
+                        ],
+                        "package": "templates",
+                        "table": "group_revisions",
+                        "references": [
+                            "scope_id",
+                            "group_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "scope_id",
+                            "template_id"
+                        ],
+                        "package": "templates",
+                        "table": "templates",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "template_id"
+                        ],
+                        "package": "templates",
+                        "table": "templates",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "resources": {
+                "constant": "Resources",
+                "legacy": "nvl_templates_resources",
+                "default": "nvl_templates_resources",
+                "columns": {
+                    "id": "string",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "key": "string",
+                    "name": "string",
+                    "status": "string",
+                    "version": "integer",
+                    "current_revision_id": "string",
+                    "kind": "string",
+                    "scope": "string",
+                    "owner_key": "string",
+                    "group_id": "string",
+                    "template_id": "string",
+                    "restrictions": "json"
+                },
+                "create_migrations": [
+                    "2026_11_02_000001_nvl_templates_create_document_graph"
+                ],
+                "keys": [
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "kind",
+                            "owner_key",
+                            "key"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "scope_id",
+                            "template_id"
+                        ],
+                        "package": "templates",
+                        "table": "templates",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "scope_id",
+                            "group_id"
+                        ],
+                        "package": "templates",
+                        "table": "groups",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "resource_revisions": {
+                "constant": "ResourceRevisions",
+                "legacy": "nvl_templates_resource_revisions",
+                "default": "nvl_templates_resource_revisions",
+                "columns": {
+                    "id": "string",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "resource_id": "string",
+                    "revision": "integer",
+                    "document": "json",
+                    "checksum": "string",
+                    "provenance": "json",
+                    "origin_revision_id": "string"
+                },
+                "create_migrations": [
+                    "2026_11_02_000001_nvl_templates_create_document_graph"
+                ],
+                "keys": [
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "resource_id",
+                            "revision"
+                        ]
+                    },
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "scope_id",
+                            "origin_revision_id"
+                        ],
+                        "package": "templates",
+                        "table": "resource_revisions",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "resource_id"
+                        ],
+                        "package": "templates",
+                        "table": "resources",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "scope_id",
+                            "resource_id"
+                        ],
+                        "package": "templates",
+                        "table": "resources",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "assets": {
+                "constant": "Assets",
+                "legacy": "nvl_templates_assets",
+                "default": "nvl_templates_assets",
+                "columns": {
+                    "id": "string",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "name": "string",
+                    "media_id": "string",
+                    "media_revision": "integer",
+                    "mime_type": "string",
+                    "size": "integer",
+                    "checksum": "string",
+                    "archived_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000001_nvl_templates_create_document_graph"
+                ],
+                "keys": [
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "scope_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
                         ]
                     }
                 ],
                 "foreign_keys": []
             },
-            "i18n": {
-                "constant": "I18n",
-                "legacy": "templates_i18n",
-                "default": "nvl_templates_i18n",
-                "columns": {
-                    "id": "string",
-                    "template_id": "string",
-                    "locale": "string",
-                    "title": "string",
-                    "description": "text",
-                    "created_at": "datetime",
-                    "updated_at": "datetime"
-                },
-                "create_migrations": [
-                    "2026_07_27_100002_create_templates_i18n_table"
-                ],
-                "keys": [
-                    {
-                        "type": "primary",
-                        "columns": [
-                            "id"
-                        ]
-                    },
-                    {
-                        "type": "unique",
-                        "columns": [
-                            "template_id",
-                            "locale"
-                        ]
-                    },
-                    {
-                        "type": "index",
-                        "columns": [
-                            "locale",
-                            "title"
-                        ]
-                    }
-                ],
-                "foreign_keys": [
-                    {
-                        "columns": [
-                            "template_id"
-                        ],
-                        "package": "templates",
-                        "table": "templates",
-                        "references": [
-                            "id"
-                        ],
-                        "required": true
-                    }
-                ]
-            },
-            "versions": {
-                "constant": "Versions",
-                "legacy": "template_versions",
-                "default": "nvl_templates_versions",
-                "columns": {
-                    "id": "string",
-                    "template_id": "string",
-                    "version": "integer",
-                    "status": "string",
-                    "metadata": "json",
-                    "content_snapshot": "json",
-                    "content_hash": "string",
-                    "revision": "integer",
-                    "published_by_type": "string",
-                    "published_by": "string",
-                    "published_at": "datetime",
-                    "created_at": "datetime",
-                    "updated_at": "datetime"
-                },
-                "create_migrations": [
-                    "2026_07_27_100003_create_template_versions_table"
-                ],
-                "keys": [
-                    {
-                        "type": "primary",
-                        "columns": [
-                            "id"
-                        ]
-                    },
-                    {
-                        "type": "unique",
-                        "columns": [
-                            "template_id",
-                            "version"
-                        ]
-                    },
-                    {
-                        "type": "index",
-                        "columns": [
-                            "template_id",
-                            "status",
-                            "version"
-                        ]
-                    },
-                    {
-                        "type": "index",
-                        "columns": [
-                            "published_by_type",
-                            "published_by"
-                        ]
-                    }
-                ],
-                "foreign_keys": [
-                    {
-                        "columns": [
-                            "template_id"
-                        ],
-                        "package": "templates",
-                        "table": "templates",
-                        "references": [
-                            "id"
-                        ],
-                        "required": true
-                    }
-                ]
-            },
-            "assignments": {
-                "constant": "Assignments",
-                "legacy": "template_assignments",
-                "default": "nvl_templates_assignments",
-                "columns": {
-                    "id": "string",
-                    "template_id": "string",
-                    "template_version_id": "string",
-                    "owner_type": "string",
-                    "owner_id": "string",
-                    "profile": "string",
-                    "settings": "json",
-                    "revision": "integer",
-                    "created_at": "datetime",
-                    "updated_at": "datetime"
-                },
-                "create_migrations": [
-                    "2026_07_27_100006_create_template_assignments_table"
-                ],
-                "keys": [
-                    {
-                        "type": "primary",
-                        "columns": [
-                            "id"
-                        ]
-                    },
-                    {
-                        "type": "unique",
-                        "columns": [
-                            "owner_type",
-                            "owner_id",
-                            "profile"
-                        ]
-                    },
-                    {
-                        "type": "index",
-                        "columns": [
-                            "template_id",
-                            "template_version_id"
-                        ]
-                    }
-                ],
-                "foreign_keys": [
-                    {
-                        "columns": [
-                            "template_id"
-                        ],
-                        "package": "templates",
-                        "table": "templates",
-                        "references": [
-                            "id"
-                        ],
-                        "required": true
-                    },
-                    {
-                        "columns": [
-                            "template_version_id"
-                        ],
-                        "package": "templates",
-                        "table": "versions",
-                        "references": [
-                            "id"
-                        ],
-                        "required": true
-                    }
-                ]
-            },
             "renders": {
                 "constant": "Renders",
-                "legacy": "template_renders",
+                "legacy": "nvl_templates_renders",
                 "default": "nvl_templates_renders",
                 "columns": {
                     "id": "string",
-                    "template_id": "string",
-                    "template_version_id": "string",
-                    "template_assignment_id": "string",
-                    "locale": "string",
-                    "profile": "string",
-                    "settings": "text",
-                    "status": "string",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "template_revision_id": "string",
                     "idempotency_key": "string",
-                    "payload_digest": "string",
-                    "payload": "text",
-                    "requested_by_type": "string",
-                    "requested_by": "string",
-                    "output_name": "string",
-                    "output_mime_type": "string",
-                    "failure": "text",
+                    "fingerprint": "string",
+                    "status": "string",
+                    "snapshot": "text",
+                    "result": "json",
+                    "error": "text",
+                    "output": "string",
+                    "snapshot_checksum": "string",
+                    "generation": "integer",
                     "attempts": "integer",
-                    "dispatch_generation": "integer",
                     "processing_token": "string",
+                    "available_at": "datetime",
+                    "dispatch_requested_at": "datetime",
+                    "dispatched_at": "datetime",
                     "lease_expires_at": "datetime",
-                    "started_at": "datetime",
                     "completed_at": "datetime",
                     "failed_at": "datetime",
-                    "created_at": "datetime",
-                    "updated_at": "datetime"
+                    "expires_at": "datetime",
+                    "purged_at": "datetime"
                 },
                 "create_migrations": [
-                    "2026_07_27_100007_create_template_renders_table"
+                    "2026_11_02_000001_nvl_templates_create_document_graph"
                 ],
                 "keys": [
                     {
-                        "type": "primary",
+                        "type": "unique",
                         "columns": [
+                            "scope_id",
                             "id"
                         ]
                     },
                     {
                         "type": "unique",
                         "columns": [
+                            "scope_id",
                             "idempotency_key"
                         ]
                     },
                     {
-                        "type": "index",
+                        "type": "primary",
                         "columns": [
-                            "status",
-                            "created_at"
+                            "id"
                         ]
                     },
                     {
                         "type": "index",
                         "columns": [
+                            "scope_id",
                             "status",
-                            "lease_expires_at"
-                        ]
-                    },
-                    {
-                        "type": "index",
-                        "columns": [
-                            "status",
-                            "updated_at"
-                        ]
-                    },
-                    {
-                        "type": "index",
-                        "columns": [
-                            "requested_by_type",
-                            "requested_by",
-                            "created_at"
+                            "available_at"
                         ]
                     }
                 ],
                 "foreign_keys": [
+                    {
+                        "columns": [
+                            "template_revision_id"
+                        ],
+                        "package": "templates",
+                        "table": "revisions",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "scope_id",
+                            "template_revision_id"
+                        ],
+                        "package": "templates",
+                        "table": "revisions",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "family_changes": {
+                "constant": "FamilyChanges",
+                "legacy": "nvl_templates_family_changes",
+                "default": "nvl_templates_family_changes",
+                "columns": {
+                    "id": "string",
+                    "scope_id": "string",
+                    "owner_scope_key": "string",
+                    "owner_reference": "text",
+                    "template_id": "string",
+                    "operation": "string",
+                    "expected_version": "integer",
+                    "source_checksum": "string",
+                    "inputs": "json",
+                    "result": "json",
+                    "status": "string",
+                    "resolutions": "json",
+                    "applied_version": "integer",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000002_nvl_templates_add_family_workflows"
+                ],
+                "keys": [
+                    {
+                        "type": "index",
+                        "columns": [
+                            "scope_id",
+                            "template_id",
+                            "status"
+                        ]
+                    },
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "scope_id",
+                            "template_id"
+                        ],
+                        "package": "templates",
+                        "table": "templates",
+                        "references": [
+                            "scope_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
                     {
                         "columns": [
                             "template_id"
@@ -8588,197 +8998,43 @@
                             "id"
                         ],
                         "required": true
-                    },
-                    {
-                        "columns": [
-                            "template_version_id"
-                        ],
-                        "package": "templates",
-                        "table": "versions",
-                        "references": [
-                            "id"
-                        ],
-                        "required": true
-                    },
-                    {
-                        "columns": [
-                            "template_assignment_id"
-                        ],
-                        "package": "templates",
-                        "table": "assignments",
-                        "references": [
-                            "id"
-                        ],
-                        "required": true
                     }
                 ]
-            },
-            "tenant_grants": {
-                "constant": "TenantGrants",
-                "legacy": "template_tenant_grants",
-                "default": "nvl_templates_tenant_grants",
-                "columns": {
-                    "id": "string",
-                    "template_version_id": "string",
-                    "recipient_tenant_id": "string",
-                    "source_revision": "integer",
-                    "revision": "integer",
-                    "revoked_at": "datetime",
-                    "created_at": "datetime",
-                    "updated_at": "datetime"
-                },
-                "create_migrations": [
-                    "2026_09_16_180012_create_template_tenant_grants"
-                ],
-                "keys": [
-                    {
-                        "type": "primary",
-                        "columns": [
-                            "id"
-                        ]
-                    },
-                    {
-                        "type": "unique",
-                        "columns": [
-                            "template_version_id",
-                            "recipient_tenant_id"
-                        ]
-                    },
-                    {
-                        "type": "index",
-                        "columns": [
-                            "recipient_tenant_id",
-                            "revoked_at"
-                        ]
-                    }
-                ],
-                "foreign_keys": []
-            },
-            "tenant_grant_locks": {
-                "constant": "TenantGrantLocks",
-                "legacy": "template_tenant_grant_locks",
-                "default": "nvl_templates_tenant_grant_locks",
-                "columns": {
-                    "recipient_tenant_id": "string",
-                    "template_version_id": "string",
-                    "created_at": "datetime",
-                    "updated_at": "datetime"
-                },
-                "create_migrations": [
-                    "2026_09_16_180012_create_template_tenant_grants"
-                ],
-                "keys": [
-                    {
-                        "type": "primary",
-                        "columns": [
-                            "recipient_tenant_id",
-                            "template_version_id"
-                        ]
-                    }
-                ],
-                "foreign_keys": []
-            },
-            "owner_grants": {
-                "constant": "OwnerGrants",
-                "legacy": "nvl_templates_owner_grants",
-                "default": "nvl_templates_owner_grants",
-                "columns": {
-                    "id": "string",
-                    "template_version_id": "string",
-                    "source_revision": "integer",
-                    "revision": "integer",
-                    "revoked_at": "datetime",
-                    "created_at": "datetime",
-                    "updated_at": "datetime"
-                },
-                "create_migrations": [],
-                "keys": [
-                    {
-                        "type": "primary",
-                        "columns": [
-                            "id"
-                        ]
-                    },
-                    {
-                        "type": "unique",
-                        "columns": [
-                            "owner_scope_key",
-                            "template_version_id"
-                        ]
-                    }
-                ],
-                "foreign_keys": []
             }
         },
         "migrations": {
-            "2026_07_27_100000_assert_template_schema_compatibility": {
-                "name": "2026_07_27_100000_nvl_templates_assert_template_schema_compatibility",
-                "path": "database/migrations/2026_07_27_100000_nvl_templates_assert_template_schema_compatibility.php",
-                "create": false,
-                "legacy_checksum": "19857b3c19bfb2e3806989f49752765cd770e065c59a5b1d75aa0334a583ffc0",
-                "creates": []
-            },
-            "2026_07_27_100001_create_templates_table": {
-                "name": "2026_07_27_100001_nvl_templates_create_templates_table",
-                "path": "database/migrations/2026_07_27_100001_nvl_templates_create_templates_table.php",
+            "2026_11_02_000001_nvl_templates_create_document_graph": {
+                "name": "2026_11_02_000001_nvl_templates_create_document_graph",
+                "path": "database/document-migrations/2026_11_02_000001_nvl_templates_create_document_graph.php",
                 "create": true,
-                "legacy_checksum": "c0c78ddda6928dd65f339c4160662613a23326092dd3001d4efd79b1640093db",
+                "legacy_checksum": "b5bccb93ed7804a77f895a49b0e78244d883076eed86b69d629648a614b08660",
                 "creates": [
-                    "templates"
-                ]
-            },
-            "2026_07_27_100002_create_templates_i18n_table": {
-                "name": "2026_07_27_100002_nvl_templates_create_templates_i18n_table",
-                "path": "database/migrations/2026_07_27_100002_nvl_templates_create_templates_i18n_table.php",
-                "create": true,
-                "legacy_checksum": "bf741e5528e304ec1b55aa6aca4fc0bd7864b4bac6b10db1d1b04d3c07f02ae5",
-                "creates": [
-                    "i18n"
-                ]
-            },
-            "2026_07_27_100003_create_template_versions_table": {
-                "name": "2026_07_27_100003_nvl_templates_create_template_versions_table",
-                "path": "database/migrations/2026_07_27_100003_nvl_templates_create_template_versions_table.php",
-                "create": true,
-                "legacy_checksum": "e50b73872d86c7414c13fb0348739aa6068adbe8cf443b0ec090021081831e9d",
-                "creates": [
-                    "versions"
-                ]
-            },
-            "2026_07_27_100006_create_template_assignments_table": {
-                "name": "2026_07_27_100006_nvl_templates_create_template_assignments_table",
-                "path": "database/migrations/2026_07_27_100006_nvl_templates_create_template_assignments_table.php",
-                "create": true,
-                "legacy_checksum": "981965a8563ca48c532df4d7f38dca99a3a8a59a2f0d63b632083094af45f142",
-                "creates": [
-                    "assignments"
-                ]
-            },
-            "2026_07_27_100007_create_template_renders_table": {
-                "name": "2026_07_27_100007_nvl_templates_create_template_renders_table",
-                "path": "database/migrations/2026_07_27_100007_nvl_templates_create_template_renders_table.php",
-                "create": true,
-                "legacy_checksum": "1bb9755db5bec25d0848f26f4add9fff5e587746d44d15facafb7816ba9e3d9c",
-                "creates": [
+                    "groups",
+                    "group_revisions",
+                    "templates",
+                    "drafts",
+                    "revisions",
+                    "resources",
+                    "resource_revisions",
+                    "assets",
                     "renders"
                 ]
             },
-            "2026_09_16_180011_add_templates_ownership": {
-                "name": "2026_09_16_180011_nvl_templates_add_templates_ownership",
-                "path": "database/tenancy-migrations/2026_09_16_180011_nvl_templates_add_templates_ownership.php",
-                "create": false,
-                "legacy_checksum": "ff5b9d169d4bbf966177889b6837fac8faa46fac17f27ef4e9d970e573694456",
-                "creates": []
-            },
-            "2026_09_16_180012_create_template_tenant_grants": {
-                "name": "2026_09_16_180012_nvl_templates_create_template_tenant_grants",
-                "path": "database/tenancy-migrations/2026_09_16_180012_nvl_templates_create_template_tenant_grants.php",
+            "2026_11_02_000002_nvl_templates_add_family_workflows": {
+                "name": "2026_11_02_000002_nvl_templates_add_family_workflows",
+                "path": "database/document-migrations/2026_11_02_000002_nvl_templates_add_family_workflows.php",
                 "create": true,
-                "legacy_checksum": "ca23f08da04ae2719242a7ed7a1404700231a1f0ab3a57c44e2578ddc12ce8d2",
+                "legacy_checksum": "8c99e7c78f56a917b639fd14f1ee0a8ad7076849e19d743b3bcc13865ba46446",
                 "creates": [
-                    "tenant_grants",
-                    "tenant_grant_locks"
+                    "family_changes"
                 ]
+            },
+            "2026_11_02_000003_nvl_templates_add_render_execution": {
+                "name": "2026_11_02_000003_nvl_templates_add_render_execution",
+                "path": "database/document-migrations/2026_11_02_000003_nvl_templates_add_render_execution.php",
+                "create": false,
+                "legacy_checksum": "7295478c442dce48e5e06c4f14cd2ce95abea0b47fed499911a3fbecf44601ca",
+                "creates": []
             }
         }
     },
