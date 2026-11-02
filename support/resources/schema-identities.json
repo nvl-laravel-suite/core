@@ -3013,10 +3013,12 @@
                     "provider_occurred_at": "datetime",
                     "redacted_at": "datetime",
                     "created_at": "datetime",
-                    "updated_at": "datetime"
+                    "updated_at": "datetime",
+                    "tenant_id": "string",
+                    "ownership_key": "string"
                 },
                 "create_migrations": [
-                    "2026_07_29_000000_create_mail_notification_tables"
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
                 ],
                 "keys": [
                     {
@@ -3082,6 +3084,18 @@
                             "status_changed_at",
                             "id"
                         ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "tenant_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "ownership_key"
+                        ]
                     }
                 ],
                 "foreign_keys": []
@@ -3102,10 +3116,11 @@
                     "processed_at": "datetime",
                     "redacted_at": "datetime",
                     "created_at": "datetime",
-                    "updated_at": "datetime"
+                    "updated_at": "datetime",
+                    "tenant_id": "string"
                 },
                 "create_migrations": [
-                    "2026_07_29_000000_create_mail_notification_tables"
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
                 ],
                 "keys": [
                     {
@@ -3134,6 +3149,12 @@
                             "redacted_at",
                             "occurred_at",
                             "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "tenant_id"
                         ]
                     }
                 ],
@@ -3180,10 +3201,13 @@
                     "cancelled_at": "datetime",
                     "redacted_at": "datetime",
                     "created_at": "datetime",
-                    "updated_at": "datetime"
+                    "updated_at": "datetime",
+                    "tenant_id": "string",
+                    "ownership_key": "string",
+                    "tenant_envelope": "json"
                 },
                 "create_migrations": [
-                    "2026_07_30_000100_create_scheduled_mail_messages_table"
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
                 ],
                 "keys": [
                     {
@@ -3256,44 +3280,1824 @@
                             "updated_at",
                             "id"
                         ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "tenant_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "ownership_key"
+                        ]
                     }
                 ],
                 "foreign_keys": []
+            },
+            "owners": {
+                "constant": "Owners",
+                "legacy": "owners",
+                "default": "nvl_mail_notifications_owners",
+                "columns": {
+                    "id": "string",
+                    "name": "string",
+                    "slug": "string",
+                    "status": "string",
+                    "broker_revision": "integer",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "slug"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
+            },
+            "integrations": {
+                "constant": "Integrations",
+                "legacy": "integrations",
+                "default": "nvl_mail_notifications_integrations",
+                "columns": {
+                    "id": "string",
+                    "key": "string",
+                    "name": "string",
+                    "icon": "string",
+                    "capabilities": "json",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "key"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
+            },
+            "provider_accounts": {
+                "constant": "ProviderAccounts",
+                "legacy": "provider_accounts",
+                "default": "nvl_mail_notifications_provider_accounts",
+                "columns": {
+                    "id": "string",
+                    "owner_id": "string",
+                    "name": "string",
+                    "provider": "string",
+                    "status": "string",
+                    "credentials": "text",
+                    "webhook_secret": "text",
+                    "integration_id": "string",
+                    "webhook_public_key": "text",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "owner_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "owner_id",
+                            "name"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "owner_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "owners",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "integration_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "integrations",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "sending_domains": {
+                "constant": "SendingDomains",
+                "legacy": "sending_domains",
+                "default": "nvl_mail_notifications_sending_domains",
+                "columns": {
+                    "id": "string",
+                    "owner_id": "string",
+                    "provider_account_id": "string",
+                    "remote_id": "string",
+                    "domain": "string",
+                    "status": "string",
+                    "verification_source": "string",
+                    "dns_records": "json",
+                    "verified_at": "datetime",
+                    "last_synced_at": "datetime",
+                    "last_seen_sync_run_id": "string",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "provider_account_id",
+                            "domain"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "owner_id",
+                            "provider_account_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "domain",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "owner_id",
+                            "domain",
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "owner_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "owners",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "owner_id",
+                            "provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "owner_id",
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "sender_identities": {
+                "constant": "SenderIdentities",
+                "legacy": "sender_identities",
+                "default": "nvl_mail_notifications_sender_identities",
+                "columns": {
+                    "id": "string",
+                    "owner_id": "string",
+                    "provider_account_id": "string",
+                    "email": "string",
+                    "name": "string",
+                    "verified_at": "datetime",
+                    "sending_domain_id": "string",
+                    "remote_id": "string",
+                    "status": "string",
+                    "verification_source": "string",
+                    "reply_to_email": "string",
+                    "reply_to_name": "string",
+                    "last_synced_at": "datetime",
+                    "last_seen_sync_run_id": "string",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "owner_id",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "provider_account_id",
+                            "email"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "email",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "owner_id",
+                            "email",
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "owner_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "owners",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "owner_id",
+                            "provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "owner_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "owner_id",
+                            "provider_account_id",
+                            "sending_domain_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "sending_domains",
+                        "references": [
+                            "owner_id",
+                            "provider_account_id",
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "clients": {
+                "constant": "Clients",
+                "legacy": "clients",
+                "default": "nvl_mail_notifications_clients",
+                "columns": {
+                    "id": "string",
+                    "owner_id": "string",
+                    "name": "string",
+                    "slug": "string",
+                    "status": "string",
+                    "broker_revision": "integer",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "owner_id",
+                            "slug"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "owner_id",
+                            "status"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "owner_id",
+                            "id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "owner_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "owners",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "owner_mail_settings": {
+                "constant": "OwnerMailSettings",
+                "legacy": "owner_mail_settings",
+                "default": "nvl_mail_notifications_owner_mail_settings",
+                "columns": {
+                    "owner_id": "string",
+                    "status": "string",
+                    "default_provider_account_id": "string",
+                    "from_email": "string",
+                    "from_name": "string",
+                    "reply_to_email": "string",
+                    "reply_to_name": "string",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "owner_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "owner_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "owners",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "owner_id",
+                            "default_provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "owner_id",
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "client_mail_settings": {
+                "constant": "ClientMailSettings",
+                "legacy": "client_mail_settings",
+                "default": "nvl_mail_notifications_client_mail_settings",
+                "columns": {
+                    "client_id": "string",
+                    "owner_id": "string",
+                    "status": "string",
+                    "authentication_mode": "string",
+                    "provider_account_id": "string",
+                    "sender_identity_id": "string",
+                    "from_email": "string",
+                    "from_name": "string",
+                    "reply_to_email": "string",
+                    "reply_to_name": "string",
+                    "rate_limit_per_minute": "integer",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "client_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "owner_id",
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "owner_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "owner_id",
+                            "provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "owner_id",
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "owner_id",
+                            "sender_identity_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "sender_identities",
+                        "references": [
+                            "owner_id",
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "client_api_keys": {
+                "constant": "ClientApiKeys",
+                "legacy": "client_api_keys",
+                "default": "nvl_mail_notifications_client_api_keys",
+                "columns": {
+                    "id": "string",
+                    "client_id": "string",
+                    "name": "string",
+                    "prefix": "string",
+                    "token_hash": "string",
+                    "abilities": "json",
+                    "expires_at": "datetime",
+                    "revoked_at": "datetime",
+                    "last_used_at": "datetime",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "prefix"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "token_hash"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "assets": {
+                "constant": "Assets",
+                "legacy": "assets",
+                "default": "nvl_mail_notifications_assets",
+                "columns": {
+                    "id": "string",
+                    "client_id": "string",
+                    "name": "string",
+                    "disk": "string",
+                    "path": "string",
+                    "mime_type": "string",
+                    "size": "integer",
+                    "checksum": "string",
+                    "is_public": "boolean",
+                    "archived_at": "datetime",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "media_id": "string"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "disk",
+                            "path"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "media_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "email_messages": {
+                "constant": "EmailMessages",
+                "legacy": "email_messages",
+                "default": "nvl_mail_notifications_email_messages",
+                "columns": {
+                    "id": "string",
+                    "client_id": "string",
+                    "provider_account_id": "string",
+                    "email_template_version_id": "string",
+                    "sender_identity_id": "string",
+                    "status": "string",
+                    "idempotency_key": "string",
+                    "request_hash": "string",
+                    "from_email": "string",
+                    "from_name": "string",
+                    "reply_to_email": "string",
+                    "reply_to_name": "string",
+                    "subject": "string",
+                    "html": "text",
+                    "text": "text",
+                    "data": "json",
+                    "metadata": "json",
+                    "tags": "json",
+                    "external_reference": "string",
+                    "send_at": "datetime",
+                    "next_attempt_at": "datetime",
+                    "dispatched_at": "datetime",
+                    "lease_until": "datetime",
+                    "submitted_at": "datetime",
+                    "cancelled_at": "datetime",
+                    "completed_at": "datetime",
+                    "error_code": "string",
+                    "error_message": "string",
+                    "original_subject": "string",
+                    "original_html": "text",
+                    "original_text": "text",
+                    "composition_revision_id": "string",
+                    "composition_render_id": "string",
+                    "testing_interception": "json",
+                    "original_css": "text",
+                    "type": "string",
+                    "category": "string",
+                    "language": "string",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "status"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "external_reference"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "send_at"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "next_attempt_at"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "lease_until"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "client_id",
+                            "idempotency_key"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "client_id",
+                            "created_at"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "id",
+                            "client_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "created_at",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "status",
+                            "created_at",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "client_id",
+                            "created_at",
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "client_id",
+                            "type",
+                            "created_at"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "client_id",
+                            "category",
+                            "created_at"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "client_id",
+                            "language",
+                            "created_at"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "sender_identity_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "sender_identities",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "email_recipients": {
+                "constant": "EmailRecipients",
+                "legacy": "email_recipients",
+                "default": "nvl_mail_notifications_email_recipients",
+                "columns": {
+                    "id": "string",
+                    "email_message_id": "string",
+                    "type": "string",
+                    "email": "string",
+                    "name": "string",
+                    "delivery_status": "string",
+                    "delivery_event_at": "datetime",
+                    "delivered_at": "datetime",
+                    "bounced_at": "datetime",
+                    "suppressed_at": "datetime",
+                    "complained_at": "datetime",
+                    "unsubscribed_at": "datetime",
+                    "opened_at": "datetime",
+                    "clicked_at": "datetime",
+                    "open_count": "integer",
+                    "click_count": "integer",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "email_message_id",
+                            "email"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "email_message_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "email_messages",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "email_attempts": {
+                "constant": "EmailAttempts",
+                "legacy": "email_attempts",
+                "default": "nvl_mail_notifications_email_attempts",
+                "columns": {
+                    "id": "string",
+                    "email_message_id": "string",
+                    "provider_account_id": "string",
+                    "number": "integer",
+                    "status": "string",
+                    "provider_message_id": "string",
+                    "retryable": "boolean",
+                    "response": "json",
+                    "error_code": "string",
+                    "error_message": "string",
+                    "started_at": "datetime",
+                    "completed_at": "datetime",
+                    "remote_message_ids": "json",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "email_message_id",
+                            "number"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "provider_account_id",
+                            "provider_message_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "email_message_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "email_messages",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "webhook_receipts": {
+                "constant": "WebhookReceipts",
+                "legacy": "webhook_receipts",
+                "default": "nvl_mail_notifications_webhook_receipts",
+                "columns": {
+                    "id": "string",
+                    "provider_account_id": "string",
+                    "payload_hash": "string",
+                    "payload": "text",
+                    "status": "string",
+                    "processing_attempts": "integer",
+                    "next_attempt_at": "datetime",
+                    "verified_at": "datetime",
+                    "processed_at": "datetime",
+                    "error_code": "string",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "next_attempt_at"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "processed_at"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "provider_account_id",
+                            "payload_hash"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "email_events": {
+                "constant": "EmailEvents",
+                "legacy": "email_events",
+                "default": "nvl_mail_notifications_email_events",
+                "columns": {
+                    "id": "string",
+                    "provider_account_id": "string",
+                    "email_message_id": "string",
+                    "email_recipient_id": "string",
+                    "webhook_receipt_id": "string",
+                    "provider_event_id": "string",
+                    "type": "string",
+                    "occurred_at": "datetime",
+                    "metadata": "json",
+                    "created_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "provider_account_id",
+                            "provider_event_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "email_message_id",
+                            "occurred_at"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "email_message_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "email_messages",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "email_recipient_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "email_recipients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "webhook_receipt_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "webhook_receipts",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "recipient_suppressions": {
+                "constant": "RecipientSuppressions",
+                "legacy": "recipient_suppressions",
+                "default": "nvl_mail_notifications_recipient_suppressions",
+                "columns": {
+                    "id": "string",
+                    "provider_account_id": "string",
+                    "email": "string",
+                    "reason": "string",
+                    "released_at": "datetime",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "provider_account_id",
+                            "email"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "message_assets": {
+                "constant": "MessageAssets",
+                "legacy": "message_assets",
+                "default": "nvl_mail_notifications_message_assets",
+                "columns": {
+                    "id": "string",
+                    "email_message_id": "string",
+                    "asset_id": "string",
+                    "disk": "string",
+                    "path": "string",
+                    "name": "string",
+                    "mime_type": "string",
+                    "size": "integer",
+                    "checksum": "string",
+                    "disposition": "string",
+                    "content_id": "string",
+                    "source_kind": "string",
+                    "owns_file": "boolean",
+                    "bytes_expires_at": "datetime",
+                    "bytes_deleted_at": "datetime",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "media_id": "string"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "bytes_expires_at"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "email_message_id",
+                            "asset_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "disk",
+                            "path"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "media_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "email_message_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "email_messages",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "asset_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "assets",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "email_flag_rules": {
+                "constant": "EmailFlagRules",
+                "legacy": "email_flag_rules",
+                "default": "nvl_mail_notifications_email_flag_rules",
+                "columns": {
+                    "id": "string",
+                    "client_id": "string",
+                    "label": "string",
+                    "color": "string",
+                    "type": "string",
+                    "value": "string",
+                    "enabled": "boolean",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "client_id",
+                            "enabled"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "email_message_flags": {
+                "constant": "EmailMessageFlags",
+                "legacy": "email_message_flags",
+                "default": "nvl_mail_notifications_email_message_flags",
+                "columns": {
+                    "id": "string",
+                    "client_id": "string",
+                    "email_message_id": "string",
+                    "email_flag_rule_id": "string",
+                    "label": "string",
+                    "color": "string",
+                    "type": "string",
+                    "value": "string",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "email_message_id",
+                            "email_flag_rule_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "client_id",
+                            "type"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "email_flag_rule_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "email_flag_rules",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "email_message_id",
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "email_messages",
+                        "references": [
+                            "id",
+                            "client_id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "provider_sync_runs": {
+                "constant": "ProviderSyncRuns",
+                "legacy": "provider_sync_runs",
+                "default": "nvl_mail_notifications_provider_sync_runs",
+                "columns": {
+                    "id": "string",
+                    "provider_account_id": "string",
+                    "active_provider_account_id": "string",
+                    "status": "string",
+                    "phase": "string",
+                    "domains_status": "string",
+                    "senders_status": "string",
+                    "pages_processed": "integer",
+                    "domains_processed": "integer",
+                    "senders_processed": "integer",
+                    "domains_total": "integer",
+                    "senders_total": "integer",
+                    "retry_count": "integer",
+                    "page_attempts": "integer",
+                    "checkpoint": "integer",
+                    "cursor": "text",
+                    "queue_connection": "string",
+                    "configuration_fingerprint": "string",
+                    "lease_token": "string",
+                    "lease_until": "datetime",
+                    "dispatched_at": "datetime",
+                    "next_retry_at": "datetime",
+                    "started_at": "datetime",
+                    "finished_at": "datetime",
+                    "error_code": "string",
+                    "error_message": "string",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "active_provider_account_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "provider_account_id",
+                            "created_at"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "status",
+                            "next_retry_at",
+                            "lease_until"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "active_provider_account_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_accounts",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "provider_sync_pages": {
+                "constant": "ProviderSyncPages",
+                "legacy": "provider_sync_pages",
+                "default": "nvl_mail_notifications_provider_sync_pages",
+                "columns": {
+                    "provider_sync_run_id": "string",
+                    "checkpoint": "integer",
+                    "phase": "string",
+                    "cursor_hash": "string",
+                    "page_hash": "string"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "provider_sync_run_id",
+                            "checkpoint"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "provider_sync_run_id",
+                            "phase",
+                            "cursor_hash"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "provider_sync_run_id",
+                            "phase",
+                            "page_hash"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "provider_sync_run_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "provider_sync_runs",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "staged_mail_files": {
+                "constant": "StagedMailFiles",
+                "legacy": "staged_mail_files",
+                "default": "nvl_mail_notifications_staged_mail_files",
+                "columns": {
+                    "id": "string",
+                    "client_id": "string",
+                    "disk": "string",
+                    "path": "string",
+                    "created_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "created_at"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "disk",
+                            "path"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "email_message_references": {
+                "constant": "EmailMessageReferences",
+                "legacy": "email_message_references",
+                "default": "nvl_mail_notifications_email_message_references",
+                "columns": {
+                    "id": "string",
+                    "client_id": "string",
+                    "email_message_id": "string",
+                    "type": "string",
+                    "reference_id": "string"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "email_message_id",
+                            "type",
+                            "reference_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "client_id",
+                            "type",
+                            "reference_id",
+                            "email_message_id"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "columns": [
+                            "email_message_id",
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "email_messages",
+                        "references": [
+                            "id",
+                            "client_id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "client_webhook_endpoints": {
+                "constant": "ClientWebhookEndpoints",
+                "legacy": "client_webhook_endpoints",
+                "default": "nvl_mail_notifications_client_webhook_endpoints",
+                "columns": {
+                    "id": "string",
+                    "client_id": "string",
+                    "url": "text",
+                    "secret": "text",
+                    "events": "json",
+                    "enabled": "boolean",
+                    "created_at": "datetime",
+                    "updated_at": "datetime",
+                    "deleted_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "client_id",
+                            "enabled"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "client_webhook_deliveries": {
+                "constant": "ClientWebhookDeliveries",
+                "legacy": "client_webhook_deliveries",
+                "default": "nvl_mail_notifications_client_webhook_deliveries",
+                "columns": {
+                    "id": "string",
+                    "client_webhook_endpoint_id": "string",
+                    "event_id": "string",
+                    "event_key": "string",
+                    "event_type": "string",
+                    "payload": "text",
+                    "status": "string",
+                    "attempts": "integer",
+                    "next_attempt_at": "datetime",
+                    "dispatched_at": "datetime",
+                    "last_attempt_at": "datetime",
+                    "delivered_at": "datetime",
+                    "lease_token": "string",
+                    "lease_until": "datetime",
+                    "http_status": "integer",
+                    "error_code": "string",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "client_webhook_endpoint_id",
+                            "event_key"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "status",
+                            "next_attempt_at"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "status",
+                            "lease_until"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_webhook_endpoint_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "client_webhook_endpoints",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
+            },
+            "marketing_opt_outs": {
+                "constant": "MarketingOptOuts",
+                "legacy": "marketing_opt_outs",
+                "default": "nvl_mail_notifications_marketing_opt_outs",
+                "columns": {
+                    "id": "string",
+                    "client_id": "string",
+                    "email": "string",
+                    "released_at": "datetime",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notifications_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "client_id",
+                            "email"
+                        ]
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": [
+                            "client_id"
+                        ],
+                        "package": "mail-notifications",
+                        "table": "clients",
+                        "references": [
+                            "id"
+                        ],
+                        "required": true
+                    }
+                ]
             }
         },
         "migrations": {
-            "2026_07_28_000000_assert_mail_notification_schema_compatibility": {
-                "name": "2026_07_28_000000_nvl_mail_notifications_assert_mail_notification_schema_compatibility",
-                "path": "database/migrations/2026_07_28_000000_nvl_mail_notifications_assert_mail_notification_schema_compatibility.php",
-                "create": false,
-                "legacy_checksum": "7d4b875e4a5d11cf016eb29c2d9fb723757cd7273e366c784d9302ce188d4945",
-                "creates": []
-            },
-            "2026_07_29_000000_create_mail_notification_tables": {
-                "name": "2026_07_29_000000_nvl_mail_notifications_create_mail_notification_tables",
-                "path": "database/migrations/2026_07_29_000000_nvl_mail_notifications_create_mail_notification_tables.php",
+            "2026_11_02_000000_nvl_mail_notifications_create_schema": {
+                "name": "2026_11_02_000000_nvl_mail_notifications_create_schema",
+                "path": "database/migrations/2026_11_02_000000_nvl_mail_notifications_create_schema.php",
                 "create": true,
-                "legacy_checksum": "5a74304dfd9b25b4b1dcb6cf634119f0372905d406ed4ef736cd844d335492b1",
+                "legacy_checksum": "85770f68698b06dab4810cbd2a2b1f5c66ac20650626bff14379442845122ec9",
+                "previous_checksum": "c3b3743488391f66d8342fd5da35375638cacc3670678c67dc7b0cb62c692e98",
                 "creates": [
                     "notifications",
-                    "events"
+                    "events",
+                    "scheduled_messages",
+                    "owners",
+                    "integrations",
+                    "provider_accounts",
+                    "sending_domains",
+                    "sender_identities",
+                    "clients",
+                    "owner_mail_settings",
+                    "client_mail_settings",
+                    "client_api_keys",
+                    "assets",
+                    "email_messages",
+                    "email_recipients",
+                    "email_attempts",
+                    "webhook_receipts",
+                    "email_events",
+                    "recipient_suppressions",
+                    "message_assets",
+                    "email_flag_rules",
+                    "email_message_flags",
+                    "provider_sync_runs",
+                    "provider_sync_pages",
+                    "staged_mail_files",
+                    "email_message_references",
+                    "client_webhook_endpoints",
+                    "client_webhook_deliveries",
+                    "marketing_opt_outs"
                 ]
-            },
-            "2026_07_30_000100_create_scheduled_mail_messages_table": {
-                "name": "2026_07_30_000100_nvl_mail_notifications_create_scheduled_mail_messages_table",
-                "path": "database/migrations/2026_07_30_000100_nvl_mail_notifications_create_scheduled_mail_messages_table.php",
-                "create": true,
-                "legacy_checksum": "add88cb7ee1097d20cf8357ce6300c7807f69435b0112cb2b88abb87ed1d2d0d",
-                "creates": [
-                    "scheduled_messages"
-                ]
-            },
-            "2026_09_16_180014_add_mail_ownership": {
-                "name": "2026_09_16_180014_nvl_mail_notifications_add_mail_ownership",
-                "path": "database/tenancy-migrations/2026_09_16_180014_nvl_mail_notifications_add_mail_ownership.php",
-                "create": false,
-                "legacy_checksum": "bec39a95b475934c2d13c2ca7b20fbe73de0c11ccead326aeacfaffd4065e8e1",
-                "creates": []
             }
         }
     },
@@ -7520,6 +9324,70 @@
                 "legacy_checksum": "13816ac15503f57943ccd16205de8c060f5db119a0ccaa9fe40e3deedce353b5",
                 "creates": [
                     "tenant_overrides"
+                ]
+            }
+        }
+    },
+    "mail-notification-bridge": {
+        "config": "nvl-mail-notification-bridge",
+        "tables": {
+            "webhook_receipts": {
+                "constant": "WebhookReceipts",
+                "legacy": "nvl_mail_notification_bridge_webhook_receipts",
+                "default": "nvl_mail_notification_bridge_webhook_receipts",
+                "columns": {
+                    "id": "integer",
+                    "connection": "string",
+                    "event_id": "string",
+                    "payload": "text",
+                    "payload_hash": "string",
+                    "status": "string",
+                    "attempts": "integer",
+                    "next_attempt_at": "datetime",
+                    "enqueue_until": "datetime",
+                    "lease_token": "string",
+                    "lease_until": "datetime",
+                    "completed_at": "datetime",
+                    "created_at": "datetime",
+                    "updated_at": "datetime"
+                },
+                "create_migrations": [
+                    "2026_11_02_000000_nvl_mail_notification_bridge_create_schema"
+                ],
+                "keys": [
+                    {
+                        "type": "primary",
+                        "columns": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "type": "unique",
+                        "columns": [
+                            "connection",
+                            "event_id"
+                        ]
+                    },
+                    {
+                        "type": "index",
+                        "columns": [
+                            "status",
+                            "next_attempt_at"
+                        ]
+                    }
+                ],
+                "foreign_keys": []
+            }
+        },
+        "migrations": {
+            "2026_11_02_000000_nvl_mail_notification_bridge_create_schema": {
+                "name": "2026_11_02_000000_nvl_mail_notification_bridge_create_schema",
+                "path": "database/migrations/webhooks/2026_11_02_000000_nvl_mail_notification_bridge_create_schema.php",
+                "create": true,
+                "legacy_checksum": "59094f6873fd7572bf6b766cb67992af67f97ab41a0fc7f280de46e725c82f07",
+                "previous_checksum": null,
+                "creates": [
+                    "webhook_receipts"
                 ]
             }
         }
