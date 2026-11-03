@@ -9007,7 +9007,7 @@
                 "name": "2026_11_02_000001_nvl_templates_create_document_graph",
                 "path": "database/document-migrations/2026_11_02_000001_nvl_templates_create_document_graph.php",
                 "create": true,
-                "legacy_checksum": "b5bccb93ed7804a77f895a49b0e78244d883076eed86b69d629648a614b08660",
+                "legacy_checksum": "78c6f505ec23071852dd06bf3e1508cfd9940d0c1f18be12c5fe5f20d6bf00b9",
                 "creates": [
                     "groups",
                     "group_revisions",
