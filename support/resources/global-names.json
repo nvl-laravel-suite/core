@@ -19,7 +19,8 @@
         "taxonomy": "nvl-taxonomy",
         "templates": "nvl-templates",
         "translatable": "nvl-translatable",
-        "translations": "nvl-translations"
+        "translations": "nvl-translations",
+        "auth-identity-bridge": "nvl-auth-identity-bridge"
     },
     "env": {
         "NVL_AUTH_API_TOKENS_ENABLED": null,
@@ -2859,6 +2860,134 @@
             "surface": "env",
             "current": "NVL_SETTINGS_DISCOVERY_CACHE",
             "canonical": "NVL_SETTINGS_DISCOVERY_CACHE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "nvl-auth-identity-bridge",
+            "canonical": "nvl-auth-identity-bridge",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "config",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity",
+            "canonical": "identity",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity-config",
+            "canonical": "identity-config",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "nvl-auth-identity-bridge-config",
+            "canonical": "nvl-auth-identity-bridge-config",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "nvl-auth-identity-bridge-migrations",
+            "canonical": "nvl-auth-identity-bridge-migrations",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "nvl-auth-identity-bridge-skills",
+            "canonical": "nvl-auth-identity-bridge-skills",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "nvl-auth-identity-bridge-views",
+            "canonical": "nvl-auth-identity-bridge-views",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity.safety",
+            "canonical": "identity.safety",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity.session",
+            "canonical": "identity.session",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity.permission",
+            "canonical": "identity.permission",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity.role",
+            "canonical": "identity.role",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity.organization",
+            "canonical": "identity.organization",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity.mfa",
+            "canonical": "identity.mfa",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "middleware",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity.credential",
+            "canonical": "identity.credential",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "view",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity",
+            "canonical": "identity",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "guard",
+            "owner": "nvl/auth-identity-bridge",
+            "current": "identity",
+            "canonical": "identity",
             "compatibility": "none",
             "removal": null
         }
