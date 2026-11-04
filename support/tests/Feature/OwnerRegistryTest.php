@@ -287,7 +287,7 @@ it('reports retained identity changes in every native owner and actor column wit
     ['nvl_tasks_tasks', 'creator_type'], ['nvl_tasks_time_entries', 'performer_type'], ['nvl_tasks_assignments', 'assigned_by_type'], ['nvl_tasks_checklist_items', 'completed_by_type'],
     ['nvl_content_blocks', 'created_by_type'], ['nvl_content_blocks', 'updated_by_type'], ['nvl_content_blocks', 'published_by_type'], ['nvl_content_revisions', 'actor_type'],
     ['nvl_media_media', 'uploaded_by_type'], ['nvl_media_multipart_uploads', 'uploader_type'], ['nvl_media_owner_slot_operations', 'actor_type'],
-    ['nvl_templates_versions', 'published_by_type'], ['nvl_templates_renders', 'requested_by_type'],
+    ['nvl_templates_assignments', 'owner_type'], ['nvl_templates_versions', 'published_by_type'], ['nvl_templates_renders', 'requested_by_type'],
 ]);
 
 it('admits canonical system actors only in declared actor columns with null identifiers', function (string $table, string $type, string $id): void {

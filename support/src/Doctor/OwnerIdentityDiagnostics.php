@@ -41,6 +41,11 @@ final readonly class OwnerIdentityDiagnostics
         'templates' => ['versions' => ['published_by_type' => 'published_by'], 'renders' => ['requested_by_type' => 'requested_by']],
     ];
 
+    /** @var array<string, array<string, string>> Retired tables that can still contain historical owner identities. */
+    private const array RETAINED_TABLE_DEFAULTS = [
+        'templates' => ['assignments' => 'nvl_templates_assignments', 'versions' => 'nvl_templates_versions'],
+    ];
+
     /** Retain capability and database boundaries without opening connections at boot. */
     public function __construct(private OwnerRegistry $owners, private DatabaseManager $database) {}
 
@@ -53,14 +58,16 @@ final readonly class OwnerIdentityDiagnostics
             if (! InstalledVersions::isInstalled('nvl/'.$package)) {
                 continue;
             }
-            foreach ($definition['tables'] as $key => $table) {
+            $tableDefaults = array_map(static fn (array $table): string => $table['default'], $definition['tables']);
+            $tableDefaults += self::RETAINED_TABLE_DEFAULTS[$package] ?? [];
+            foreach ($tableDefaults as $key => $default) {
                 $ownerTypes = self::OWNER_COLUMNS[$package][$key] ?? [];
                 if ($ownerTypes === []) {
                     continue;
                 }
                 try {
                     $connection = $this->database->connection(PackageStorage::tableConnection($package, $key));
-                    $name = PackageStorage::table($package, $key, $table['default']);
+                    $name = PackageStorage::table($package, $key, $default);
                     $schema = $connection->getSchemaBuilder();
                     if (! $schema->hasTable($name)) {
                         continue;
