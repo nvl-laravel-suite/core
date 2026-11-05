@@ -5,6 +5,10 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+### Fixed
+
+- Require patched HTTP Foundation, HTTP Kernel and Routing versions and raise the Filesystem development-tool minimum to exclude the Symfony security advisories disclosed on November 4, 2026.
+
 ## [7.0.1] - 2026-11-04
 
 <!-- NVL GENERATED CHANGES START -->

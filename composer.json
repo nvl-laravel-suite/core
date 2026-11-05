@@ -14,7 +14,7 @@
         "ext-ctype": "*",
         "ext-mbstring": "*",
         "laravel/framework": "^13.30",
-        "symfony/http-foundation": "^7.4.19 || ^8.1.7"
+        "symfony/http-foundation": "^7.4.23 || ^8.1.11"
     },
     "require-dev": {
         "ext-pdo": "*",
@@ -51,7 +51,7 @@
         "phpunit/phpunit": "^12.0",
         "psr/log": "^3.0",
         "symfony/console": "^7.4 || ^8.0",
-        "symfony/filesystem": "^7.0 || ^8.0",
+        "symfony/filesystem": "^7.4.23 || ^8.1.11",
         "symfony/process": "^7.0 || ^8.0"
     },
     "autoload": {
@@ -135,11 +135,11 @@
         "league/flysystem": "<3.35.3",
         "nvl/support": "*",
         "paragonie/random_compat": "<2.0",
-        "symfony/http-kernel": "<7.4.12 || >=8.0.0 <8.0.12",
+        "symfony/http-kernel": "<7.4.23 || >=8.0.0 <8.1.11",
         "symfony/mailer": "<7.4.12 || >=8.0.0 <8.0.12",
         "symfony/mime": "<7.4.22 || >=8.0.0 <8.1.10",
         "symfony/polyfill-intl-idn": "<1.38.1",
-        "symfony/routing": "<7.4.13 || >=8.0.0 <8.0.13",
+        "symfony/routing": "<7.4.23 || >=8.0.0 <8.1.11",
         "symfony/translation": "<6.4.8 || >=7.0.0 <7.0.8"
     },
     "homepage": "https://github.com/nvl-laravel-suite/core",
