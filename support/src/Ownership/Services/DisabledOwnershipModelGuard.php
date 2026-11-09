@@ -31,7 +31,6 @@ final readonly class DisabledOwnershipModelGuard implements OwnershipModelGuard
                     $boundary->assertRecord($model, $resource->key);
                 } else {
                     $boundary->query($model->newModelQuery(), $resource->key);
-                    $boundary->attributes($resource->key);
                 }
 
                 return;

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Ownership\Traits;
 
+use Closure;
 use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipRefreshGuard;
@@ -66,10 +68,39 @@ trait HasOwnership
         }
     }
 
-    /** Keep deletion under the same canonical persistence boundary. */
-    public function delete(): ?bool
+    /** Keep native model and pivot deletion results under the same canonical persistence boundary.
+     *
+     * Laravel's model-dependent return type stays dynamic here; the typed bridge
+     * validates native results without widening ordinary model return inference.
+     *
+     * @return ($this is Pivot ? bool|int|null : bool|null)
+     */
+    public function delete(): mixed
     {
-        return Container::getInstance()->make(OwnershipModelPersistence::class)->delete($this, fn (): ?bool => parent::delete());
+        return $this->deleteWithOwnership(parent::delete(...));
+    }
+
+    /** Carry native affected-row counts through the existing nullable-boolean persistence port.
+     *
+     * @template TResult of bool|int|null
+     *
+     * @param  Closure(): TResult  $delete
+     * @return (TResult is bool|null ? bool|null : bool|int|null)
+     */
+    private function deleteWithOwnership(Closure $delete): bool|int|null
+    {
+        $nativeResult = null;
+        $persisted = Container::getInstance()->make(OwnershipModelPersistence::class)->delete($this, function () use ($delete, &$nativeResult): ?bool {
+            $deleted = $delete();
+            $nativeResult = $deleted;
+            if ($deleted === null) {
+                return null;
+            }
+
+            return (bool) $deleted;
+        });
+
+        return is_int($nativeResult) ? $nativeResult : $persisted;
     }
 
     /** Guard Laravel's scope-free queued-model restoration before its database read.

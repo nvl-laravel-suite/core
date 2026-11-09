@@ -15,6 +15,8 @@ parameters:
         - support/tests/Fixtures/ConfigurationServiceProvider.php
         - support/tests/Fixtures/NamespacedPublicationProvider.php
         - support/tests/Fixtures/OwnershipCapableModel.php
+        - support/tests/Fixtures/PivotOwnershipFixture.php
+        - support/tests/Fixtures/MorphPivotOwnershipFixture.php
         - support/tests/Fixtures/CapturedOwnershipCommand.php
         - support/tests/Fixtures/ScriptedFake.php
 

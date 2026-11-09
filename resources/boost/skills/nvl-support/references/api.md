@@ -833,7 +833,9 @@ public final function uniqueId(): string
 
 ```text
 trait Nvl\Support\Ownership\Traits\HasOwnership
-public function delete(): ?bool
+public function delete(): mixed
+@return ($this is Pivot ? (bool | int | null) : (bool | null))
+resolved @return ($this is Illuminate\Database\Eloquent\Relations\Pivot ? (bool | int | null) : (bool | null))
 public function fresh(mixed $with=[]): ?static
 @param (array<array-key, mixed> | string) $with
 public function newQueryForRestoration(mixed $ids): Illuminate\Database\Eloquent\Builder

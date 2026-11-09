@@ -5,6 +5,11 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve native integer deletion results for Laravel `Pivot` and `MorphPivot` models, including cancelled deletion, through the existing nullable-boolean Ownership persistence port.
+- Remove the duplicate storage probe during unowned model creation while retaining canonical query validation and fresh adoption checks for each operation.
+
 ## [7.0.2] - 2026-11-05
 
 ### Fixed
