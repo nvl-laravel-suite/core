@@ -22,6 +22,7 @@ final class PublicationScenario
     {
         PublicationResource::$sources = [];
         PublicationResource::$tables = [];
+        PublicationResource::$constructions = 0;
         $schema = DB::getSchemaBuilder();
         $schema->create('publication_records', static fn (Blueprint $table) => $table->id());
         $schema->create('publication_events', static function (Blueprint $table): void {

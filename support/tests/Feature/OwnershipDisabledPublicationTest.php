@@ -57,6 +57,49 @@ it('probes each actual source once for every cold and warm captured publication'
         ->and($counts)->toBe([1, 1]);
 })->with([1, 32, 189]);
 
+it('bounds populated protocol queries and model construction with unrelated markers', function (int $markers): void {
+    PublicationScenario::register(189, distinctTables: true);
+    $inventory = [];
+    for ($index = 1; $index <= $markers; $index++) {
+        $inventory[] = ['resource' => 'unrelated.resource_'.$index, 'physical_table' => 'unrelated_table_'.$index, 'state' => 'active'];
+    }
+    PublicationScenario::markers(DB::connection(), $inventory);
+    $counts = ['catalog' => 0, 'markers' => 0, 'partition' => 0, 'all' => 0];
+    $sqlMilliseconds = 0.0;
+    DB::listen(static function (QueryExecuted $query) use (&$counts, &$sqlMilliseconds): void {
+        $counts['all']++;
+        $sqlMilliseconds += (float) $query->time;
+        if (str_contains($query->sql, ' as protocol')) {
+            $counts['catalog']++;
+        } elseif (str_contains($query->sql, 'select * from') && str_contains($query->sql, OwnershipStorageTables::Markers)) {
+            $counts['markers']++;
+        } elseif (str_contains($query->sql, 'pragma_table_xinfo') || str_contains($query->sql, 'pg_attribute') || str_contains($query->sql, 'information_schema.columns')) {
+            $counts['partition']++;
+        }
+    });
+    foreach (['cold', 'warm'] as $phase) {
+        $counts = ['catalog' => 0, 'markers' => 0, 'partition' => 0, 'all' => 0];
+        $sqlMilliseconds = 0.0;
+        PublicationResource::$constructions = 0;
+        $started = hrtime(true);
+        Queue::connection('database')->push(new PublicationJob($phase));
+        $elapsed = (hrtime(true) - $started) / 1_000_000;
+        $path = getenv('NVL_POPULATED_PUBLICATION_METRICS_PATH');
+        if (is_string($path) && $path !== '') {
+            file_put_contents($path, json_encode(['phase' => $phase, 'driver' => DB::connection()->getDriverName(), 'resources' => 189, 'connections' => 1, 'tables' => 189, 'marker_rows' => $markers, 'counts' => $counts, 'model_constructions' => PublicationResource::$constructions, 'elapsed_ms' => $elapsed, 'completed_sql_ms' => $sqlMilliseconds], JSON_THROW_ON_ERROR).PHP_EOL, FILE_APPEND | LOCK_EX);
+        }
+        expect($counts['catalog'])->toBe(1);
+        expect($counts['markers'])->toBe(1);
+        expect($counts['partition'])->toBe(189);
+        if ($phase === 'cold') {
+            expect(PublicationResource::$constructions)->toBeLessThanOrEqual(378);
+        } else {
+            expect(PublicationResource::$constructions)->toBe(189);
+        }
+    }
+    expect(DB::table('jobs')->count())->toBe(2);
+})->with(['empty protocol' => 0, 'one marker per resource count' => 189, 'large unrelated inventory' => 1000]);
+
 it('deduplicates marker inventory and partition inspection without dropping resource aliases', function (): void {
     PublicationScenario::register(32);
     PublicationScenario::markers(DB::connection());
