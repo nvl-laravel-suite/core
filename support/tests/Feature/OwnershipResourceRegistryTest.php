@@ -12,6 +12,8 @@ use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 use Nvl\Support\Tests\Fixtures\OwnedOwnershipReplacement;
 use Nvl\Support\Tests\Fixtures\OwnershipCapableModel;
+use Nvl\Support\Tests\Fixtures\OwnershipStorageProbe;
+use Nvl\Support\Tests\Fixtures\OwnershipUnrelatedModel;
 use Nvl\Support\Tests\Fixtures\PackageOwner;
 use Nvl\Support\Tests\Fixtures\UnscopedOwnershipBase;
 
@@ -64,6 +66,51 @@ it('denies the unscoped base model when an owned replacement claims its storage 
     expect(fn () => UnscopedOwnershipBase::query()->count())->toThrow(OwnershipViolation::class)
         ->and(fn () => (new UnscopedOwnershipBase)->saveQuietly())->toThrow(OwnershipViolation::class)
         ->and(fn () => (new UnscopedOwnershipBase)->newQueryForRestoration(1)->first())->toThrow(OwnershipViolation::class);
+});
+
+it('constructs each owned canonical model once across repeated unclaimed admissions', function (): void {
+    new OwnershipStorageProbe;
+    OwnershipStorageProbe::resetProbe();
+    $registry = new OwnershipResourceRegistry;
+    $registry->register(new OwnershipResourceDefinition('test.unscoped', 'test', OwnershipCapableModel::class, OwnershipDefinition::unscoped()));
+    $registry->register(new OwnershipResourceDefinition('test.probe', 'test', OwnershipStorageProbe::class, OwnershipStorageProbe::ownershipDefinition()));
+    for ($admission = 0; $admission < 5; $admission++) {
+        $registry->assertUnclaimed(new OwnershipUnrelatedModel);
+    }
+    expect(OwnershipStorageProbe::$constructed)->toBe(1);
+});
+
+it('reads owned canonical storage on every unclaimed admission instead of caching it', function (): void {
+    OwnershipStorageProbe::resetProbe();
+    config(['database.connections.unclaimed_secondary' => ['driver' => 'sqlite', 'database' => ':memory:']]);
+    $registry = new OwnershipResourceRegistry;
+    $registry->register(new OwnershipResourceDefinition('test.probe', 'test', OwnershipStorageProbe::class, OwnershipStorageProbe::ownershipDefinition()));
+    $unowned = new OwnershipUnrelatedModel;
+    $remote = (new OwnershipUnrelatedModel)->setConnection('unclaimed_secondary');
+    $registry->assertUnclaimed($unowned);
+    $registry->assertUnclaimed($remote);
+
+    OwnershipStorageProbe::$storageTable = $unowned->getTable();
+    expect(fn () => $registry->assertUnclaimed($unowned))->toThrow(OwnershipViolation::class, 'Owned storage requires its exact configured model.');
+    $registry->assertUnclaimed($remote);
+
+    OwnershipStorageProbe::$storageConnection = 'unclaimed_secondary';
+    expect(fn () => $registry->assertUnclaimed($remote))->toThrow(OwnershipViolation::class, 'Owned storage requires its exact configured model.');
+    $registry->assertUnclaimed($unowned);
+
+    OwnershipStorageProbe::$storageTable = 'ownership_storage_probes';
+    OwnershipStorageProbe::$storageConnection = 'unclaimed_unconfigured';
+    expect(fn () => $registry->assertUnclaimed($unowned))->toThrow(InvalidArgumentException::class);
+    OwnershipStorageProbe::resetProbe();
+});
+
+it('enforces owned resources registered after an earlier unclaimed admission', function (): void {
+    $registry = new OwnershipResourceRegistry;
+    $registry->register(new OwnershipResourceDefinition('test.owners', 'test', PackageOwner::class, OwnershipDefinition::column(PackageOwner::class, 'company_id')));
+    $registry->assertUnclaimed(new UnscopedOwnershipBase);
+    $registry->register(new OwnershipResourceDefinition('test.claimed', 'test', OwnedOwnershipReplacement::class, OwnedOwnershipReplacement::ownershipDefinition()));
+    expect(fn () => $registry->assertUnclaimed(new UnscopedOwnershipBase))->toThrow(OwnershipViolation::class)
+        ->and(fn () => $registry->assertUnclaimed(new OwnershipUnrelatedModel))->not->toThrow(OwnershipViolation::class);
 });
 
 it('rejects native inherited declarations without a runtime', function (): void {

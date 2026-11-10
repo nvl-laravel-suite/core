@@ -5,6 +5,10 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+### Fixed
+
+- Construct each owned canonical model once per resource registry instead of on every unclaimed-model admission. Unowned queries, saves, refreshes, translation admission and mail notifiable checks no longer rebuild the complete owned inventory per call. Preserve base-class and shared-storage refusal; canonical tables and connections are still read on every admission, so no storage fact is cached.
+
 ## [7.0.5] - 2026-11-10
 
 ### Fixed

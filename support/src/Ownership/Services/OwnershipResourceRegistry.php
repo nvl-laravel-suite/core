@@ -10,7 +10,9 @@ use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 
 /**
- * Stores immutable definitions without retaining models, builders, actors, or scope.
+ * Stores immutable definitions without retaining records, builders, actors, or scope.
+ *
+ * Attribute-less canonical prototypes are retained only to read declared storage.
  *
  * @api
  */
@@ -20,6 +22,9 @@ final class OwnershipResourceRegistry
     private array $resources = [];
 
     private bool $frozen = false;
+
+    /** @var array<string, Model> Blank canonical instances keyed by owned resource. */
+    private array $canonicalModels = [];
 
     /** Register an exact effective model and reject ambiguous or cyclic declarations. */
     public function register(OwnershipResourceDefinition $resource): void
@@ -90,19 +95,31 @@ final class OwnershipResourceRegistry
     /**
      * Reject stale base classes and alternate models over declared owned storage.
      *
+     * Owned canonical models are constructed once. Their table and connection are read on
+     * every call, and each distinct canonical connection name is still resolved per call.
+     *
      * @internal
      */
     public function assertUnclaimed(Model $model): void
     {
-        foreach ($this->resources as $resource) {
+        $connection = null;
+        $table = null;
+        $sources = [];
+        foreach ($this->resources as $key => $resource) {
             if ($resource->ownership->strategy === 'unscoped') {
                 continue;
             }
-            $canonical = new $resource->model;
-            if (is_a($resource->model, $model::class, true)
-                || ($canonical->getConnection() === $model->getConnection() && $canonical->getTable() === $model->getTable())) {
-                throw new OwnershipViolation('Owned storage requires its exact configured model.');
+            $canonical = $this->canonicalModels[$key] ??= new $resource->model;
+            if (! is_a($resource->model, $model::class, true)) {
+                $sources[$canonical->getConnectionName() ?? ''] ??= $canonical->getConnection();
+                $connection ??= $model->getConnection();
+                $table ??= $model->getTable();
+                if ($canonical->getTable() !== $table || $canonical->getConnection() !== $connection) {
+                    continue;
+                }
             }
+
+            throw new OwnershipViolation('Owned storage requires its exact configured model.');
         }
     }
 
