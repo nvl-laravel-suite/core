@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Queue\WorkerOptions;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Nvl\Support\Ownership\Contracts\OwnershipQueueContext;
 use Nvl\Support\Ownership\Enums\OwnershipContextMode;
@@ -14,9 +16,11 @@ use Nvl\Support\Ownership\Exceptions\OwnershipSchemaNotReady;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipQueuePublication;
 use Nvl\Support\Ownership\Services\OwnershipStorageTables;
+use Nvl\Support\Ownership\Services\PersistedOwnershipStorage;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 use Nvl\Support\Ownership\ValueObjects\OwnershipSnapshot;
+use Nvl\Support\Tests\Fixtures\MarkerInspectionRow;
 use Nvl\Support\Tests\Fixtures\OwnedOwnershipReplacement;
 use Nvl\Support\Tests\Fixtures\OwnershipQueueProbe;
 use Nvl\Support\Tests\Fixtures\PublicationJob;
@@ -98,7 +102,72 @@ it('bounds populated protocol queries and model construction with unrelated mark
         }
     }
     expect(DB::table('jobs')->count())->toBe(2);
-})->with(['empty protocol' => 0, 'one marker per resource count' => 189, 'large unrelated inventory' => 1000]);
+})->with(['empty protocol' => 0, 'one marker per resource count' => 189, 'large unrelated inventory' => 1000, 'ten thousand unrelated markers' => 10000]);
+
+it('bounds marker identity reads independently of resource and table batch size', function (string $batch, int $count): void {
+    $resources = PublicationScenario::register($count, distinctTables: true);
+    $markers = [];
+    for ($index = 1; $index <= 7; $index++) {
+        $markers[] = ['resource' => 'unrelated.resource_'.$index, 'physical_table' => 'unrelated_table_'.$index];
+    }
+    PublicationScenario::markers(DB::connection(), $markers);
+    Event::listen(StatementPrepared::class, static function (StatementPrepared $event): void {
+        if (str_starts_with($event->statement->queryString, 'select * from')
+            && str_contains($event->statement->queryString, OwnershipStorageTables::Markers)) {
+            $event->statement->setFetchMode(PDO::FETCH_CLASS, MarkerInspectionRow::class);
+        }
+    });
+    MarkerInspectionRow::$identityReads = 0;
+    $storage = app(PersistedOwnershipStorage::class);
+    if ($batch === 'resources') {
+        $storage->assertUnadoptedResources($resources->all());
+    } else {
+        $tables = array_map(static fn (int $index): string => 'publication_records_'.$index, range(1, $count));
+        $storage->assertUnadoptedTables(DB::connection(), [...$tables, ...$tables]);
+    }
+    expect(MarkerInspectionRow::$identityReads)->toBeGreaterThanOrEqual(2 * count($markers))
+        ->toBeLessThanOrEqual(4 * count($markers));
+})->with(['resources', 'tables'])->with([1, 32, 189]);
+
+it('refuses a matching or malformed final marker when admitting a table batch', function (array $last): void {
+    PublicationScenario::register(32, distinctTables: true);
+    PublicationScenario::markers(DB::connection(), [
+        ['resource' => 'unrelated.resource', 'physical_table' => 'unrelated_table'],
+        $last,
+    ]);
+    $tables = array_map(static fn (int $index): string => 'publication_records_'.$index, range(1, 32));
+    expect(fn () => app(PersistedOwnershipStorage::class)->assertUnadoptedTables(DB::connection(), $tables))
+        ->toThrow(OwnershipSchemaNotReady::class);
+})->with([
+    'later physical table without lifecycle fields' => [['resource' => 'retired.resource', 'physical_table' => 'publication_records_32']],
+    'malformed unrelated resource' => [['physical_table' => 'unrelated_table']],
+    'malformed unrelated table' => [['resource' => 'unrelated.resource']],
+]);
+
+it('preserves exact numeric looking table identities across fresh batch admissions', function (string $batch): void {
+    $resources = PublicationScenario::register(1);
+    PublicationResource::$tables[$resources->get('publication.record_1')->model] = '123';
+    DB::getSchemaBuilder()->create('123', static fn (Blueprint $table) => $table->id());
+    PublicationScenario::markers(DB::connection(), [['resource' => 'unrelated.resource', 'physical_table' => '0123']]);
+    $storage = app(PersistedOwnershipStorage::class);
+    $admit = $batch === 'resources'
+        ? static fn () => $storage->assertUnadoptedResources($resources->all())
+        : static fn () => $storage->assertUnadoptedTables(DB::connection(), ['123', '123']);
+    $admit();
+    DB::table(OwnershipStorageTables::Markers)->insert(['resource' => 'retired.resource', 'physical_table' => '123']);
+    expect($admit)->toThrow(OwnershipSchemaNotReady::class);
+})->with(['resources', 'tables']);
+
+it('leaves empty resource and table batches outside source inspection', function (): void {
+    $queries = 0;
+    DB::listen(static function () use (&$queries): void {
+        $queries++;
+    });
+    $storage = app(PersistedOwnershipStorage::class);
+    $storage->assertUnadoptedResources([]);
+    $storage->assertUnadoptedTables(DB::connection(), []);
+    expect($queries)->toBe(0);
+});
 
 it('deduplicates marker inventory and partition inspection without dropping resource aliases', function (): void {
     PublicationScenario::register(32);

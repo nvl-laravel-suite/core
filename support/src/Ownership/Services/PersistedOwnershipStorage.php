@@ -37,18 +37,18 @@ final readonly class PersistedOwnershipStorage
             $model = new $resource->model;
             $connection = $model->getConnection();
             $id = spl_object_id($connection);
-            $sources[$id] ??= ['connection' => $connection, 'resources' => []];
-            $sources[$id]['resources'][] = ['resource' => $resource->key, 'table' => $model->getTable()];
+            $sources[$id] ??= ['connection' => $connection, 'resources' => [], 'tables' => []];
+            $sources[$id]['resources'][$resource->key] = true;
+            $table = $model->getTable();
+            $sources[$id]['tables'][$table] = $table;
         }
         foreach ($sources as $source) {
             $connection = $source['connection'];
             $probe = $this->probe($connection);
-            $tables = [];
-            foreach ($source['resources'] as $resource) {
-                $this->assertMarkers($probe['markers'], $resource['resource'], $resource['table']);
-                if ($probe['protocol'] && ! isset($tables[$resource['table']])) {
-                    $this->assertNoPartition($connection, $resource['table']);
-                    $tables[$resource['table']] = true;
+            $this->assertMarkerSelectors($probe['markers'], $source['resources'], $source['tables']);
+            if ($probe['protocol']) {
+                foreach ($source['tables'] as $table) {
+                    $this->assertNoPartition($connection, $table);
                 }
             }
         }
@@ -64,9 +64,13 @@ final readonly class PersistedOwnershipStorage
             return;
         }
         $probe = $this->probe($connection);
-        foreach (array_unique($tables) as $table) {
-            $this->assertMarkers($probe['markers'], physicalTable: $table);
-            if ($probe['protocol']) {
+        $selected = [];
+        foreach ($tables as $table) {
+            $selected[$table] = $table;
+        }
+        $this->assertMarkerSelectors($probe['markers'], [], $selected);
+        if ($probe['protocol']) {
+            foreach ($selected as $table) {
                 $this->assertNoPartition($connection, $table);
             }
         }
@@ -132,10 +136,24 @@ final readonly class PersistedOwnershipStorage
     /** @param list<stdClass> $markers */
     public function assertMarkers(array $markers, ?string $resource = null, ?string $physicalTable = null): void
     {
+        $this->assertMarkerSelectors($markers, $resource === null ? [] : [$resource => true], $physicalTable === null ? [] : [$physicalTable => $physicalTable]);
+    }
+
+    /**
+     * Match the complete source inventory once against this boundary's exact selectors.
+     *
+     * @param  list<stdClass>  $markers
+     * @param  array<array-key, true>  $resources
+     * @param  array<array-key, string>  $tables
+     */
+    private function assertMarkerSelectors(array $markers, array $resources, array $tables): void
+    {
         foreach ($markers as $marker) {
             $attributes = get_object_vars($marker);
-            if (! is_string($attributes['resource'] ?? null) || ! is_string($attributes['physical_table'] ?? null)
-                || ($resource === null && $physicalTable === null) || $marker->resource === $resource || $marker->physical_table === $physicalTable) {
+            $resource = $attributes['resource'] ?? null;
+            $table = $attributes['physical_table'] ?? null;
+            if (! is_string($resource) || ! is_string($table)
+                || ($resources === [] && $tables === []) || isset($resources[$resource]) || isset($tables[$table])) {
                 throw new OwnershipSchemaNotReady('Persisted ownership requires its enforcing runtime and active generation.');
             }
         }
