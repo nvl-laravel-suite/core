@@ -5,9 +5,17 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [7.0.5] - 2026-11-10
+
 ### Fixed
 
 - Match persisted ownership markers once per actual source during batched resource or table admission, avoiding repeated inventory scans while preserving malformed-marker refusal, resource-or-table matching, fresh write-source facts and physical partition checks.
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- scan marker inventories once per source
+<!-- NVL GENERATED CHANGES END -->
 
 ## [7.0.4] - 2026-11-10
 
