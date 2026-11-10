@@ -18,6 +18,9 @@ parameters:
         - support/tests/Fixtures/PivotOwnershipFixture.php
         - support/tests/Fixtures/MorphPivotOwnershipFixture.php
         - support/tests/Fixtures/CapturedOwnershipCommand.php
+        - support/tests/Fixtures/PublicationResource.php
+        - support/tests/Fixtures/PublicationJob.php
+        - support/tests/Fixtures/PublicationScenario.php
         - support/tests/Fixtures/ScriptedFake.php
 
     level: max

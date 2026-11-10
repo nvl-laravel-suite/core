@@ -6,6 +6,7 @@ namespace Nvl\Support\Ownership\Services;
 
 use Illuminate\Database\Connection;
 use Nvl\Support\Ownership\Exceptions\OwnershipSchemaNotReady;
+use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 use stdClass;
 
 /**
@@ -22,6 +23,34 @@ final readonly class PersistedOwnershipStorage
         $this->assertMarkers($probe['markers'], $resource, $physicalTable);
         if ($probe['protocol'] && $physicalTable !== null) {
             $this->assertNoPartition($connection, $physicalTable);
+        }
+    }
+
+    /** Inspect each actual source once for this admission, preserving every resource/table selector.
+     *
+     * @param  iterable<OwnershipResourceDefinition>  $resources
+     */
+    public function assertUnadoptedResources(iterable $resources): void
+    {
+        $sources = [];
+        foreach ($resources as $resource) {
+            $model = new $resource->model;
+            $connection = $model->getConnection();
+            $id = spl_object_id($connection);
+            $sources[$id] ??= ['connection' => $connection, 'resources' => []];
+            $sources[$id]['resources'][] = ['resource' => $resource->key, 'table' => $model->getTable()];
+        }
+        foreach ($sources as $source) {
+            $connection = $source['connection'];
+            $probe = $this->probe($connection);
+            $tables = [];
+            foreach ($source['resources'] as $resource) {
+                $this->assertMarkers($probe['markers'], $resource['resource'], $resource['table']);
+                if ($probe['protocol'] && ! isset($tables[$resource['table']])) {
+                    $this->assertNoPartition($connection, $resource['table']);
+                    $tables[$resource['table']] = true;
+                }
+            }
         }
     }
 
@@ -104,7 +133,8 @@ final readonly class PersistedOwnershipStorage
     public function assertMarkers(array $markers, ?string $resource = null, ?string $physicalTable = null): void
     {
         foreach ($markers as $marker) {
-            if (! is_string($marker->resource) || ! is_string($marker->physical_table)
+            $attributes = get_object_vars($marker);
+            if (! is_string($attributes['resource'] ?? null) || ! is_string($attributes['physical_table'] ?? null)
                 || ($resource === null && $physicalTable === null) || $marker->resource === $resource || $marker->physical_table === $physicalTable) {
                 throw new OwnershipSchemaNotReady('Persisted ownership requires its enforcing runtime and active generation.');
             }

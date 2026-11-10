@@ -5,6 +5,10 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+### Fixed
+
+- Inspect each actual connection once per captured disabled admission while preserving resource-or-table marker refusal and native partition checks. Refresh all facts for each later or nested admission; retain write-source reads and refuse malformed marker identities consistently.
+
 ## [7.0.3] - 2026-11-09
 
 ### Fixed

@@ -65,12 +65,12 @@ final readonly class DisabledOwnershipQueueContext implements OwnershipQueueCont
         if ($this->container->make('config')->get('nvl-ownership.enabled') === true) {
             throw new OwnershipViolation('Captured ownership requires its enforcing runtime.');
         }
-        foreach ($this->container->make(OwnershipResourceRegistry::class)->all() as $resource) {
+        $resources = $this->container->make(OwnershipResourceRegistry::class)->all();
+        foreach ($resources as $resource) {
             if ($resource->ownership->strategy !== 'unscoped') {
                 throw new OwnershipViolation('Declared ownership requires its enforcing runtime.');
             }
-            $model = new $resource->model;
-            $this->container->make(PersistedOwnershipStorage::class)->assertUnadopted($model->getConnection(), $resource->key, $model->getTable());
         }
+        $this->container->make(PersistedOwnershipStorage::class)->assertUnadoptedResources($resources);
     }
 }
