@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Ownership\Services;
 
+use Illuminate\Container\Container as Application;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Queue\Factory;
 use Illuminate\Queue\Events\JobProcessing;
@@ -13,6 +14,7 @@ use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Queue\SyncQueue;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
+use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
 use Throwable;
 
 /**
@@ -75,15 +77,32 @@ final readonly class OwnershipQueueQuarantine
     }
 
     /**
-     * Stop Laravel's eager command restoration before native retry touches quarantined work.
+     * Stop Laravel's eager command restoration unless a non-enforcing worker would itself restore this inert capture.
      *
-     * @throws OwnershipViolation When native retry would restore a quarantined command
+     * @throws OwnershipViolation When native retry would restore quarantined or authority-bearing work
      */
     public static function beforeNativeRetry(JobRetryRequested $event): void
     {
-        if (self::isQuarantined($event->job) || self::isCaptured($event->job)) {
-            throw new OwnershipViolation('Quarantined NVL work requires nvl:queue:retry; native retry restores the captured command.');
+        $quarantined = self::isQuarantined($event->job);
+        if (! $quarantined && ! self::isCaptured($event->job)) {
+            return;
         }
+        $app = Application::getInstance();
+        $reason = null;
+        if (! $quarantined && ! ($app->bound('nvl.ownership.runtime') && $app->make('config')->get('nvl-ownership.enabled') === true)) {
+            try {
+                $data = $event->payload()['data'] ?? null;
+                if (! is_array($data) || ! is_array($data['nvl_ownership'] ?? null) || array_key_exists('nvl_tenancy', $data)) {
+                    throw new OwnershipViolation('Queued ownership requires its native scalar envelope.');
+                }
+                $app->make(DisabledOwnershipQueueContext::class)->run(OwnershipJobEnvelope::fromArray($data['nvl_ownership']), static fn (): null => null);
+
+                return;
+            } catch (Throwable $reason) {
+            }
+        }
+
+        throw new OwnershipViolation('Quarantined NVL work requires nvl:queue:retry; native retry restores the captured command.', previous: $reason);
     }
 
     /**

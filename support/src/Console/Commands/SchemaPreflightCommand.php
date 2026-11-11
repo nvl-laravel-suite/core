@@ -13,7 +13,12 @@ use Nvl\Support\Schema\SchemaMigrationPaths;
 use Nvl\Support\Schema\SchemaPreflight;
 use Throwable;
 
-/** Provides an explicit deployment gate for the selected native migration file set. */
+/**
+ * Provides an explicit deployment gate for the selected native migration file set.
+ *
+ * @deprecated Not registered in family 7: no provider binds, listens to or exposes it. It is retained only for its own tests
+ *             (see tests/Fixtures/RetiredSchemaServiceProvider) and may be removed in a later release. Hosts run it on 6.x before upgrading.
+ */
 final class SchemaPreflightCommand extends Command
 {
     /** @var string */

@@ -714,6 +714,17 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Ownership\\Traits\\ScopesOwnedBuilderWrites": {
+            "kind": "trait",
+            "file": "support/src/Ownership/Traits/ScopesOwnedBuilderWrites.php",
+            "methods": [
+                "forceDelete",
+                "updateFrom",
+                "updateOrInsert"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Ownership\\ValueObjects\\OwnerReference": {
             "kind": "class",
             "file": "support/src/Ownership/ValueObjects/OwnerReference.php",

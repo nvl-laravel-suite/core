@@ -13,6 +13,7 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobRetryRequested;
 use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Bindings\RequiredBindings;
+use Nvl\Support\Console\Commands\QueueQuarantineRetryCommand;
 use Nvl\Support\Events\ConnectionCommitCallbacks;
 use Nvl\Support\Events\DomainEventDispatcher;
 use Nvl\Support\Globals\GlobalNames;
@@ -38,6 +39,7 @@ use Nvl\Support\Ownership\Services\OwnershipContextParticipants;
 use Nvl\Support\Ownership\Services\OwnershipQueuePublication;
 use Nvl\Support\Ownership\Services\OwnershipQueueQuarantine;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
+use Nvl\Support\Ownership\Services\OwnershipStorageProbes;
 use Nvl\Support\Ownership\Services\UnavailableOwnershipQueueAdmission;
 use Nvl\Support\Ownership\Services\UnavailableOwnershipReadiness;
 use Nvl\Support\Ownership\Services\UnavailableOwnershipSystemRunner;
@@ -61,6 +63,7 @@ final class SupportServiceProvider extends ServiceProvider
         $this->app->singletonIf(OwnershipResourceRegistry::class);
         $this->app->singletonIf(OwnershipContextParticipants::class);
         $this->app->scopedIf(OwnershipMaintenanceState::class, InactiveOwnershipMaintenance::class);
+        $this->app->scopedIf(OwnershipStorageProbes::class);
         $this->app->bindIf(OwnershipModelGuard::class, DisabledOwnershipModelGuard::class);
         $this->app->bindIf(OwnershipModelPersistence::class, UnownedOwnershipModelPersistence::class);
         $this->app->bindIf(OwnershipWriter::class, UnownedOwnershipWriter::class);
@@ -83,7 +86,7 @@ final class SupportServiceProvider extends ServiceProvider
         $this->app->singletonIf(GlobalNames::class);
     }
 
-    /** Publish canonical resources and retain only the opted-in job absence guard. */
+    /** Publish canonical resources, the raw quarantine retry command and the opted-in job absence guard. */
     public function boot(Dispatcher $events): void
     {
         $events->listen(JobProcessing::class, [UnavailableOwnershipQueueAdmission::class, 'handle']);
@@ -93,6 +96,7 @@ final class SupportServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/../../lang' => lang_path('vendor/nvl-core')], 'nvl-core-translations');
         $this->publishes([__DIR__.'/../../config/nvl-core.php' => config_path('nvl-core.php')], 'nvl-core-config');
         if ($this->app->runningInConsole()) {
+            $this->commands([QueueQuarantineRetryCommand::class]);
             $this->publishes([__DIR__.'/../../resources/boost/skills' => base_path('.agents/skills')], 'nvl-core-skills');
         }
     }

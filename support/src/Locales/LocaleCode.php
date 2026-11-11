@@ -48,7 +48,7 @@ final readonly class LocaleCode
     public static function isValid(string $locale): bool
     {
         return mb_strlen($locale) <= 35
-            && preg_match('/^[a-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/', $locale) === 1;
+            && preg_match('/^[a-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/D', $locale) === 1;
     }
 
     /** Return the canonical identifier. */

@@ -52,6 +52,21 @@ it('rejects a cycle even when its parents are registered later', function (): vo
         ->toThrow(OwnershipConfigurationInvalid::class);
 });
 
+it('rejects self and multi-hop cycles closed in any order while admitting shared ancestors', function (): void {
+    $definition = static fn (string $key, string $model, array $parents): OwnershipResourceDefinition => new OwnershipResourceDefinition($key, 'test', $model, OwnershipDefinition::inherited('subject'), parentResources: $parents);
+    $registry = new OwnershipResourceRegistry;
+    expect(fn () => $registry->register($definition('test.self', OwnershipCapableModel::class, ['test.self'])))->toThrow(OwnershipConfigurationInvalid::class);
+    $registry->register($definition('test.a', OwnershipCapableModel::class, ['test.b', 'test.c']));
+    $registry->register($definition('test.c', PackageOwner::class, ['test.d']));
+    $registry->register($definition('test.b', OwnershipUnrelatedModel::class, ['test.d']));
+    expect(fn () => $registry->register($definition('test.d', UnscopedOwnershipBase::class, ['test.a'])))->toThrow(OwnershipConfigurationInvalid::class)
+        ->and(array_keys($registry->all()))->toBe(['test.a', 'test.c', 'test.b']);
+    $registry->register(new OwnershipResourceDefinition('test.d', 'test', UnscopedOwnershipBase::class, OwnershipDefinition::unscoped()));
+    $registry->freeze();
+    $registry->freeze();
+    expect(array_keys($registry->all()))->toBe(['test.a', 'test.c', 'test.b', 'test.d']);
+});
+
 it('retains explicit polymorphic parent closure without a second native morph map', function (): void {
     $registry = new OwnershipResourceRegistry;
     $registry->register(new OwnershipResourceDefinition('test.children', 'test', OwnershipCapableModel::class, OwnershipDefinition::inherited('subject'), parentResources: ['test.parents']));

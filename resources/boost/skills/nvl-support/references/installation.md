@@ -53,7 +53,9 @@ This package publishes no database migrations. Host models or schemas required b
 
 ## Artisan operations
 
-This package declares no Artisan commands. Do not invent package install, doctor, schema or DTO-generation commands.
+These commands are registered by Composer-discovered package providers. Feature-gated commands require the corresponding enabled adapter/runtime. Read each installed command’s `--help` before supplying operation options:
+
+- `php artisan nvl:queue:retry --help`
 
 ## Verify the consumer
 

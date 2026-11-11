@@ -9,7 +9,12 @@ use InvalidArgumentException;
 use Nvl\Support\Schema\SchemaUpgrade;
 use Throwable;
 
-/** Applies an explicit, verified schema identity upgrade without touching unrelated storage. */
+/**
+ * Applies an explicit, verified schema identity upgrade without touching unrelated storage.
+ *
+ * @deprecated Not registered in family 7: no provider binds, listens to or exposes it. It is retained only for its own tests
+ *             (see tests/Fixtures/RetiredSchemaServiceProvider) and may be removed in a later release. Hosts run it on 6.x before upgrading.
+ */
 final class SchemaUpgradeCommand extends Command
 {
     /** @var string */

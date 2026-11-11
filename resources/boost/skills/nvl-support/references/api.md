@@ -62,6 +62,7 @@ Search for the relevant fully qualified service or contract and read only its ma
 - `Nvl\Support\Ownership\Services\OwnershipResourceRegistry`
 - `Nvl\Support\Ownership\Traits\CapturesOwnership`
 - `Nvl\Support\Ownership\Traits\HasOwnership`
+- `Nvl\Support\Ownership\Traits\ScopesOwnedBuilderWrites`
 - `Nvl\Support\Ownership\ValueObjects\OwnerReference`
 - `Nvl\Support\Ownership\ValueObjects\OwnershipDefinition`
 - `Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope`
@@ -847,6 +848,19 @@ public function refresh(): static
 public function refreshForUpdate(): static
 public function save(array $options=[]): bool
 @param array<string, mixed> $options
+```
+
+## Nvl\Support\Ownership\Traits\ScopesOwnedBuilderWrites
+
+```text
+trait Nvl\Support\Ownership\Traits\ScopesOwnedBuilderWrites
+public function forceDelete(): mixed
+@return mixed
+public function updateFrom(array $values): int
+@param array<string, mixed> $values
+public function updateOrInsert(array $attributes, array|callable $values=[]): bool
+@param array<string, mixed> $attributes
+@param (array<string, mixed> | callable) $values
 ```
 
 ## Nvl\Support\Ownership\ValueObjects\OwnerReference

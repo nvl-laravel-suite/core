@@ -8,7 +8,12 @@ use Illuminate\Database\DatabaseManager;
 use LogicException;
 use Nvl\Support\Config\PackageStorage;
 
-/** Validates explicitly selected owned migration targets without executing migrations. */
+/**
+ * Validates explicitly selected owned migration targets without executing migrations.
+ *
+ * @deprecated Not registered in family 7: no provider binds, listens to or exposes it. It is retained only for its own tests
+ *             (see tests/Fixtures/RetiredSchemaServiceProvider) and may be removed in a later release. Hosts run it on 6.x before upgrading.
+ */
 final readonly class SchemaPreflight
 {
     /** Create a preflight against the application's configured connections. */

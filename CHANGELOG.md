@@ -1,9 +1,27 @@
 # Changelog
 
 
-All notable changes to `nvl/core` are documented here. Earlier Support history is retained below; Data history is in `data/CHANGELOG.md`.
+All notable changes to `nvl/core` are documented here. Earlier Support history is retained below; history of the former `nvl/data` package is kept only in the source repository and is not distributed with this package.
 
 ## [Unreleased]
+
+### Changed
+
+- Probe the ownership protocol catalog once per connection within a request or job instead of before every query and write on a package model. With no enforcing runtime enabled, each read ran two statements and each write up to four; later operations in the same request now run alone. The result lives in a scoped service, a reconnected connection is probed again, and refusals are never remembered, so storage adopted by another process is refused from the next request or job rather than the next query. Queue publication and job admission still probe on every call.
+
+### Fixed
+
+- Keep Eloquent's scope-free builder writes inside the ownership boundary. Builder-level `forceDelete()`, `updateOrInsert()` and `updateFrom()` run on the base query without global scopes, so on an ownership-declaring model they could delete or update another owner's rows, or run with no admitted owner at all. Such models now receive a builder that applies the ownership boundary to these writes, with caller predicates grouped first; a model that would receive the plain framework builder is refused. Custom Eloquent builders of ownership-declaring models must use the new `ScopesOwnedBuilderWrites` trait to receive the same guarantee. A builder whose caller explicitly removed the ownership scope, and `truncate()`, remain native.
+- Allow native `queue:retry` for ordinary failed work that carries only an inert disabled ownership envelope while no enforcing runtime is enabled (Core-only hosts, or `nvl/ownership` installed with `nvl-ownership.enabled` false). Such work was refused and pointed at `nvl:queue:retry`, a command those hosts do not have, so it could never be retried. Quarantined records, retired or malformed metadata and owner, central or unowned runtime captures are still refused before command restoration, as is every captured record while the runtime is enabled.
+- Supply `nvl:queue:retry` from Core. `OwnershipQueueQuarantine` records rejected work on Core-only workers, but the only command able to requeue those records lived in `nvl/ownership`, so a Core-only host could never retry them. The command moved to `Nvl\Support\Console\Commands\QueueQuarantineRetryCommand`, is registered by `SupportServiceProvider` in console, and the native `queue:retry` refusal no longer points at another package.
+- Report required host bindings in `nvl:doctor` again. `RequiredBindingsDoctor` lost its registration with the logging check, so an enabled Billing or Payments capability still bound to its deny placeholder was never reported; it is an error again, and dormant or on-use requirements remain informational.
+- Report the package logging policy in `nvl:doctor` again. The `logging.policy` check lost its registration when the Doctor became an opt-in provider, so invalid `nvl-core.logging` channels, verbosity and stack cycles were never reported.
+- Resolve declared owners once per unchanged input in `OwnerRegistry`. `model()`, `aliasFor()`, `all()` and `errors()` constructed every declared owner model and sorted the result on each call, several times per owned admission. The result is recomputed whenever a declaration or replacement, the raw `nvl-core.owners` value, Laravel's morph map or its morph-map requirement differs.
+- Find persisted ownership markers through PostgreSQL's effective `search_path`. With a path such as `"$user", public` whose first schema does not exist, the disabled-runtime probe looked for the marker table only in that schema, found none and treated prepared or adopted storage as unadopted.
+- Restore queued pivots that use `HasOwnership` through Laravel's own restoration query. A pivot serialized by its composite identity (`foreign:1:related:2`, and the morph type for a morph pivot) was looked up by primary key and never found.
+- Reject a trailing line break in `LocaleCode::isValid()`, and point the deprecated `nvl-primitives.locales` Doctor warning at `nvl-core.locales.supported`, the key Core's catalog reads.
+- Stop revalidating the frozen ownership resource graph on every admission, and check a new registration for cycles only through that resource instead of from every registered resource. Refusals are unchanged.
+- Find persisted ownership markers in the database a MySQL or MariaDB connection is actually attached to. The disabled-runtime probe looked in the database named by the connection's configuration, so a connection attached to a different source reported no markers and unowned access was admitted.
 
 ## [7.0.6] - 2026-11-11
 

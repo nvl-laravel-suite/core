@@ -167,7 +167,6 @@
         "NVL_SETTINGS_CONFIG_OVERRIDES": null,
         "NVL_SETTINGS_DISCOVERY_CACHE": null,
         "MAIL_ATTACHMENT_RETENTION_HOURS": null,
-        "MAIL_AUTH_REQUESTS_PER_MINUTE": null,
         "MAIL_CONTENT_MAX_HTML_BYTES": null,
         "MAIL_DELIVERY_ENABLED": null,
         "MAIL_MAILERSEND_PER_MINUTE": null,
@@ -187,7 +186,23 @@
         "MAIL_NOTIFICATIONS_CONNECTION": null,
         "MAIL_NOTIFICATIONS_TOKEN": null,
         "MAIL_NOTIFICATIONS_URL": null,
-        "MAIL_NOTIFICATIONS_WEBHOOK_SECRET": null
+        "MAIL_NOTIFICATIONS_WEBHOOK_SECRET": null,
+        "NVL_MAIL_NOTIFICATIONS_ATTACHMENT_RETENTION_HOURS": null,
+        "NVL_MAIL_NOTIFICATIONS_CONTENT_MAX_HTML_BYTES": null,
+        "NVL_MAIL_NOTIFICATIONS_DELIVERY_ENABLED": null,
+        "NVL_MAIL_NOTIFICATIONS_MAILERSEND_PER_MINUTE": null,
+        "NVL_MAIL_NOTIFICATIONS_MAILGUN_PER_MINUTE": null,
+        "NVL_MAIL_NOTIFICATIONS_MAINTENANCE_BATCH_SIZE": null,
+        "NVL_MAIL_NOTIFICATIONS_MAINTENANCE_MAX_SECONDS": null,
+        "NVL_MAIL_NOTIFICATIONS_ORPHAN_GRACE_HOURS": null,
+        "NVL_MAIL_NOTIFICATIONS_SENDGRID_PER_MINUTE": null,
+        "NVL_MAIL_NOTIFICATIONS_SMTP_PER_MINUTE": null,
+        "NVL_MAIL_NOTIFICATIONS_STORAGE_DISK": null,
+        "NVL_MAIL_NOTIFICATIONS_STORAGE_PUBLIC_DISK": null,
+        "NVL_MAIL_NOTIFICATIONS_WEBHOOK_LOCAL_ENVIRONMENTS": null,
+        "NVL_MAIL_NOTIFICATIONS_WEBHOOK_LOCAL_ORIGINS": null,
+        "NVL_MAIL_NOTIFICATIONS_WEBHOOK_QUEUE": null,
+        "NVL_MAIL_NOTIFICATIONS_WEBHOOK_QUEUE_CONNECTION": null
     },
     "surfaces": [
         {
@@ -3025,14 +3040,6 @@
         {
             "surface": "env",
             "owner": "nvl/mail-notifications",
-            "current": "MAIL_AUTH_REQUESTS_PER_MINUTE",
-            "canonical": "MAIL_AUTH_REQUESTS_PER_MINUTE",
-            "compatibility": "none",
-            "removal": null
-        },
-        {
-            "surface": "env",
-            "owner": "nvl/mail-notifications",
             "current": "MAIL_CONTENT_MAX_HTML_BYTES",
             "canonical": "MAIL_CONTENT_MAX_HTML_BYTES",
             "compatibility": "none",
@@ -3147,6 +3154,134 @@
             "owner": "nvl/mail-notifications",
             "current": "MAIL_WEBHOOK_QUEUE_CONNECTION",
             "canonical": "MAIL_WEBHOOK_QUEUE_CONNECTION",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_ATTACHMENT_RETENTION_HOURS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_ATTACHMENT_RETENTION_HOURS",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_CONTENT_MAX_HTML_BYTES",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_CONTENT_MAX_HTML_BYTES",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_DELIVERY_ENABLED",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_DELIVERY_ENABLED",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_PER_MINUTE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILERSEND_PER_MINUTE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_MAILGUN_PER_MINUTE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAILGUN_PER_MINUTE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_MAINTENANCE_BATCH_SIZE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAINTENANCE_BATCH_SIZE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_MAINTENANCE_MAX_SECONDS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_MAINTENANCE_MAX_SECONDS",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_ORPHAN_GRACE_HOURS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_ORPHAN_GRACE_HOURS",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_SENDGRID_PER_MINUTE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SENDGRID_PER_MINUTE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_SMTP_PER_MINUTE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_SMTP_PER_MINUTE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_STORAGE_DISK",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_STORAGE_DISK",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_STORAGE_PUBLIC_DISK",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_STORAGE_PUBLIC_DISK",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_LOCAL_ENVIRONMENTS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_LOCAL_ENVIRONMENTS",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_LOCAL_ORIGINS",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_LOCAL_ORIGINS",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_QUEUE",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_QUEUE",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/mail-notifications",
+            "surface": "env",
+            "current": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_QUEUE_CONNECTION",
+            "canonical": "NVL_MAIL_NOTIFICATIONS_WEBHOOK_QUEUE_CONNECTION",
             "compatibility": "none",
             "removal": null
         },

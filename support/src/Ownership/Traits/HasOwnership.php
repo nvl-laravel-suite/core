@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
+use Nvl\Support\Ownership\Services\OwnedEloquentBuilder;
 use Nvl\Support\Ownership\Services\OwnershipRefreshGuard;
 use Nvl\Support\Ownership\Services\OwnershipRestorationQuery;
 use Nvl\Support\Ownership\Services\OwnershipScope;
@@ -30,6 +31,21 @@ trait HasOwnership
     public static function bootHasOwnership(): void
     {
         static::addGlobalScope(new OwnershipScope);
+    }
+
+    /**
+     * Give models without a custom builder the one that keeps scope-free writes inside the boundary.
+     *
+     * A custom builder must use {@see ScopesOwnedBuilderWrites} to give the same guarantee.
+     *
+     * @return class-string<Builder<*>>|false
+     */
+    protected function resolveCustomBuilderClass()
+    {
+        /** @var class-string<Builder<*>>|false $custom Laravel documents the class name, not an instance. */
+        $custom = parent::resolveCustomBuilderClass();
+
+        return $custom === false && static::$builder === Builder::class ? OwnedEloquentBuilder::class : $custom;
     }
 
     /** @param array<string, mixed> $options */
@@ -103,7 +119,7 @@ trait HasOwnership
         return is_int($nativeResult) ? $nativeResult : $persisted;
     }
 
-    /** Guard Laravel's scope-free queued-model restoration before its database read.
+    /** Guard Laravel's scope-free queued-model restoration, including a pivot's composite identities, before its database read.
      * @param  int|string|array<array-key, int|string>  $ids
      * @return Builder<static>
      */
@@ -130,7 +146,7 @@ trait HasOwnership
         return parent::refresh();
     }
 
-    /** Keep locked instance reloads guarded across both supported framework floors. */
+    /** Keep locked instance reloads guarded before the native lock and refresh. */
     public function refreshForUpdate(): static
     {
         OwnershipRefreshGuard::assertReadable($this);

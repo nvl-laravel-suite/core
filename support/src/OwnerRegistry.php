@@ -31,6 +31,9 @@ final class OwnerRegistry
     /** @var array<string, true> Read aliases installed by replacement registration, never host-authored identities. */
     private array $replacementReadAliases = [];
 
+    /** @var array{facts: list<mixed>, owners: array<string, class-string<Model>>}|null Last resolution and the exact inputs it was computed from. */
+    private ?array $resolved = null;
+
     /** Retain the host's effective capability declarations. */
     public function __construct(private readonly Repository $configuration) {}
 
@@ -161,12 +164,19 @@ final class OwnerRegistry
     /**
      * Return capabilities keyed by each model's current native morph identity.
      *
+     * The result is recomputed whenever a declaration, replacement, the raw configured list or
+     * Laravel's morph identities differ from those of the previous resolution; nothing else is retained.
+     *
      * @return array<string, class-string<Model>>
      */
     public function all(): array
     {
+        $facts = [$this->declarations, $this->replacements, $this->configuration->get('nvl-core.owners', []), Relation::morphMap(), Relation::requiresMorphMap()];
+        if ($this->resolved !== null && $this->resolved['facts'] === $facts) {
+            return $this->resolved['owners'];
+        }
         $owners = [];
-        $this->diagnostics = [];
+        $diagnostics = [];
         foreach ($this->inputs() as $source => $declaration) {
             $model = $declaration['model'];
             $identity = (new $model)->getMorphClass();
@@ -175,10 +185,12 @@ final class OwnerRegistry
             }
             $owners[$identity] = $model;
             if ($declaration['alias'] !== null && $declaration['alias'] !== $identity) {
-                $this->diagnostics[$source] = "Owner declaration [{$source}] uses [{$declaration['alias']}] but Laravel uses [{$identity}] for [{$model}]. Add the desired mapping in the host's morph map with data reconciliation, or remove the conflicting alias.";
+                $diagnostics[$source] = "Owner declaration [{$source}] uses [{$declaration['alias']}] but Laravel uses [{$identity}] for [{$model}]. Add the desired mapping in the host's morph map with data reconciliation, or remove the conflicting alias.";
             }
         }
         ksort($owners);
+        $this->diagnostics = $diagnostics;
+        $this->resolved = ['facts' => $facts, 'owners' => $owners];
 
         return $owners;
     }

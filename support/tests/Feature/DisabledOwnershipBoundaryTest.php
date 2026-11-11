@@ -10,6 +10,7 @@ use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Exceptions\OwnershipSchemaNotReady;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
+use Nvl\Support\Ownership\Services\OwnershipStorageProbes;
 use Nvl\Support\Ownership\Services\OwnershipStorageTables;
 use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
@@ -41,7 +42,7 @@ it('does not treat enabled ownership without its runtime as an unowned query esc
     expect(fn () => app(OwnershipBoundary::class)->query(OwnershipCapableModel::query(), 'test.products'))->toThrow(OwnershipViolation::class);
 });
 
-it('uses one fresh storage probe per registered unowned model mutation', function (): void {
+it('probes storage once per request across registered unowned model mutations', function (): void {
     Schema::create('ownership_claimed_models', static function (Blueprint $table): void {
         $table->id();
     });
@@ -54,9 +55,10 @@ it('uses one fresh storage probe per registered unowned model mutation', functio
 
         $connection->flushQueryLog();
         $model->forceFill(['id' => 8])->save();
-        expect($connection->getQueryLog())->toHaveCount(2);
+        expect($connection->getQueryLog())->toHaveCount(1);
 
         $connection->flushQueryLog();
+        app(OwnershipStorageProbes::class)->forget();
         expect($model->delete())->toBeTrue()
             ->and($connection->getQueryLog())->toHaveCount(2);
     } finally {
@@ -65,7 +67,7 @@ it('uses one fresh storage probe per registered unowned model mutation', functio
     }
 });
 
-it('detects newly persisted adoption on the next mutation of a retained unowned model', function (): void {
+it('detects newly persisted adoption in the next request of a retained unowned model', function (): void {
     Schema::create('ownership_claimed_models', static function (Blueprint $table): void {
         $table->id();
     });
@@ -76,6 +78,7 @@ it('detects newly persisted adoption on the next mutation of a retained unowned 
         $table->string('physical_table');
     });
     DB::table(OwnershipStorageTables::Markers)->insert(['resource' => 'test.unowned', 'physical_table' => $model->getTable()]);
+    app(OwnershipStorageProbes::class)->forget();
 
     expect(fn () => $model->saveQuietly())->toThrow(OwnershipSchemaNotReady::class)
         ->and(fn () => $model->deleteQuietly())->toThrow(OwnershipSchemaNotReady::class)

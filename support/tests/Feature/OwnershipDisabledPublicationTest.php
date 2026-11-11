@@ -15,6 +15,7 @@ use Nvl\Support\Ownership\Enums\OwnershipContextMode;
 use Nvl\Support\Ownership\Exceptions\OwnershipSchemaNotReady;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipQueuePublication;
+use Nvl\Support\Ownership\Services\OwnershipStorageProbes;
 use Nvl\Support\Ownership\Services\OwnershipStorageTables;
 use Nvl\Support\Ownership\Services\PersistedOwnershipStorage;
 use Nvl\Support\Ownership\ValueObjects\OwnershipJobEnvelope;
@@ -144,7 +145,7 @@ it('refuses a matching or malformed final marker when admitting a table batch', 
     'malformed unrelated table' => [['resource' => 'unrelated.resource']],
 ]);
 
-it('preserves exact numeric looking table identities across fresh batch admissions', function (string $batch): void {
+it('preserves exact numeric looking table identities across batch admissions in separate requests', function (string $batch): void {
     $resources = PublicationScenario::register(1);
     PublicationResource::$tables[$resources->get('publication.record_1')->model] = '123';
     DB::getSchemaBuilder()->create('123', static fn (Blueprint $table) => $table->id());
@@ -155,6 +156,7 @@ it('preserves exact numeric looking table identities across fresh batch admissio
         : static fn () => $storage->assertUnadoptedTables(DB::connection(), ['123', '123']);
     $admit();
     DB::table(OwnershipStorageTables::Markers)->insert(['resource' => 'retired.resource', 'physical_table' => '123']);
+    app(OwnershipStorageProbes::class)->forget();
     expect($admit)->toThrow(OwnershipSchemaNotReady::class);
 })->with(['resources', 'tables']);
 

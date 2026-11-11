@@ -11,7 +11,7 @@ use Nvl\Support\Console\Commands\SchemaPreflightCommand;
 use Nvl\Support\Console\Commands\SchemaUpgradeCommand;
 use Nvl\Support\Schema\SchemaMigrationEvents;
 
-/** Keeps dormant schema tooling covered until its planned removal; never discovered by Core. */
+/** Registers the deprecated schema tooling for its own tests only; nothing in family 7 registers it, and Core never discovers this fixture. */
 final class RetiredSchemaServiceProvider extends ServiceProvider
 {
     /** Explicitly enable only the retired schema fixtures that still exercise this source. */

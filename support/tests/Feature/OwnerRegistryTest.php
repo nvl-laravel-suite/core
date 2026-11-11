@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Auth\GenericUser;
 use Illuminate\Config\Repository;
+use Illuminate\Database\ClassMorphViolationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
@@ -345,3 +346,53 @@ it('registers a validated host replacement while preserving canonical or explici
         ->and($registry->model(OwnershipIdentityBase::class))->toBe($replacement)
         ->and(Relation::getMorphedModel(OwnershipIdentityBase::class))->toBe($replacement);
 })->with([null, 'host-page', OwnershipIdentityBase::class]);
+
+it('constructs declared owners once until a declaration, the configured list or a morph identity changes', function (): void {
+    $owner = new class extends Model
+    {
+        public static int $constructions = 0;
+
+        public function __construct(array $attributes = [])
+        {
+            self::$constructions++;
+            parent::__construct($attributes);
+        }
+    };
+    $other = new class extends Model {};
+    $declared = new class extends Model {};
+    $configuration = new Repository(['nvl-core' => ['owners' => [$owner::class]]]);
+    $registry = new OwnerRegistry($configuration);
+    $owner::$constructions = 0;
+
+    foreach (range(1, 5) as $admission) {
+        expect($registry->model($owner::class))->toBe($owner::class)
+            ->and($registry->aliasFor($owner))->toBe($owner::class)
+            ->and($registry->errors())->toBe([]);
+    }
+    expect($owner::$constructions)->toBe(1);
+
+    Relation::morphMap(['mapped-owner' => $owner::class]);
+    expect($registry->all())->toBe(['mapped-owner' => $owner::class])
+        ->and($registry->all())->toBe(['mapped-owner' => $owner::class])
+        ->and($owner::$constructions)->toBe(2);
+
+    $configuration->set('nvl-core.owners', ['legacy' => $owner::class, 'other' => $other::class]);
+    expect($registry->all())->toBe([$other::class => $other::class, 'mapped-owner' => $owner::class])
+        ->and($registry->errors())->toHaveCount(2)
+        ->and($registry->errors())->toHaveCount(2)
+        ->and($owner::$constructions)->toBe(3);
+
+    $registry->register('declared', $declared::class);
+    expect($registry->all())->toContain($declared::class)
+        ->and($registry->model('declared'))->toBe($declared::class)
+        ->and($owner::$constructions)->toBe(4);
+
+    $configuration->set('nvl-core.owners', []);
+    expect(fn () => $registry->model($owner::class))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => $registry->aliasFor($owner))->toThrow(InvalidArgumentException::class);
+
+    Relation::requireMorphMap();
+    expect(fn () => $registry->all())->toThrow(ClassMorphViolationException::class);
+    Relation::requireMorphMap(false);
+    expect($registry->all())->toBe([$declared::class => $declared::class]);
+});

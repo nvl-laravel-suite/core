@@ -26,7 +26,7 @@ final class OwnershipResourceRegistry
     /** @var array<string, Model> Blank canonical instances keyed by owned resource. */
     private array $canonicalModels = [];
 
-    /** Register an exact effective model and reject ambiguous or cyclic declarations. */
+    /** Register an exact effective model; a new cycle must reach the new resource through its own parents. */
     public function register(OwnershipResourceDefinition $resource): void
     {
         foreach ($this->resources as $existing) {
@@ -40,27 +40,27 @@ final class OwnershipResourceRegistry
         if ($this->frozen) {
             throw new OwnershipConfigurationInvalid('Ownership resource metadata is frozen.');
         }
-        $next = [...$this->resources, $resource->key => $resource];
-        $visit = function (OwnershipResourceDefinition $definition, array $visited) use (&$visit, $next): void {
-            if (in_array($definition->key, $visited, true)) {
+        $pending = $resource->parents();
+        $visited = [];
+        while ($pending !== []) {
+            $key = array_pop($pending);
+            if ($key === $resource->key) {
                 throw new OwnershipConfigurationInvalid('Ownership resource graph contains a cycle.');
             }
-            $visited[] = $definition->key;
-            foreach ($definition->parents() as $key) {
-                if (isset($next[$key])) {
-                    $visit($next[$key], $visited);
-                }
+            if (! isset($visited[$key]) && isset($this->resources[$key])) {
+                $visited[$key] = true;
+                array_push($pending, ...$this->resources[$key]->parents());
             }
-        };
-        foreach ($next as $definition) {
-            $visit($definition, []);
         }
-        $this->resources = $next;
+        $this->resources[$resource->key] = $resource;
     }
 
-    /** Reject incomplete parent graphs before admitting resource operations. */
+    /** Reject incomplete parent graphs once; frozen metadata accepts no further registration. */
     public function freeze(): void
     {
+        if ($this->frozen) {
+            return;
+        }
         foreach ($this->resources as $resource) {
             if ($resource->ownership->strategy === 'inherited' && $resource->parents() === []) {
                 throw new OwnershipConfigurationInvalid('Inherited resources require their complete canonical parent allowlist.');

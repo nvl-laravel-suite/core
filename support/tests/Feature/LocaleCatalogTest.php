@@ -29,7 +29,10 @@ it('derives the standalone content catalog from distinct valid application local
 it('shares regional normalization and validates locale shape', function (): void {
     expect(LocaleCode::normalize(' ZH_hANT_tw '))->toBe('zh-Hant-TW')
         ->and((new LocaleCode('es_419'))->value)->toBe('es-419')
-        ->and(LocaleCode::isValid('bad locale'))->toBeFalse();
+        ->and(LocaleCode::isValid('bad locale'))->toBeFalse()
+        ->and(LocaleCode::isValid("en\n"))->toBeFalse()
+        ->and(LocaleCode::isValid("en-GB\n"))->toBeFalse()
+        ->and(LocaleCode::isValid('en-GB'))->toBeTrue();
 
     expect(fn () => new LocaleCode('bad locale'))->toThrow(InvalidArgumentException::class);
 });
@@ -44,7 +47,7 @@ it('uses the deprecated primitives catalog only for the standalone default', fun
     expect($catalog->supported())->toBe(['bg-BG', 'en'])
         ->and($catalog->default())->toBe('en')
         ->and((new LocaleCatalogDiagnostics($configuration, $catalog))->inspect()['warnings'])
-        ->toContain('nvl-primitives.locales is deprecated; bind LocaleCatalog or configure nvl-translatable.locales.');
+        ->toContain('nvl-primitives.locales is deprecated; bind LocaleCatalog or configure nvl-core.locales.supported.');
 
     $configuration->set('nvl-primitives.locales.supported', ['en', 'EN']);
     expect(fn () => $catalog->supported())->toThrow(InvalidArgumentException::class);

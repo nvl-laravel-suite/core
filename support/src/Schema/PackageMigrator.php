@@ -14,7 +14,8 @@ use LogicException;
 /**
  * Retains the former opt-in migrator surface for consumers migrating to native Laravel.
  *
- * @deprecated Use Laravel's migrator and the explicit nvl:schema:preflight deployment gate.
+ * @deprecated Not registered in family 7: no provider binds it and the nvl:schema:preflight gate it wrapped ships through 6.x only.
+ *             It is retained only for its own tests and may be removed in a later release. Use Laravel's migrator.
  */
 class PackageMigrator extends Migrator
 {

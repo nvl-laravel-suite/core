@@ -13,6 +13,9 @@ use Nvl\Support\Config\PackageStorage;
 /**
  * Plans verified legacy renames before making any database changes.
  *
+ * @deprecated Not registered in family 7: no provider binds, listens to or exposes it. It is retained only for its own tests
+ *             (see tests/Fixtures/RetiredSchemaServiceProvider) and may be removed in a later release. Hosts run it on 6.x before upgrading.
+ *
  * @phpstan-type UpgradeStep array{kind: 'table'|'migration', package: string, connection: string|null, from: string, to: string}
  * @phpstan-type MigrationFilePlan array{package: string, path: string, migration: string, recorded: string|null, action: 'archive'|'archived'|'published'}
  * @phpstan-type UpgradePlan array{schema_version: int, packages: list<string>, migration_owner: 'vendor'|'published', files: list<MigrationFilePlan>, steps: list<UpgradeStep>, warnings: list<string>}

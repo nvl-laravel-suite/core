@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
 use Nvl\Support\Ownership\Exceptions\OwnershipSchemaNotReady;
+use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnershipStorageTables;
 use Nvl\Support\Tests\Fixtures\MorphPivotOwnershipFixture;
 use Nvl\Support\Tests\Fixtures\PivotOwnershipFixture;
@@ -21,7 +22,7 @@ beforeEach(function (): void {
         $table->unsignedBigInteger('left_id');
         $table->unsignedBigInteger('right_id');
         $table->string('subject_type');
-        $table->unique(['left_id', 'right_id', 'subject_type']);
+        $table->unique(['left_id', 'right_id', 'subject_type'], 'ownership_persistence_pivots_identity');
     });
 });
 
@@ -129,4 +130,25 @@ it('preserves a persistence adapter refusal without invoking native pivot deleti
     expect($pivot->delete())->toBeFalse()
         ->and($pivot->exists)->toBeTrue()
         ->and(DB::table($pivot->getTable())->where('right_id', 11)->where('subject_type', 'product')->exists())->toBeTrue();
+})->with('ownership persistence pivots');
+
+it('restores a queued pivot through its native queueable identity', function (string $class, bool $keyed): void {
+    $pivot = persistedOwnershipPivot($class, $keyed);
+    $id = $pivot->getQueueableId();
+    expect(is_string($id) && str_contains($id, ':'))->toBe(! $keyed);
+
+    $fresh = new $class;
+    $fresh->setTable('ownership_persistence_pivots');
+    $restored = $fresh->newQueryForRestoration($id)->get();
+    expect($restored)->toHaveCount(1)
+        ->and($restored[0]->getAttribute('right_id'))->toBe(11)
+        ->and($restored[0]->getAttribute('subject_type'))->toBe('product');
+
+    if (! $keyed) {
+        expect(fn () => $fresh->newQueryForRestoration('left_id:7:right_id'))->toThrow(OwnershipViolation::class, 'malformed')
+            ->and(fn () => $fresh->newQueryForRestoration([$id, 11]))->toThrow(OwnershipViolation::class, 'malformed');
+        $collection = $fresh->newQueryForRestoration([$id, str_replace(':11', ':12', $id)])->orderBy('right_id')->get();
+        expect($collection->pluck('right_id')->all())->toBe([11, 12])
+            ->and($collection->pluck('subject_type')->unique()->all())->toBe(['product']);
+    }
 })->with('ownership persistence pivots');

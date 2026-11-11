@@ -42,7 +42,7 @@ final readonly class LocaleCatalogDiagnostics
         $legacy = $this->config->get('nvl-primitives.locales.supported');
 
         if ($legacy !== null) {
-            $warnings[] = 'nvl-primitives.locales is deprecated; bind LocaleCatalog or configure nvl-translatable.locales.';
+            $warnings[] = 'nvl-primitives.locales is deprecated; bind LocaleCatalog or configure nvl-core.locales.supported.';
 
             try {
                 $legacyLocales = (new ApplicationLocaleCatalog(new Configuration([

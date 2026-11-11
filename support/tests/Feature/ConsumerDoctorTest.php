@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\ServiceProvider;
+use Nvl\Support\Bindings\RequiredBindingDefinition;
+use Nvl\Support\Bindings\RequiredBindings;
 use Nvl\Support\Doctor\DoctorCheck;
 use Nvl\Support\Doctor\DoctorContributor;
 use Nvl\Support\Doctor\DoctorRegistry;
 use Nvl\Support\Doctor\PackageDoctorContributor;
 use Nvl\Support\Providers\DoctorServiceProvider;
+use Nvl\Support\Tests\Fixtures\C4OrderBindingContract;
+use Nvl\Support\Tests\Fixtures\C4OrderBindingPlaceholder;
 
 beforeEach(function (): void {
     $this->app->register(DoctorServiceProvider::class);
@@ -22,7 +26,38 @@ it('reports an empty consumer installation without workbench providers', functio
         'healthy' => true,
         'strict' => true,
     ])->and(array_unique(array_column($report['checks'], 'package')))->toBe(['nvl/core'])
-        ->and($report['checks'])->toHaveCount(6);
+        ->and($report['checks'])->toHaveCount(7);
+});
+
+it('reports the package logging policy among the Core checks', function (): void {
+    $policy = static fn (): array => array_values(array_filter(app(DoctorRegistry::class)->inspect()['checks'], static fn (array $check): bool => $check['key'] === 'logging.policy'));
+    expect($policy())->toHaveCount(1)
+        ->and($policy()[0])->toMatchArray(['package' => 'nvl/core', 'severity' => 'error', 'result' => 'pass']);
+
+    config()->set('nvl-core.logging.verbosity', 'loud');
+    expect($policy()[0])->toMatchArray(['result' => 'fail', 'message' => 'Package logging verbosity must be quiet, normal, or verbose.'])
+        ->and(Artisan::call('nvl:doctor', ['--format' => 'json']))->toBe(1);
+});
+
+it('reports required host bindings declared by loaded packages', function (): void {
+    config()->set('nvl-example.enabled', true);
+    $this->app->bindIf(C4OrderBindingContract::class, C4OrderBindingPlaceholder::class);
+    $this->app->make(RequiredBindings::class)->register(new RequiredBindingDefinition(
+        'example', C4OrderBindingContract::class, C4OrderBindingPlaceholder::class, 'order_resolution', 'nvl-example.enabled', 'README.md#host-bindings',
+    ));
+    $binding = static fn (): array => array_values(array_filter(app(DoctorRegistry::class)->inspect()['checks'], static fn (array $check): bool => $check['key'] === 'bindings.example.order_resolution'));
+
+    expect($binding())->toHaveCount(1)
+        ->and($binding()[0])->toMatchArray(['package' => 'nvl/core', 'severity' => 'error', 'result' => 'fail'])
+        ->and(Artisan::call('nvl:doctor', ['--format' => 'json']))->toBe(1);
+
+    $this->app->bind(C4OrderBindingContract::class, static fn (): never => throw new RuntimeException('Doctor must not execute host adapters.'));
+    expect($binding()[0])->toMatchArray(['severity' => 'info', 'result' => 'pass']);
+
+    config()->set('nvl-example.enabled', false);
+    $this->app->bind(C4OrderBindingContract::class, C4OrderBindingPlaceholder::class);
+    expect($binding()[0])->toMatchArray(['severity' => 'info', 'result' => 'pass'])
+        ->and(Artisan::call('nvl:doctor', ['--strict' => true, '--format' => 'json']))->toBe(0);
 });
 
 it('discovers only contributors registered by loaded providers and sorts the report', function (): void {
