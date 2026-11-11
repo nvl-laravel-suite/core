@@ -5,6 +5,12 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [7.0.6] - 2026-11-11
+
+### Fixed
+
+- Construct each owned canonical model once per resource registry instead of on every unclaimed-model admission. Unowned queries, saves, refreshes, translation admission and mail notifiable checks no longer rebuild the complete owned inventory per call. Preserve base-class and shared-storage refusal; canonical tables and connections are still read on every admission, so no storage fact is cached.
+
 ### Changed
 
 - Probe the ownership protocol catalog once per connection within a request or job instead of before every query and write on a package model. With no enforcing runtime enabled, each read ran two statements and each write up to four; later operations in the same request now run alone. The result lives in a scoped service, a reconnected connection is probed again, and refusals are never remembered, so storage adopted by another process is refused from the next request or job rather than the next query. Queue publication and job admission still probe on every call.
@@ -23,16 +29,11 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 - Stop revalidating the frozen ownership resource graph on every admission, and check a new registration for cycles only through that resource instead of from every registered resource. Refusals are unchanged.
 - Find persisted ownership markers in the database a MySQL or MariaDB connection is actually attached to. The disabled-runtime probe looked in the database named by the connection's configuration, so a connection attached to a different source reported no markers and unowned access was admitted.
 
-## [7.0.6] - 2026-11-11
-
-### Fixed
-
-- Construct each owned canonical model once per resource registry instead of on every unclaimed-model admission. Unowned queries, saves, refreshes, translation admission and mail notifiable checks no longer rebuild the complete owned inventory per call. Preserve base-class and shared-storage refusal; canonical tables and connections are still read on every admission, so no storage fact is cached.
-
 <!-- NVL GENERATED CHANGES START -->
 ### Changed
 
 - construct owned canonical models once for unclaimed admission
+- scope builder writes to the owner and probe storage once per request
 <!-- NVL GENERATED CHANGES END -->
 
 ## [7.0.5] - 2026-11-10
