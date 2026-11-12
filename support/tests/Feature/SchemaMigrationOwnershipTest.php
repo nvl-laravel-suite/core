@@ -56,6 +56,36 @@ it('requires explicit exact declarations before recognizing identical published 
     }
 });
 
+it('recognizes the released Templates graph copies without accepting them for execution', function (bool $unbounded): void {
+    $name = '2026_11_02_000001_nvl_templates_create_document_graph';
+    $vendor = InstalledVersions::getInstallPath('nvl/templates').'/database/document-migrations/'.$name.'.php';
+    $scopeColumn = "            \$t->string('scope_id', 128);\n";
+    $released = str_replace(
+        $scopeColumn,
+        $scopeColumn."            \$t->string('owner_scope_key', 191)->nullable();\n"
+            ."            \$t->text('owner_reference')->nullable();\n",
+        (string) file_get_contents($vendor),
+    );
+    if ($unbounded) {
+        $released = str_replace([
+            "                    // Bounded so the composite unique key fits InnoDB's 3072-byte index limit under utf8mb4.\n",
+            "('kind', 32)", "('scope', 32)", "('owner_key', 64)",
+        ], ['', "('kind')", "('scope')", "('owner_key')"], $released);
+    }
+    $path = sys_get_temp_dir().'/2099_01_01_'.bin2hex(random_bytes(4)).'_nvl_templates_create_document_graph.php';
+    file_put_contents($path, $released);
+    try {
+        config(['nvl-core.migrations.published' => [$path => ['package' => 'templates', 'migration' => $name]]]);
+        $identity = app(SchemaMigrationPaths::class)->identity($path);
+        expect($identity)->not->toBeNull()
+            ->and($identity['name'])->toBe($name)
+            ->and($identity['current'])->toBeFalse();
+        expect(fn () => app(SchemaPreflight::class)->validate([$path]))->toThrow(LogicException::class, 'legacy migration code');
+    } finally {
+        unlink($path);
+    }
+})->with(['7.0.2' => [true], '7.0.3' => [false]]);
+
 it('keeps host-only explicit selections free of package schema queries', function (): void {
     $queries = [];
     DB::listen(function (QueryExecuted $event) use (&$queries): void {

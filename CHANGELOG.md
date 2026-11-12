@@ -5,6 +5,10 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+### Fixed
+
+- Record the unscoped Templates schema and recognize the original published 7.0.2 and 7.0.3 document migrations.
+
 ## [7.0.6] - 2026-11-11
 
 ### Fixed

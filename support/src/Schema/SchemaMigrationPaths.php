@@ -126,8 +126,16 @@ final class SchemaMigrationPaths
             throw new LogicException('The installed migration manifest changed while resolving published ownership.');
         }
         $checksum = hash_file('sha256', $real);
-        $current = $checksum === hash_file('sha256', $canonical['path']);
-        if (! $current && $checksum !== $migration['legacy_checksum'] && $checksum !== $migration['previous_checksum']) {
+        $canonicalChecksum = hash_file('sha256', $canonical['path']);
+        if ($checksum === false || $canonicalChecksum === false) {
+            throw new LogicException("Could not verify the checksum of declared published migration [{$path}] or its installed canonical migration.");
+        }
+        $current = $checksum === $canonicalChecksum;
+        if (! $current && ! in_array($checksum, [
+            $migration['legacy_checksum'],
+            $migration['previous_checksum'],
+            ...$migration['previous_checksums'],
+        ], true)) {
             throw new LogicException("Declared published migration [{$path}] does not match the released checksum; reconcile modified host code explicitly.");
         }
 

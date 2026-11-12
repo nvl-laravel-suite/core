@@ -12,7 +12,7 @@ use RuntimeException;
  * @phpstan-type SchemaKey array{type: string, columns: list<string>}
  * @phpstan-type ForeignIdentity array{columns: list<string>, package: string, table: string, references: list<string>, required: bool}
  * @phpstan-type TableIdentity array{constant: string, legacy: string, default: string, columns: array<string, string>, create_migrations: list<string>, keys: list<SchemaKey>, foreign_keys: list<ForeignIdentity>}
- * @phpstan-type MigrationIdentity array{name: string, path: string, create: bool, legacy_checksum: string, previous_checksum: string|null, creates: list<string>}
+ * @phpstan-type MigrationIdentity array{name: string, path: string, create: bool, legacy_checksum: string, previous_checksum: string|null, previous_checksums: list<string>, creates: list<string>}
  * @phpstan-type PackageIdentity array{config: string, tables: array<string, TableIdentity>, migrations: array<string, MigrationIdentity>}
  */
 final class SchemaIdentities
@@ -67,6 +67,7 @@ final class SchemaIdentities
                         'name' => $migration['name'], 'path' => $migration['path'], 'create' => $migration['create'],
                         'legacy_checksum' => $migration['legacy_checksum'],
                         'previous_checksum' => is_string($migration['previous_checksum'] ?? null) ? $migration['previous_checksum'] : null,
+                        'previous_checksums' => self::stringList($migration['previous_checksums'] ?? []),
                         'creates' => self::stringList($migration['creates'] ?? null),
                     ];
                 }
