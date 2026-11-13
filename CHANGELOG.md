@@ -5,6 +5,8 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [7.0.8] - 2026-11-13
+
 ### Changed
 
 - Require SQLite or PostgreSQL for native database diagnostics and ownership storage.
@@ -14,6 +16,12 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 - Inspect PostgreSQL ownership constraints via `to_regclass(?)` instead of `?::regclass` so missing tables return `OwnershipSchemaNotReady` without aborting outer transactions (`25P02`), and honor attached SQLite catalog schemas.
 - Register `LocaleServiceProvider` as a deferred service from `SupportServiceProvider` and clear self-referencing deferred map entries on explicit registration so `LocaleCatalog` resolves cleanly under any provider boot order.
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- harden package runtime safety, PostgreSQL portability and test performance
+<!-- NVL GENERATED CHANGES END -->
 
 ## [7.0.7] - 2026-11-12
 
