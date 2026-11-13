@@ -8,12 +8,14 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseTransactionsManager;
+use Illuminate\Foundation\Application as FoundationApplication;
 use Illuminate\Log\LogManager;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobRetryRequested;
 use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Bindings\RequiredBindings;
 use Nvl\Support\Console\Commands\QueueQuarantineRetryCommand;
+use Nvl\Support\Contracts\LocaleCatalog;
 use Nvl\Support\Events\ConnectionCommitCallbacks;
 use Nvl\Support\Events\DomainEventDispatcher;
 use Nvl\Support\Globals\GlobalNames;
@@ -58,6 +60,9 @@ final class SupportServiceProvider extends ServiceProvider
     /** Bind shared contracts and safe defaults without touching storage or host queues. */
     public function register(): void
     {
+        if ($this->app instanceof FoundationApplication && ! $this->app->providerIsLoaded(LocaleServiceProvider::class)) {
+            $this->app->addDeferredServices([LocaleCatalog::class => LocaleServiceProvider::class]);
+        }
         $this->mergePackageConfiguration(__DIR__.'/../../config/nvl-core.php', 'core');
         $this->app->singletonIf(OwnerRegistry::class);
         $this->app->singletonIf(OwnershipResourceRegistry::class);

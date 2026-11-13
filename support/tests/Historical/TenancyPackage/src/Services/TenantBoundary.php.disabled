@@ -268,11 +268,7 @@ final readonly class TenantBoundary implements \Nvl\Support\Tenancy\Contracts\Te
     private function textIdentity(Builder $query, string $column): Expression
     {
         $wrapped = $query->getQuery()->getGrammar()->wrap($column);
-        $type = in_array(
-            $query->getModel()->getConnection()->getDriverName(),
-            ['mysql', 'mariadb'],
-            true,
-        ) ? 'CHAR' : 'TEXT';
+        $type = 'TEXT';
 
         return new readonly class($wrapped, $type) implements Expression
         {

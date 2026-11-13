@@ -452,7 +452,7 @@ active markers while prior run/mapping history remains intact. Package adapters
 must reject unsupported mode changes and ownership transfers. Core never invents
 splits, copies, memberships or owner flags.
 
-A connection-wide PostgreSQL session advisory lock, MySQL/MariaDB `GET_LOCK`, or
+A connection-wide PostgreSQL session advisory lock or
 local SQLite file lock serializes independent processes across audits, DDL and
 checkpoints. Contention fails closed for retry; reconnect/session replacement is
 forbidden until the phase ends. Reads use the locked primary session, with host
@@ -490,7 +490,7 @@ composer validate:distribution
 
 The engine-aware `TenantSupportedDatabaseTest` runs real prefixed core schema,
 package/host directory constraints, interrupted coordinator adoption, final DDL,
-and consumer-owned up/down migrations on PostgreSQL 17, MySQL 8.4, MariaDB 12.3,
+and consumer-owned up/down migrations on PostgreSQL 17
 and SQLite. The selected `DB_CONNECTION` is asserted; focused lifecycle cases
 retain intentional isolated SQLite aliases. Use only disposable test databases.
 
@@ -755,7 +755,7 @@ parameters:
         exceptions: []
 ```
 
-Rules read installed public metadata without suite boot. They flag internal symbols, package model queries/writes, capability relations and owned tables; they cannot prove dynamic code or runtime authorization. Exact exceptions require `file`, `identifier`, `symbol`, and a documented `reason`. The published 5.x family is verified through the local Dagger release gate on PHP 8.4/Laravel 13, including owning suites, MySQL/PostgreSQL persistence contracts and sealed Tenancy consumers. Fresh public Composer installation, discovery and configuration/route caching are verified. PHP 8.5, Laravel 12, MariaDB and the full independent archive matrix require separate evidence. See the [verification and release policy](https://github.com/nvl-laravel-suite/laravel-suite#verification-and-releases).
+Rules read installed public metadata without suite boot. They flag internal symbols, package model queries/writes, capability relations and owned tables; they cannot prove dynamic code or runtime authorization. Exact exceptions require `file`, `identifier`, `symbol`, and a documented `reason`. The published 5.x family is verified through the local Dagger release gate on PHP 8.4/Laravel 13, including owning suites, PostgreSQL persistence contracts and sealed Tenancy consumers. Fresh public Composer installation, discovery and configuration/route caching are verified. PHP 8.5, Laravel 12 and the full independent archive matrix require separate evidence. See the [verification and release policy](https://github.com/nvl-laravel-suite/laravel-suite#verification-and-releases).
 
 ### Shipped factory states
 

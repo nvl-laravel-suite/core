@@ -5,6 +5,16 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+### Changed
+
+- Require SQLite or PostgreSQL for native database diagnostics and ownership storage.
+- Report unsupported database profiles and require SQLite or PostgreSQL for native ownership catalog inspection.
+
+### Fixed
+
+- Inspect PostgreSQL ownership constraints via `to_regclass(?)` instead of `?::regclass` so missing tables return `OwnershipSchemaNotReady` without aborting outer transactions (`25P02`), and honor attached SQLite catalog schemas.
+- Register `LocaleServiceProvider` as a deferred service from `SupportServiceProvider` and clear self-referencing deferred map entries on explicit registration so `LocaleCatalog` resolves cleanly under any provider boot order.
+
 ## [7.0.7] - 2026-11-12
 
 ### Fixed
@@ -39,7 +49,6 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 - Restore queued pivots that use `HasOwnership` through Laravel's own restoration query. A pivot serialized by its composite identity (`foreign:1:related:2`, and the morph type for a morph pivot) was looked up by primary key and never found.
 - Reject a trailing line break in `LocaleCode::isValid()`, and point the deprecated `nvl-primitives.locales` Doctor warning at `nvl-core.locales.supported`, the key Core's catalog reads.
 - Stop revalidating the frozen ownership resource graph on every admission, and check a new registration for cycles only through that resource instead of from every registered resource. Refusals are unchanged.
-- Find persisted ownership markers in the database a MySQL or MariaDB connection is actually attached to. The disabled-runtime probe looked in the database named by the connection's configuration, so a connection attached to a different source reported no markers and unowned access was admitted.
 
 <!-- NVL GENERATED CHANGES START -->
 ### Changed

@@ -374,7 +374,6 @@ it('serializes independent processes through native DDL and releases the storage
     $path = tempnam(sys_get_temp_dir(), 'nvl-f5-lock-');
     $configuration = match ($driver) {
         'pgsql' => ['driver' => 'pgsql', 'host' => getenv('F5_LOCK_SOCKET') ?: '/tmp', 'port' => (int) (getenv('F5_LOCK_PORT') ?: 5432), 'database' => 'nvl_tenancy_test', 'username' => 'nvl_tenancy_test', 'password' => '', 'charset' => 'utf8', 'prefix' => '', 'search_path' => 'public', 'sslmode' => 'prefer'],
-        'mysql', 'mariadb' => ['driver' => $driver, 'unix_socket' => getenv('F5_LOCK_SOCKET') ?: '/tmp/mysql.sock', 'database' => 'nvl_tenancy_test', 'username' => 'nvl_tenancy_test', 'password' => '', 'charset' => 'utf8mb4', 'collation' => 'utf8mb4_unicode_ci', 'prefix' => '', 'strict' => true],
         default => ['driver' => 'sqlite', 'database' => $path, 'prefix' => '', 'foreign_key_constraints' => true],
     };
     config(['database.connections.f5_lock' => $configuration]);

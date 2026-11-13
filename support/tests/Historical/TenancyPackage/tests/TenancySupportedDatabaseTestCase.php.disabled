@@ -26,7 +26,7 @@ abstract class TenancySupportedDatabaseTestCase extends TenancyDatabaseTestCase
     {
         parent::defineEnvironment($app);
         $driver = env('DB_CONNECTION', 'sqlite');
-        if (! in_array($driver, ['sqlite', 'pgsql', 'mysql', 'mariadb'], true)) {
+        if (! in_array($driver, ['sqlite', 'pgsql'], true)) {
             throw new InvalidArgumentException('Unsupported Tenancy test database.');
         }
         $app['config']->set('database.default', $driver);

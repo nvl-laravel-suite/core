@@ -30,11 +30,7 @@ it('proves prefixed core schema and interrupted real adoption on the selected en
     expect($connection->getDriverName())->toBe($driver)
         ->and($connection->getTablePrefix())->toBe('f6_');
     $version = $connection->selectOne($driver === 'sqlite' ? 'select sqlite_version() as version' : 'select version() as version')->version;
-    if ($driver === 'mysql') {
-        expect($version)->toStartWith('8.4.')->not->toContain('MariaDB');
-    } elseif ($driver === 'mariadb') {
-        expect($version)->toContain('MariaDB');
-    } elseif ($driver === 'pgsql') {
+    if ($driver === 'pgsql') {
         expect($version)->toContain('PostgreSQL 17.');
     }
     foreach (['tenants', 'installation_state', 'operations', 'adoption_runs', 'adoption_mappings'] as $table) {

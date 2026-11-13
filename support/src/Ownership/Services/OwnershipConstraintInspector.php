@@ -32,10 +32,12 @@ final readonly class OwnershipConstraintInspector
     public function assertPresent(Connection $connection, string $table, string $event, string $purpose): void
     {
         $name = $this->name($connection, $table, $event, $purpose);
+        [$namespace, $logicalTable] = $connection->getSchemaBuilder()->parseSchemaAndTable($table, true);
+        $physicalName = $connection->getTablePrefix().$logicalTable;
+        $catalog = $connection->getQueryGrammar()->wrap($namespace ?? 'main').'.sqlite_master';
         $present = match ($connection->getDriverName()) {
-            'sqlite' => $connection->selectOne("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name = ?", [$name], false),
-            'pgsql' => $connection->selectOne('SELECT tgname FROM pg_trigger WHERE tgname = ? AND tgrelid = ?::regclass AND NOT tgisinternal', [$name, $this->physicalTable($connection, $table)], false),
-            'mysql', 'mariadb' => $connection->selectOne('SELECT TRIGGER_NAME FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE() AND TRIGGER_NAME = ? AND EVENT_OBJECT_TABLE = ?', [$name, $connection->getTablePrefix().$table], false),
+            'sqlite' => $connection->selectOne("SELECT name FROM {$catalog} WHERE type = 'trigger' AND tbl_name = ? AND name = ?", [$physicalName, $name], false),
+            'pgsql' => $connection->selectOne('SELECT tgname FROM pg_trigger WHERE tgname = ? AND tgrelid = to_regclass(?) AND NOT tgisinternal', [$name, $connection->getQueryGrammar()->wrapTable($table)], false),
             default => null,
         };
         if ($present === null) {
@@ -63,14 +65,14 @@ final readonly class OwnershipConstraintInspector
         }
     }
 
-    /** Reject partial, invalid and prefix-only indexes that do not protect every complete provider key. */
+    /** Reject partial and invalid indexes that do not protect every complete provider key. */
     private function isCompleteIndex(Connection $connection, string $table, string $name): bool
     {
-        $physical = $connection->getTablePrefix().$table;
+        [$namespace, $logicalTable] = $connection->getSchemaBuilder()->parseSchemaAndTable($table, true);
+        $physical = $connection->getTablePrefix().$logicalTable;
         $complete = match ($connection->getDriverName()) {
-            'sqlite' => $connection->selectOne('SELECT name FROM pragma_index_list(?) WHERE name = ? AND partial = 0 AND "unique" = 1', [$physical, $name], false),
-            'pgsql' => $connection->selectOne('SELECT c.relname FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE i.indrelid = ?::regclass AND c.relname = ? AND i.indisvalid AND i.indisready AND i.indpred IS NULL AND i.indexprs IS NULL', [$this->physicalTable($connection, $table), $name], false),
-            'mysql', 'mariadb' => $connection->selectOne('SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ? GROUP BY INDEX_NAME HAVING COUNT(*) > 0 AND SUM(SUB_PART IS NOT NULL) = 0', [$physical, $name], false),
+            'sqlite' => $connection->selectOne('SELECT name FROM pragma_index_list(?, ?) WHERE name = ? AND partial = 0 AND "unique" = 1', [$physical, $namespace ?? 'main', $name], false),
+            'pgsql' => $connection->selectOne('SELECT c.relname FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE i.indrelid = to_regclass(?) AND c.relname = ? AND i.indisvalid AND i.indisready AND i.indpred IS NULL AND i.indexprs IS NULL', [$connection->getQueryGrammar()->wrapTable($table), $name], false),
             default => null,
         };
 

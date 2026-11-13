@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Composer\InstalledVersions;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -78,7 +79,7 @@ it('runs a machine readable dry run without mutating the migration repository', 
 function nvlLegacySettingsSchema(): void
 {
     config(['nvl-settings.tables.settings' => 'settings']);
-    $migration = require dirname(__DIR__, 4).'/settings/database/migrations/2026_01_01_000000_nvl_settings_create_settings_table.php';
+    $migration = require (InstalledVersions::getInstallPath('nvl/settings') ?? dirname(__DIR__, 4).'/settings').'/database/migrations/2026_01_01_000000_nvl_settings_create_settings_table.php';
     $migration->up();
     config(['nvl-settings' => []]);
 }
@@ -103,7 +104,7 @@ it('reconciles explicitly mapped published code and history to the actual native
     $recorded = '2098_01_01_000000_'.substr($old, 18);
     $native = '2099_01_01_000000_'.substr($canonical, 18);
     $path = $directory.'/migrations/'.$native.'.php';
-    copy(dirname(__DIR__, 4).'/settings/database/migrations/'.$canonical.'.php', $path);
+    copy((InstalledVersions::getInstallPath('nvl/settings') ?? dirname(__DIR__, 4).'/settings').'/database/migrations/'.$canonical.'.php', $path);
     config(['nvl-settings.migrations.enabled' => false, 'nvl-core.migrations.published' => [$path => ['package' => 'settings', 'migration' => $canonical, 'legacy' => $recorded]]]);
     DB::table('migrations')->insert(['migration' => $recorded, 'batch' => 8]);
     try {
@@ -132,7 +133,7 @@ it('rejects duplicate owners explicitly and leaves modified unclaimed host code 
     $old = array_key_first(SchemaIdentities::package('settings')['migrations']);
     $canonical = SchemaIdentities::package('settings')['migrations'][$old]['name'];
     $path = $directory.'/2099_01_01_000000_'.substr($canonical, 18).'.php';
-    $vendor = dirname(__DIR__, 4).'/settings/database/migrations/'.$canonical.'.php';
+    $vendor = (InstalledVersions::getInstallPath('nvl/settings') ?? dirname(__DIR__, 4).'/settings').'/database/migrations/'.$canonical.'.php';
     copy($vendor, $path);
     config(['nvl-core.migrations.published' => [$path => ['package' => 'settings', 'migration' => $canonical]]]);
     try {
@@ -168,7 +169,7 @@ it('requires vendor archival of exact claimed old code before changing storage',
         rename($path, $archive);
         config(['nvl-core.migrations.published' => [$archive => ['package' => 'settings', 'migration' => $canonical]]]);
         $upgrade->execute($upgrade->plan(['settings'], true, 'vendor'));
-        $vendor = dirname(__DIR__, 4).'/settings/database/migrations/'.$canonical.'.php';
+        $vendor = (InstalledVersions::getInstallPath('nvl/settings') ?? dirname(__DIR__, 4).'/settings').'/database/migrations/'.$canonical.'.php';
         expect(app('migrator')->run([$vendor]))->toBe([]);
         app('migrator')->rollback([$vendor]);
         expect(Schema::hasTable('nvl_settings_settings'))->toBeFalse()->and(DB::table('migrations')->count())->toBe(0);
@@ -197,7 +198,7 @@ it('keeps published ownership fail closed until code and vendor loading are reco
     $old = array_key_first(SchemaIdentities::package('settings')['migrations']);
     $canonical = SchemaIdentities::package('settings')['migrations'][$old]['name'];
     $path = sys_get_temp_dir().'/nvl-unreconciled-'.bin2hex(random_bytes(8)).'.php';
-    $source = $state === 'old code' ? __DIR__.'/../Fixtures/released-settings-migration.txt' : dirname(__DIR__, 4).'/settings/database/migrations/'.$canonical.'.php';
+    $source = $state === 'old code' ? __DIR__.'/../Fixtures/released-settings-migration.txt' : (InstalledVersions::getInstallPath('nvl/settings') ?? dirname(__DIR__, 4).'/settings').'/database/migrations/'.$canonical.'.php';
     copy($source, $path);
     if ($state === 'modified code') {
         file_put_contents($path, "<?php // Host code requires reconciliation.\n");

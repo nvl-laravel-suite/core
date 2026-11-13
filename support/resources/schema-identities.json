@@ -5066,6 +5066,9 @@
                 "path": "database/migrations/2026_11_02_000000_nvl_mail_notifications_create_schema.php",
                 "create": true,
                 "legacy_checksum": "85770f68698b06dab4810cbd2a2b1f5c66ac20650626bff14379442845122ec9",
+                "previous_checksums": [
+                    "b5b75e522d4e8bfac8cbb8d540d20a263f2d383815792163f929fc642ef8fa32"
+                ],
                 "previous_checksum": "c3b3743488391f66d8342fd5da35375638cacc3670678c67dc7b0cb62c692e98",
                 "creates": [
                     "notifications",
@@ -7934,6 +7937,9 @@
                 "path": "database/migrations/2026_09_28_100002_nvl_tasks_create_nvl_task_time_entries_table.php",
                 "create": true,
                 "legacy_checksum": "7be79ebd5942a905ea4a273431d30d6ae9085a1325859fe9ad43ecc41c5bc0ee",
+                "previous_checksums": [
+                    "79495d9063df01a054f3b18e8da269c526120ec61c21a2d855414c24e5b92bd1"
+                ],
                 "creates": [
                     "time_entries"
                 ]
@@ -8987,9 +8993,9 @@
                 "name": "2026_11_02_000001_nvl_templates_create_document_graph",
                 "path": "database/document-migrations/2026_11_02_000001_nvl_templates_create_document_graph.php",
                 "create": true,
-                "legacy_checksum": "594abc52adb33457948ae7bc3e2ff016da375db5804ea5247d22a7f1beef6815",
+                "legacy_checksum": "1199439a6e228fa9573d7490f1abaec13f840a015e221cad72d2dd47f9907aaa",
                 "previous_checksum": "78c6f505ec23071852dd06bf3e1508cfd9940d0c1f18be12c5fe5f20d6bf00b9",
-                "previous_checksums": ["6bfd1b22c1b64b2482ab0c65ac4bb90617120827614c0c824042884ea4c8b3c4"],
+                "previous_checksums": ["6bfd1b22c1b64b2482ab0c65ac4bb90617120827614c0c824042884ea4c8b3c4", "594abc52adb33457948ae7bc3e2ff016da375db5804ea5247d22a7f1beef6815"],
                 "creates": [
                     "groups",
                     "group_revisions",
@@ -9023,7 +9029,8 @@
                 "name": "2026_11_12_000001_nvl_templates_remove_unscoped_ownership_columns",
                 "path": "database/document-migrations/2026_11_12_000001_nvl_templates_remove_unscoped_ownership_columns.php",
                 "create": false,
-                "legacy_checksum": "91be3ea618b62f87321f84d56860b97eaf56c36be34810c22e913f2537599485",
+                "legacy_checksum": "233fabc092fc940ffa6787ed83ec23ad9a64ad8cfa17cb4cf59427cc7a2cd8ed",
+                "previous_checksum": "91be3ea618b62f87321f84d56860b97eaf56c36be34810c22e913f2537599485",
                 "creates": []
             }
         }

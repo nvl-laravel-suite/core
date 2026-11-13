@@ -99,8 +99,7 @@ without its own production schema/adopter. Neutral foundational libraries remain
 outside resource ownership. None of these classifications proves an unimplemented
 package integration safe.
 
-Use the dedicated engine-aware schema/adoption case for PostgreSQL, MySQL 8.4 and
-MariaDB (actual mariadb driver) proof. Preserve intentional SQLite-only fixtures.
+Use the dedicated engine-aware schema/adoption case for PostgreSQL proof. Preserve intentional SQLite-only fixtures.
 Package-owned optional migrations and published consumer copies are exclusive:
 leave migrations.enabled false for the consumer-owned copy and never run both.
 

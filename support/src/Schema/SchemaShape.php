@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nvl\Support\Schema;
 
-use Illuminate\Database\MySqlConnection;
 use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -26,18 +25,20 @@ final class SchemaShape
      */
     public static function assertCompatible(Builder $schema, string $table, array $expected, array $keys = [], array $foreignKeys = []): void
     {
+        $driver = $schema->getConnection()->getDriverName();
+        if (! in_array($driver, ['sqlite', 'pgsql'], true)) {
+            throw new LogicException('Native schema inspection requires SQLite or PostgreSQL.');
+        }
         $actual = [];
         foreach ($schema->getColumns($table) as $column) {
-            $actual[$column['name']] = preg_match('/^tinyint\(1\)(?: unsigned)?$/i', $column['type']) === 1
-                ? 'boolean'
-                : self::family($column['type_name']);
+            $actual[$column['name']] = self::family($column['type_name']);
         }
         foreach ($expected as $name => $type) {
             $family = self::family($type);
             $actualFamily = $actual[$name] ?? null;
-            $driver = $schema->getConnection()->getDriverName();
-            if ($actualFamily === $family || ($family === 'ip' && $driver !== 'pgsql' && $actualFamily === 'string') || ($family === 'json' && $actualFamily === 'text' && self::hasMariaDbJsonConstraint($schema, $table, $name)) || ($driver === 'sqlite'
-                && (($family === 'json' && $actualFamily === 'text') || ($family === 'boolean' && $actualFamily === 'integer')))) {
+            if ($actualFamily === $family || ($driver === 'sqlite' && (
+                ($family === 'ip' && $actualFamily === 'string') || ($family === 'json' && $actualFamily === 'text') || ($family === 'boolean' && $actualFamily === 'integer')
+            ))) {
                 continue;
             }
             throw new LogicException("Table [{$table}] does not match the released NVL schema at column [{$name}]. Run nvl:doctor --strict; no ownership can be inferred from its name.");
@@ -80,24 +81,6 @@ final class SchemaShape
                 throw new LogicException("Table [{$table}] is missing its released foreign key on [".implode(', ', $expectedForeign['columns'])."] to [{$expectedForeign['package']}.{$expectedForeign['table']}].");
             }
         }
-    }
-
-    /** Recognize MariaDB's JSON alias only when its native validity constraint exists. */
-    private static function hasMariaDbJsonConstraint(Builder $schema, string $table, string $column): bool
-    {
-        $connection = $schema->getConnection();
-        if (! $connection instanceof MySqlConnection || ! $connection->isMaria()) {
-            return false;
-        }
-        [$namespace, $name] = $schema->parseSchemaAndTable($table);
-        $constraints = $connection->select(
-            'SELECT CHECK_CLAUSE AS clause FROM information_schema.CHECK_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = ? AND TABLE_NAME = ?',
-            [$namespace ?? $connection->getDatabaseName(), $connection->getTablePrefix().$name],
-        );
-        $identifier = '`'.str_replace('`', '``', $column).'`';
-        $pattern = '/^\(*\s*json_valid\(\s*'.preg_quote($identifier, '/').'\s*\)\s*\)*$/i';
-
-        return array_any($constraints, static fn (mixed $constraint): bool => is_object($constraint) && isset($constraint->clause) && is_string($constraint->clause) && preg_match($pattern, $constraint->clause) === 1);
     }
 
     /**

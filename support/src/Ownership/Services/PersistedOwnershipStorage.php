@@ -115,13 +115,12 @@ final readonly class PersistedOwnershipStorage
         $suffix = OwnershipStorageTables::Markers;
         if ($connection->getDriverName() === 'sqlite') {
             $catalog = $connection->getQueryGrammar()->wrap($namespace ?? 'main').'.sqlite_master';
-            $row = $connection->selectOne("select exists(select 1 from {$catalog} where type = 'table' and name = ?) as owned, exists(select 1 from main.sqlite_master where type = 'table' and substr(name, -?) = ?) as protocol", [$name, strlen($suffix), $suffix], false);
+            $row = $connection->selectOne("select exists(select 1 from {$catalog} where type = 'table' and name = ?) as owned, exists(select 1 from {$catalog} where type = 'table' and substr(name, -?) = ?) as protocol", [$name, strlen($suffix), $suffix], false);
         } elseif ($connection->getDriverName() === 'pgsql') {
             // Resolve through the server's effective search_path, exactly as the marker query below does; its first listed schema may not exist.
             $row = $connection->selectOne('select to_regclass(?) is not null as owned, exists(select 1 from information_schema.tables where right(table_name, ?) = ?) as protocol', [$connection->getQueryGrammar()->wrapTable($suffix), strlen($suffix), $suffix], false);
         } else {
-            // Inspect the session's actual database: a connection's configured name can differ from the source it is really attached to.
-            $row = $connection->selectOne('select exists(select 1 from information_schema.tables where table_schema = DATABASE() and table_name = ?) as owned, exists(select 1 from information_schema.tables where right(table_name, ?) = ? and table_schema = DATABASE()) as protocol', [$name, strlen($suffix), $suffix], false);
+            throw new OwnershipSchemaNotReady('The selected driver has no supported native ownership catalog.');
         }
         if (! $row instanceof stdClass) {
             throw new OwnershipSchemaNotReady('The native protocol catalog could not be inspected.');
@@ -135,9 +134,11 @@ final readonly class PersistedOwnershipStorage
     /** A native technical partition survives protocol prefix and schema-search changes. */
     public function assertNoPartition(Connection $connection, string $table): void
     {
-        $present = $connection->getDriverName() === 'pgsql'
-            ? $connection->selectOne("SELECT attname FROM pg_attribute WHERE attrelid = to_regclass(?) AND attname = 'owner_scope_key' AND NOT attisdropped", [$connection->getQueryGrammar()->wrapTable($table)], false) !== null
-            : $connection->getSchemaBuilder()->hasColumn($table, 'owner_scope_key');
+        $present = match ($connection->getDriverName()) {
+            'pgsql' => $connection->selectOne("SELECT attname FROM pg_attribute WHERE attrelid = to_regclass(?) AND attname = 'owner_scope_key' AND NOT attisdropped", [$connection->getQueryGrammar()->wrapTable($table)], false) !== null,
+            'sqlite' => $connection->getSchemaBuilder()->hasColumn($table, 'owner_scope_key'),
+            default => throw new OwnershipSchemaNotReady('The selected driver has no supported native ownership catalog.'),
+        };
         if ($present) {
             throw new OwnershipSchemaNotReady('Physical ownership partitioning requires its enforcing runtime.');
         }

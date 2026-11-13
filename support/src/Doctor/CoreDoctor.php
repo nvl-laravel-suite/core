@@ -110,12 +110,14 @@ final readonly class CoreDoctor
         try {
             $connection = PackageOptions::connection('nvl-core');
             $driver = $this->config->get('database.connections.'.$connection.'.driver');
-            if ($driver === 'sqlsrv') {
+            if (! in_array($driver, ['sqlite', 'pgsql'], true)) {
+                $platform = $driver === 'sqlsrv' ? 'SQL Server' : (is_string($driver) ? $driver : 'The selected database driver');
+
                 return [new DoctorCheck('database.platform', 'error', false,
-                    'SQL Server is unsupported. Select SQLite for fast development, PostgreSQL 17, MySQL 8.4, or MariaDB 12.3 for a supported NVL database profile.')];
+                    $platform.' is unsupported. Select SQLite or PostgreSQL for a supported NVL database profile.')];
             }
 
-            return [new DoctorCheck('database.platform', 'info', true, 'The selected database driver is not SQL Server.')];
+            return [new DoctorCheck('database.platform', 'info', true, 'The selected database driver is supported.')];
         } catch (Throwable $exception) {
             return [new DoctorCheck('database.platform', 'error', false, $exception->getMessage())];
         }

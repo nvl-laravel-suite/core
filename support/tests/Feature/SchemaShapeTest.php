@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Composer\InstalledVersions;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -33,7 +34,7 @@ it('refuses a complete recorded legacy package before any rename when its parent
             if (isset($creators[$old])) {
                 continue;
             }
-            $migration = require dirname(__DIR__, 4).'/forms/'.$manifest['migrations'][$old]['path'];
+            $migration = require (InstalledVersions::getInstallPath('nvl/forms') ?? dirname(__DIR__, 4).'/forms').'/'.$manifest['migrations'][$old]['path'];
             $migration->up();
             $creators[$old] = true;
         }

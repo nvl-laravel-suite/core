@@ -67,17 +67,24 @@ it('recognizes the released Templates graph copies without accepting them for ex
         (string) file_get_contents($vendor),
     );
     if ($unbounded) {
-        $released = str_replace([
-            "                    // Bounded so the composite unique key fits InnoDB's 3072-byte index limit under utf8mb4.\n",
-            "('kind', 32)", "('scope', 32)", "('owner_key', 64)",
-        ], ['', "('kind')", "('scope')", "('owner_key')"], $released);
+        $released = str_replace(["('kind', 32)", "('scope', 32)", "('owner_key', 64)"], ["('kind')", "('scope')", "('owner_key')"], $released);
+    } else {
+        // Historical migration bytes are required for the released checksum.
+        $released = str_replace(
+            "                    \$t->string('kind', 32);",
+            "                    // Bounded so the composite unique key fits InnoDB's 3072-byte index limit under utf8mb4.\n                    \$t->string('kind', 32);",
+            $released,
+        );
     }
     $path = sys_get_temp_dir().'/2099_01_01_'.bin2hex(random_bytes(4)).'_nvl_templates_create_document_graph.php';
     file_put_contents($path, $released);
     try {
         config(['nvl-core.migrations.published' => [$path => ['package' => 'templates', 'migration' => $name]]]);
         $identity = app(SchemaMigrationPaths::class)->identity($path);
-        expect($identity)->not->toBeNull()
+        expect(hash_file('sha256', $path))->toBe($unbounded
+            ? '78c6f505ec23071852dd06bf3e1508cfd9940d0c1f18be12c5fe5f20d6bf00b9'
+            : '6bfd1b22c1b64b2482ab0c65ac4bb90617120827614c0c824042884ea4c8b3c4')
+            ->and($identity)->not->toBeNull()
             ->and($identity['name'])->toBe($name)
             ->and($identity['current'])->toBeFalse();
         expect(fn () => app(SchemaPreflight::class)->validate([$path]))->toThrow(LogicException::class, 'legacy migration code');
