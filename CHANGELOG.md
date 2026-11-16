@@ -5,6 +5,14 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [7.1.1] - 2026-11-16
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- sync Boost skill mirrors and document direct publishing
+<!-- NVL GENERATED CHANGES END -->
+
 ## [7.1.0] - 2026-11-16
 
 ### Highlights
