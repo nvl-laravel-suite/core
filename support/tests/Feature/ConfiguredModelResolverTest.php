@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Config\Repository;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Nvl\Support\Models\ConfiguredModelRegistration;
 use Nvl\Support\Models\ConfiguredModelResolver;
@@ -12,6 +13,7 @@ use Nvl\Support\Tests\Fixtures\OwnershipAbstractModel;
 use Nvl\Support\Tests\Fixtures\OwnershipConfigurableModel;
 use Nvl\Support\Tests\Fixtures\OwnershipConfiguredModel;
 use Nvl\Support\Tests\Fixtures\OwnershipUnrelatedModel;
+use Nvl\Support\Tests\Fixtures\UnscopedOwnershipBase;
 
 it('resolves only concrete subclasses of the advertised model', function (): void {
     $resolver = new ConfiguredModelResolver;
@@ -46,3 +48,23 @@ it('freezes a configured model only after its package declaration has been accep
         Relation::morphMap($original, false);
     }
 });
+
+it('rejects a configured model that replaces a multi-column counter hook', function (Model $model): void {
+    expect(fn () => (new ConfiguredModelResolver)->assertOwnershipCapabilities($model, new UnscopedOwnershipBase))
+        ->toThrow(OwnershipConfigurationInvalid::class, 'canonical query and persistence hooks');
+})->with([
+    'incrementEach' => fn (): Model => new class extends UnscopedOwnershipBase
+    {
+        protected function incrementEach(array $columns, array $extra = []): int
+        {
+            return 0;
+        }
+    },
+    'incrementOrDecrementEach' => fn (): Model => new class extends UnscopedOwnershipBase
+    {
+        protected function incrementOrDecrementEach(array $columns, array $extra, string $method): int|bool
+        {
+            return 0;
+        }
+    },
+]);

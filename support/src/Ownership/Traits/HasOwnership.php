@@ -75,6 +75,30 @@ trait HasOwnership
         return $affected;
     }
 
+    /** Fence native multi-column counters before observers: incrementEach, decrementEach and their quiet variants.
+     * Laravel writes them through a scope-free query, so a persisted model must pass the persistence boundary first.
+     *
+     * @param  array<string, float|int>  $columns
+     * @param  array<string, mixed>  $extra
+     */
+    protected function incrementOrDecrementEach(array $columns, array $extra, string $method): int|bool
+    {
+        if (! in_array($method, ['incrementEach', 'decrementEach'], true)) {
+            throw new OwnershipViolation('Invalid native ownership counter mutation.');
+        }
+        if (! $this->exists) {
+            return parent::incrementOrDecrementEach($columns, $extra, $method);
+        }
+        $affected = false;
+        Container::getInstance()->make(OwnershipModelPersistence::class)->save($this, function () use ($columns, $extra, $method, &$affected): bool {
+            $affected = parent::incrementOrDecrementEach($columns, $extra, $method);
+
+            return true;
+        });
+
+        return $affected;
+    }
+
     /** Validate Laravel's raw counter invocation before it can reach a native write. */
     private function validateOwnershipCounterArguments(mixed $column, mixed $amount, mixed $extra, mixed $method): void
     {

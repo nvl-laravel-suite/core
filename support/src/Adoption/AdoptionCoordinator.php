@@ -89,7 +89,9 @@ final readonly class AdoptionCoordinator implements Adoption
         $written = 0;
         try {
             foreach ($plan->steps as $step) {
-                while ($this->adapter->aroundBatch(fn (): bool => $this->connection->transaction(fn (): bool => $this->applyBatch($runId, $plan, $step, $batchSize))) === true) {
+                $stored = true;
+                while ($this->adapter->aroundBatch(fn (): bool => $this->connection->transaction(fn (): bool => $this->applyBatch($runId, $plan, $step, $batchSize, $stored))) === true) {
+                    $stored = false;
                     $written++;
                 }
             }
@@ -111,6 +113,16 @@ final readonly class AdoptionCoordinator implements Adoption
 
     public function verify(): AdoptionVerification
     {
+        return $this->verifyWithProgress()['verification'];
+    }
+
+    /**
+     * Verify like `verify()` and return the verified run's progress from the same plan, without planning again.
+     *
+     * @return array{verification: AdoptionVerification, progress: AdoptionProgress}
+     */
+    public function verifyWithProgress(): array
+    {
         $this->adapter->authorize('verify');
         $this->assertOutsideTransaction();
         $this->store->assertInstalled();
@@ -118,7 +130,7 @@ final readonly class AdoptionCoordinator implements Adoption
         $this->assertProtocol($plan);
         $run = $this->existingRun($plan);
 
-        return $this->connection->transaction(function () use ($run, $plan): AdoptionVerification {
+        $verification = $this->adapter->aroundVerification(fn (): AdoptionVerification => $this->connection->transaction(function () use ($run, $plan): AdoptionVerification {
             $locked = $this->store->lock($run['id']);
             $this->assertRunMatches($locked, $plan);
             $verification = $this->scan($locked['id'], $plan);
@@ -132,7 +144,16 @@ final readonly class AdoptionCoordinator implements Adoption
             }
 
             return $verification;
-        });
+        }));
+
+        if (! $verification instanceof AdoptionVerification) {
+            throw new AdoptionException('Adoption adapter ['.$this->adapter::class.'] must return the verification operation\'s result unchanged.');
+        }
+
+        return [
+            'verification' => $verification,
+            'progress' => $this->snapshot($this->store->find($run['id']) ?? throw new AdoptionException("Adoption run [{$run['id']}] disappeared."), $plan),
+        ];
     }
 
     public function activate(string $fingerprint): AdoptionProgress
@@ -140,7 +161,7 @@ final readonly class AdoptionCoordinator implements Adoption
         $this->adapter->authorize('activate');
         $plan = $this->reviewedPlan($fingerprint);
         $run = $this->existingRun($plan);
-        $this->connection->transaction(function () use ($run, $plan): void {
+        $this->adapter->aroundVerification(fn () => $this->connection->transaction(function () use ($run, $plan): void {
             $locked = $this->store->lock($run['id']);
             $this->adapter->authorize('activate');
             $this->assertRunMatches($locked, $plan);
@@ -155,19 +176,51 @@ final readonly class AdoptionCoordinator implements Adoption
                 throw new AdoptionException("Adoption run [{$locked['id']}] changed since verification; verify it again before activation.");
             }
             $this->store->update($locked['id'], ['status' => AdoptionProgress::Active, 'activated_at' => Date::now()]);
-        });
+        }));
 
         return $this->snapshot($this->store->find($run['id']) ?? throw new AdoptionException("Adoption run [{$run['id']}] disappeared."), $plan);
     }
 
     /**
-     * Lock the run, re-check it, then read, write and checkpoint one batch. Return false when the step is complete.
+     * Abandon an unfinished run of this adoption scope so a new plan can start; refuse an active run.
+     *
+     * Deletes the run and its checkpoints under the run lock, whatever its fingerprint, options or adapter version. Staged
+     * destination rows stay: a later plan treats identical staged rows as staged and reports differing ones as collisions.
      */
-    private function applyBatch(string $runId, AdoptionPlan $plan, AdoptionStep $step, int $limit): bool
+    public function abandon(string $run): void
+    {
+        $this->adapter->authorize('apply');
+        $this->assertOutsideTransaction();
+        $this->store->assertInstalled();
+        $plan = $this->adapter->plan();
+        $this->assertProtocol($plan);
+        $existing = $this->store->findByScope($this->scopeHash($plan));
+        if ($existing === null || $existing['id'] !== $run) {
+            throw new AdoptionException("Adoption run [{$run}] does not belong to this adoption scope.");
+        }
+        $this->connection->transaction(function () use ($run): void {
+            $locked = $this->store->lock($run);
+            if ($locked['status'] === AdoptionProgress::Active) {
+                throw new AdoptionException("Adoption run [{$run}] is active and cannot be abandoned.");
+            }
+            $this->store->delete($run);
+        });
+    }
+
+    /**
+     * Lock the run, re-check it, then read, write and checkpoint one batch. Return false when the step is complete.
+     *
+     * The first batch of each step in an invocation has the adapter confirm the stored checkpoint, completed ones
+     * included, before accepting it; later batches accept the checkpoint this invocation just committed.
+     */
+    private function applyBatch(string $runId, AdoptionPlan $plan, AdoptionStep $step, int $limit, bool $stored): bool
     {
         $run = $this->store->lock($runId);
         $this->assertRunMatches($run, $plan);
         $checkpoint = $this->store->checkpoints($runId)[$step->id] ?? null;
+        if ($stored && $checkpoint !== null) {
+            $this->adapter->assertCheckpoint($step, $checkpoint['cursor'], $checkpoint['processed']);
+        }
         if ($checkpoint !== null && $checkpoint['complete']) {
             return false;
         }

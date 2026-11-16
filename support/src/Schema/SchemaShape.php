@@ -44,12 +44,19 @@ final class SchemaShape
             throw new LogicException("Table [{$table}] does not match the released NVL schema at column [{$name}]. Run nvl:doctor --strict; no ownership can be inferred from its name.");
         }
         $indexes = $schema->getIndexes($table);
+        $uniqueness = $keys === [] ? [] : self::uniqueKeyColumns($schema, $table);
         foreach ($keys as $key) {
-            $valid = array_any($indexes, static function (array $index) use ($key): bool {
+            $valid = array_any($indexes, static function (array $index) use ($key, $uniqueness): bool {
                 $columns = $index['columns'];
                 $expectedColumns = $key['columns'];
                 if ($key['type'] === 'index') {
                     return array_diff($expectedColumns, $columns) === [];
+                }
+                if (array_key_exists($index['name'], $uniqueness)) {
+                    $columns = $uniqueness[$index['name']];
+                    if ($columns === null) {
+                        return false;
+                    }
                 }
                 $sameColumns = $columns === $expectedColumns || $columns === ['tenant_id', ...$expectedColumns] || $columns === ['ownership_key', ...$expectedColumns];
                 $adapted = $columns === ['tenant_id', ...$expectedColumns] || $columns === ['ownership_key', ...$expectedColumns];
@@ -81,6 +88,51 @@ final class SchemaShape
                 throw new LogicException("Table [{$table}] is missing its released foreign key on [".implode(', ', $expectedForeign['columns'])."] to [{$expectedForeign['package']}.{$expectedForeign['table']}].");
             }
         }
+    }
+
+    /**
+     * Read each unique index's key columns, or null when it cannot prove uniqueness over the whole table.
+     *
+     * Partial and expression indexes never qualify; on PostgreSQL neither does an index that is not valid and ready, and
+     * INCLUDE columns are not key columns. Laravel's index listing reports none of this.
+     *
+     * @return array<string, list<string>|null>
+     */
+    private static function uniqueKeyColumns(Builder $schema, string $table): array
+    {
+        $connection = $schema->getConnection();
+        [$namespace, $name] = $schema->parseSchemaAndTable($table);
+        $name = $connection->getTablePrefix().$name;
+        if ($connection->getDriverName() === 'pgsql') {
+            $rows = $connection->selectFromWriteConnection(
+                'select ic.relname as name, (i.indpred is null and i.indexprs is null and i.indisvalid and i.indisready) as complete, '
+                .'(select string_agg(a.attname, \',\' order by k.ord) from unnest(i.indkey) with ordinality as k(num, ord) '
+                .'join pg_attribute a on a.attrelid = i.indrelid and a.attnum = k.num where k.ord <= i.indnkeyatts) as columns '
+                .'from pg_index i join pg_class tc on tc.oid = i.indrelid join pg_namespace tn on tn.oid = tc.relnamespace '
+                .'join pg_class ic on ic.oid = i.indexrelid where i.indisunique and tc.relname = ? and tn.nspname = '
+                .($namespace === null ? 'current_schema()' : '?'),
+                $namespace === null ? [$name] : [$name, $namespace],
+            );
+        } else {
+            $namespace ??= 'main';
+            $rows = $connection->selectFromWriteConnection(
+                'select il.name as name, (il.partial = 0 and not exists (select 1 from pragma_index_info(il.name, ?) ii where ii.name is null)) as complete, '
+                .'(select group_concat(ii.name, \',\') from (select name from pragma_index_info(il.name, ?) order by seqno) ii) as columns '
+                .'from pragma_index_list(?, ?) il where il."unique" = 1',
+                [$namespace, $namespace, $name, $namespace],
+            );
+        }
+        $uniqueness = [];
+        foreach ($rows as $row) {
+            $row = (array) $row;
+            if (! is_string($row['name'] ?? null)) {
+                throw new LogicException("Table [{$table}] returned an unnamed unique index.");
+            }
+            $columns = is_string($row['columns'] ?? null) && $row['columns'] !== '' ? explode(',', $row['columns']) : [];
+            $uniqueness[$row['name']] = in_array($row['complete'] ?? null, [true, 1, '1', 't'], true) && $columns !== [] ? $columns : null;
+        }
+
+        return $uniqueness;
     }
 
     /**

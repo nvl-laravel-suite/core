@@ -114,6 +114,15 @@ final readonly class AdoptionStore
     }
 
     /**
+     * Delete a run and its checkpoints inside the caller's transaction. Staged destination rows are not touched.
+     */
+    public function delete(string $id): void
+    {
+        $this->connection->table(self::Checkpoints)->where('run_id', $id)->delete();
+        $this->connection->table(self::Runs)->where('id', $id)->delete();
+    }
+
+    /**
      * Return the run's checkpoints keyed by step.
      *
      * @return array<string, Checkpoint>

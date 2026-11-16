@@ -96,6 +96,58 @@ it('rejects persisted ownership partitioning before pivot observers and deletion
         ->and(DB::table($pivot->getTable())->where('right_id', 11)->where('subject_type', 'product')->exists())->toBeTrue();
 })->with('ownership persistence pivots');
 
+dataset('ownership each counters', [
+    'incrementEach' => ['incrementEach', 1],
+    'decrementEach' => ['decrementEach', -1],
+    'incrementEachQuietly' => ['incrementEachQuietly', 1],
+    'decrementEachQuietly' => ['decrementEachQuietly', -1],
+]);
+
+/** Persist one ordinary owned-model row with two counters and hydrate it without a guarded read. */
+function persistedOwnershipCounterModel(): UnscopedOwnershipBase
+{
+    Schema::create('ownership_claimed_models', static function (Blueprint $table): void {
+        $table->id();
+        $table->integer('hits')->default(0);
+        $table->integer('misses')->default(0);
+    });
+
+    $attributes = ['id' => 7, 'hits' => 5, 'misses' => 5];
+    DB::table('ownership_claimed_models')->insert($attributes);
+
+    return (new UnscopedOwnershipBase)->newFromBuilder($attributes);
+}
+
+it('rejects every Each counter before observers on protected storage', function (string $method): void {
+    $model = persistedOwnershipCounterModel();
+    Schema::create(OwnershipStorageTables::Markers, static function (Blueprint $table): void {
+        $table->string('resource');
+        $table->string('physical_table');
+    });
+    DB::table(OwnershipStorageTables::Markers)->insert(['resource' => 'fixture.claimed', 'physical_table' => $model->getTable()]);
+    $observed = false;
+    UnscopedOwnershipBase::updating(function () use (&$observed): void {
+        $observed = true;
+    });
+
+    expect(fn () => $model->{$method}(['hits' => 2, 'misses' => 1]))->toThrow(OwnershipSchemaNotReady::class)
+        ->and($observed)->toBeFalse()
+        ->and((array) DB::table($model->getTable())->where('id', 7)->first(['hits', 'misses']))->toEqual(['hits' => 5, 'misses' => 5]);
+})->with('ownership each counters');
+
+it('keeps native Each counter results and observer vetoes on admitted storage', function (string $method, int $sign): void {
+    $model = persistedOwnershipCounterModel();
+
+    expect($model->{$method}(['hits' => 2, 'misses' => 1]))->toBe(1)
+        ->and((array) DB::table($model->getTable())->where('id', 7)->first(['hits', 'misses']))->toEqual(['hits' => 5 + 2 * $sign, 'misses' => 5 + $sign]);
+
+    UnscopedOwnershipBase::updating(static fn (): bool => false);
+    $vetoed = $model->{$method}(['hits' => 2]);
+
+    expect($vetoed)->toBe(str_ends_with($method, 'Quietly') ? 1 : false)
+        ->and(DB::table($model->getTable())->where('id', 7)->value('hits'))->toEqual(str_ends_with($method, 'Quietly') ? 5 + 4 * $sign : 5 + 2 * $sign);
+})->with('ownership each counters');
+
 it('preserves nullable boolean deletion results for ordinary Eloquent models', function (): void {
     Schema::create('ownership_claimed_models', static function (Blueprint $table): void {
         $table->id();

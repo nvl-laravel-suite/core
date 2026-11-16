@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Composer\InstalledVersions;
+use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -228,4 +229,51 @@ it('accepts released JSON columns and rejects unrelated native text storage', fu
         expect(fn () => SchemaShape::assertCompatible($schema, 'native_json_shape', ['unconstrained_payload' => 'json']))
             ->toThrow(LogicException::class, 'unconstrained_payload');
     }
+});
+
+/** Create a table whose released unique key on [code] the given statements try to satisfy. */
+function schemaShapeUniqueCodes(string ...$statements): void
+{
+    Schema::create('shape_codes', static function (Blueprint $table): void {
+        $table->string('code');
+        $table->string('name');
+        $table->integer('retired')->default(0);
+    });
+    foreach ($statements as $statement) {
+        DB::statement($statement);
+    }
+}
+
+it('rejects partial uniqueness', function (string $variant): void {
+    if ($variant === 'invalid' && DB::connection()->getDriverName() !== 'pgsql') {
+        $this->markTestSkipped('Only PostgreSQL keeps an invalid index after a failed concurrent build.');
+    }
+    match ($variant) {
+        'partial' => schemaShapeUniqueCodes('create unique index shape_codes_code on shape_codes (code) where retired = 0'),
+        'expression' => schemaShapeUniqueCodes('create unique index shape_codes_code on shape_codes (code, lower(name))'),
+        'invalid' => schemaShapeUniqueCodes("insert into shape_codes (code, name) values ('a', 'x'), ('a', 'y')"),
+    };
+    if ($variant === 'invalid') {
+        expect(fn () => DB::statement('create unique index concurrently shape_codes_code on shape_codes (code)'))->toThrow(QueryException::class)
+            ->and(DB::scalar("select indisvalid from pg_index where indexrelid = 'shape_codes_code'::regclass"))->toBeFalse();
+    }
+
+    expect(collect(Schema::getIndexes('shape_codes'))->firstWhere('name', 'shape_codes_code')['columns'] ?? null)->toBe(['code'])
+        ->and(fn () => SchemaShape::assertCompatible(DB::connection()->getSchemaBuilder(), 'shape_codes', ['code' => 'string'], [['type' => 'unique', 'columns' => ['code']]]))
+        ->toThrow(LogicException::class, 'missing its released unique key on [code]');
+})->with(['partial', 'expression', 'invalid']);
+
+it('accepts unconditional replacement uniqueness', function (): void {
+    $pgsql = DB::connection()->getDriverName() === 'pgsql';
+    schemaShapeUniqueCodes($pgsql
+        ? 'create unique index host_replacement_code on shape_codes (code) include (name)'
+        : 'create unique index host_replacement_code on shape_codes (code)');
+
+    SchemaShape::assertCompatible(DB::connection()->getSchemaBuilder(), 'shape_codes', ['code' => 'string'], [['type' => 'unique', 'columns' => ['code']]]);
+    if ($pgsql) {
+        expect(collect(Schema::getIndexes('shape_codes'))->firstWhere('name', 'host_replacement_code')['columns'])->toBe(['code', 'name']);
+    }
+
+    expect(fn () => SchemaShape::assertCompatible(DB::connection()->getSchemaBuilder(), 'shape_codes', ['code' => 'string'], [['type' => 'unique', 'columns' => ['code', 'name']]]))
+        ->toThrow(LogicException::class, 'missing its released unique key on [code, name]');
 });

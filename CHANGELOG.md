@@ -5,6 +5,22 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+### Added
+
+- `Nvl\Support\Testing\TestServiceHosts` gives package test fixtures one allow-list for disposable database and Redis hosts, including the bound Dagger services.
+- Add `AdoptionAdapter::assertCheckpoint(AdoptionStep $step, ?array $cursor, int $processed)`, part of the custom-adapter contract. It fails closed by default; adapters re-read the committed source prefix and confirm its mapped output is still staged.
+- Add `AdoptionAdapter::aroundVerification(Closure $operation)`, a pass-through hook around verify's and activate's run-locked transaction, so adapters can take an external lock before the run row, in the same order as `aroundBatch()`.
+- Add `AdoptionStep::through()`, which constrains a source query to the rows at or before a keyset cursor.
+- Add the `nvl:adopt {package} abandon --run=<id>` phase and `AdoptionCoordinator::abandon()`. It authorizes like apply, locks the run, refuses an active run and deletes the run and its checkpoints, keeping staged rows, so a run blocked by a changed source, options or adapter version can be replaced without manual deletion. `AdoptionStore::delete()` backs it.
+- Add `AdoptionCoordinator::verifyWithProgress()`, which returns the verification and the verified run's progress from one plan.
+
+### Fixed
+
+- Refuse to resume an adoption run when output behind a stored checkpoint, including a completed dependency step, was deleted; the coordinator now confirms each stored checkpoint under the run lock before accepting it, and never rewinds or overwrites.
+- Guard `incrementEach()`, `decrementEach()` and their quiet variants on ownership models through the persistence boundary before observers, like `increment()`; configured models must keep these hooks.
+- Reject partial, expression, invalid and not-ready unique indexes as released uniqueness in schema checks, and compare PostgreSQL key columns without their INCLUDE columns.
+- Report the run, fingerprint, state, cursors and counts in `nvl:adopt verify --format=json`, as the other phases do.
+
 ## [7.2.0] - 2026-11-16
 
 ### Added
@@ -170,6 +186,10 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 - Align NVL peers and consumer contracts on the coordinated 7.x line. Review [UPGRADING.md](UPGRADING.md) for adoption and application-owned integration requirements.
 - Require Laravel 13.30 and patched dependency minimums so lowest-version runtime resolutions exclude known security advisories.
 - Keep explicit background actors compatible with Laravel `Authorizable` Gate hooks without creating an authenticated identity or granting permissions; correct installer and canonical event-listener guidance.
+
+### Removed
+
+- Retire `nvl:schema:preflight` and `nvl:schema:upgrade`. Reconcile legacy schema with them on 6.x before upgrading, choose the vendor or published migration owner once, then upgrade and run plain Laravel migrations. See [UPGRADING.md](UPGRADING.md#leaving-6x-reconcile-schema-before-upgrading).
 
 ## [6.1.0] - 2026-10-23
 

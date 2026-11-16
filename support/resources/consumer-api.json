@@ -24,6 +24,8 @@
                 "__construct",
                 "actor",
                 "aroundBatch",
+                "aroundVerification",
+                "assertCheckpoint",
                 "authorize",
                 "connection",
                 "nextBatch",
@@ -56,11 +58,13 @@
             "file": "support/src/Adoption/AdoptionCoordinator.php",
             "methods": [
                 "__construct",
+                "abandon",
                 "activate",
                 "apply",
                 "plan",
                 "progress",
-                "verify"
+                "verify",
+                "verifyWithProgress"
             ],
             "properties": [],
             "constants": []
@@ -157,6 +161,7 @@
                 "assertCursor",
                 "cursorFrom",
                 "page",
+                "through",
                 "toArray"
             ],
             "properties": [
@@ -174,6 +179,7 @@
                 "assertInstalled",
                 "checkpoints",
                 "create",
+                "delete",
                 "find",
                 "findByScope",
                 "hasActiveRun",
@@ -1071,6 +1077,20 @@
             "methods": [],
             "properties": [],
             "constants": []
+        },
+        "Nvl\\Support\\Testing\\TestServiceHosts": {
+            "kind": "class",
+            "file": "support/src/Testing/TestServiceHosts.php",
+            "methods": [
+                "admitsDatabaseHost",
+                "admitsRedisHost",
+                "redisHost"
+            ],
+            "properties": [],
+            "constants": [
+                "PROFILE_VARIABLE",
+                "REDIS_HOST_VARIABLE"
+            ]
         },
         "Nvl\\Support\\Testing\\UnscriptedFakeCall": {
             "kind": "class",

@@ -23,12 +23,12 @@ final class AdoptCommand extends Command
     private const int MaximumManifestBytes = 1_048_576;
 
     /** @var string */
-    protected $signature = 'nvl:adopt {package : Registered adoption package} {phase=plan : plan, apply, verify or activate} {manifest? : JSON options file} {--fingerprint= : Reviewed plan fingerprint} {--run= : Existing run to resume} {--batch-size= : Rows per committed batch} {--format=text : text or json}';
+    protected $signature = 'nvl:adopt {package : Registered adoption package} {phase=plan : plan, apply, verify, activate or abandon} {manifest? : JSON options file} {--fingerprint= : Reviewed plan fingerprint} {--run= : Existing run to resume or abandon} {--batch-size= : Rows per committed batch} {--format=text : text or json}';
 
     /** @var string */
     protected $description = 'Run a reviewed, checkpointed package adoption phase';
 
-    /** Run one phase and report run, fingerprint, state, cursors, counts and collisions. */
+    /** Run one phase and report run, fingerprint, state, cursors, counts and collisions; abandon reports the deleted run. */
     public function handle(AdoptionRegistry $registry, Repository $config): int
     {
         $coordinator = null;
@@ -39,25 +39,30 @@ final class AdoptCommand extends Command
             }
             $package = $this->stringArgument('package');
             $phase = $this->stringArgument('phase');
-            if (! in_array($phase, ['plan', 'apply', 'verify', 'activate'], true)) {
-                throw new InvalidArgumentException('The phase must be plan, apply, verify or activate.');
+            if (! in_array($phase, ['plan', 'apply', 'verify', 'activate', 'abandon'], true)) {
+                throw new InvalidArgumentException('The phase must be plan, apply, verify, activate or abandon.');
             }
             $fingerprint = $this->stringOption('fingerprint');
             $run = $this->stringOption('run');
             if (in_array($phase, ['apply', 'activate'], true) && $fingerprint === null) {
                 throw new InvalidArgumentException("The {$phase} phase requires --fingerprint from a reviewed plan.");
             }
-            if ($run !== null && $phase !== 'apply') {
-                throw new InvalidArgumentException('The --run option only resumes the apply phase.');
+            if ($run !== null && ! in_array($phase, ['apply', 'abandon'], true)) {
+                throw new InvalidArgumentException('The --run option only resumes the apply phase or names the run to abandon.');
+            }
+            if ($phase === 'abandon' && $run === null) {
+                throw new InvalidArgumentException('The abandon phase requires --run with the unfinished run identifier.');
             }
             $coordinator = new AdoptionCoordinator($registry->make($package, SystemActor::Background, $this->manifest()));
 
-            $verification = $phase === 'verify' ? $coordinator->verify() : null;
+            $verified = $phase === 'verify' ? $coordinator->verifyWithProgress() : null;
+            $verification = $verified['verification'] ?? null;
             $report = match ($phase) {
                 'plan' => $this->planned($coordinator),
                 'apply' => $this->progressed($coordinator->apply((string) $fingerprint, $this->batchSize($config), $run)),
-                'verify' => ['verification' => $verification?->toArray()],
+                'verify' => [...($verified === null ? [] : $this->progressed($verified['progress'])), 'verification' => $verification?->toArray()],
                 'activate' => $this->progressed($coordinator->activate((string) $fingerprint)),
+                'abandon' => $this->abandoned($coordinator, (string) $run),
             };
             $report = ['schema_version' => 1, 'package' => $package, 'phase' => $phase, ...$report];
             if ($this->option('format') === 'json') {
@@ -112,6 +117,16 @@ final class AdoptCommand extends Command
             ...$this->steps($plan, $progress),
             'collisions' => $plan->collisions,
         ];
+    }
+
+    /**
+     * @return array{run: string, state: 'abandoned'}
+     */
+    private function abandoned(AdoptionCoordinator $coordinator, string $run): array
+    {
+        $coordinator->abandon($run);
+
+        return ['run' => $run, 'state' => 'abandoned'];
     }
 
     /**

@@ -70,22 +70,41 @@ final readonly class AdoptionStep
         }
         if ($cursor !== null) {
             $this->assertCursor($cursor);
-            $query->where(function (Builder $after) use ($cursor): void {
-                foreach ($this->cursorColumns as $position => $column) {
-                    $after->orWhere(function (Builder $branch) use ($cursor, $position, $column): void {
-                        foreach (array_slice($this->cursorColumns, 0, $position) as $previous) {
-                            $branch->where($previous, '=', $cursor[$previous]);
-                        }
-                        $branch->where($column, '>', $cursor[$column]);
-                    });
-                }
-            });
+            $query->where(fn (Builder $after): Builder => $this->compare($after, $cursor, '>'));
         }
         foreach ($this->cursorColumns as $column) {
             $query->orderBy($column);
         }
 
         return $query->limit($limit);
+    }
+
+    /**
+     * Constrain a source query to the committed prefix: the rows at or before a keyset cursor, in cursor order. A null
+     * cursor matches no row.
+     *
+     * @param  Cursor|null  $cursor
+     */
+    public function through(Builder $query, ?array $cursor): Builder
+    {
+        if ($cursor === null) {
+            $query->whereRaw('1 = 0');
+        } else {
+            $this->assertCursor($cursor);
+            $query->where(function (Builder $before) use ($cursor): void {
+                $this->compare($before, $cursor, '<');
+                $before->orWhere(function (Builder $branch) use ($cursor): void {
+                    foreach ($cursor as $column => $value) {
+                        $branch->where($column, '=', $value);
+                    }
+                });
+            });
+        }
+        foreach ($this->cursorColumns as $column) {
+            $query->orderBy($column);
+        }
+
+        return $query;
     }
 
     /**
@@ -103,6 +122,26 @@ final readonly class AdoptionStep
                 throw new AdoptionException("Adoption step [{$this->id}] cursor values must be integers or strings.");
             }
         }
+    }
+
+    /**
+     * Add one OR branch per keyset column: the earlier columns equal the cursor and this one compares with `$operator`.
+     *
+     * @param  Cursor  $cursor
+     * @param  '<'|'>'  $operator
+     */
+    private function compare(Builder $query, array $cursor, string $operator): Builder
+    {
+        foreach ($this->cursorColumns as $position => $column) {
+            $query->orWhere(function (Builder $branch) use ($cursor, $position, $column, $operator): void {
+                foreach (array_slice($this->cursorColumns, 0, $position) as $previous) {
+                    $branch->where($previous, '=', $cursor[$previous]);
+                }
+                $branch->where($column, $operator, $cursor[$column]);
+            });
+        }
+
+        return $query;
     }
 
     /**

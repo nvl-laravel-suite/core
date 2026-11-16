@@ -11,6 +11,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Nvl\Support\Adoption\AdoptionAdapter;
 use Nvl\Support\Adoption\AdoptionBatch;
+use Nvl\Support\Adoption\AdoptionException;
 use Nvl\Support\Adoption\AdoptionPlan;
 use Nvl\Support\Adoption\AdoptionStep;
 use Nvl\Support\Adoption\AdoptionVerification;
@@ -33,6 +34,9 @@ final class FakeAdoptionAdapter extends AdoptionAdapter
 
     public static int $writes = 0;
 
+    /** Calls to plan(), to prove a phase plans only once. */
+    public static int $plans = 0;
+
     public static int $delayMicroseconds = 0;
 
     public static ?string $deny = null;
@@ -40,11 +44,20 @@ final class FakeAdoptionAdapter extends AdoptionAdapter
     /** @var list<string> */
     public static array $authorized = [];
 
+    /** Emulate a newer adapter release whose plan is versioned differently. */
+    public static string $version = '1';
+
     /** Emulate an adapter whose fingerprint wrongly leaves its options out. */
     public static bool $fingerprintIgnoresOptions = false;
 
     /** @var list<string> */
     public static array $batchHooks = [];
+
+    /** @var list<string> Entries record the destination transaction level when the hook is entered. */
+    public static array $verificationHooks = [];
+
+    /** @var list<array{step: string, cursor: array<string, int|string>|null, processed: int}> */
+    public static array $checkpointChecks = [];
 
     /** Race fixture: on the first write, while the run row is locked, create this file and wait for the continue file. */
     public static ?string $pauseFile = null;
@@ -55,11 +68,15 @@ final class FakeAdoptionAdapter extends AdoptionAdapter
     {
         self::$failOnWrite = null;
         self::$writes = 0;
+        self::$plans = 0;
         self::$delayMicroseconds = 0;
         self::$deny = null;
         self::$authorized = [];
         self::$fingerprintIgnoresOptions = false;
+        self::$version = '1';
         self::$batchHooks = [];
+        self::$verificationHooks = [];
+        self::$checkpointChecks = [];
         self::$pauseFile = null;
         self::$continueFile = null;
     }
@@ -108,6 +125,7 @@ final class FakeAdoptionAdapter extends AdoptionAdapter
 
     public function plan(): AdoptionPlan
     {
+        self::$plans++;
         $source = $this->sourceRows();
         $collisions = [];
         foreach (self::Tables as $step => [, $target]) {
@@ -120,7 +138,7 @@ final class FakeAdoptionAdapter extends AdoptionAdapter
 
         return new AdoptionPlan(
             package: 'fixture',
-            adapterVersion: '1',
+            adapterVersion: self::$version,
             fingerprint: AdoptionPlan::digest(['mapping' => 1, 'rows' => $source, 'options' => self::$fingerprintIgnoresOptions ? [] : $this->options]),
             source: ['items' => self::Tables['items'][0], 'labels' => self::Tables['labels'][0]],
             destination: ['items' => self::Tables['items'][1], 'labels' => self::Tables['labels'][1]],
@@ -138,6 +156,37 @@ final class FakeAdoptionAdapter extends AdoptionAdapter
             return $batch();
         } finally {
             self::$batchHooks[] = 'exit';
+        }
+    }
+
+    public function aroundVerification(Closure $operation): mixed
+    {
+        self::$verificationHooks[] = 'enter:'.$this->connection()->transactionLevel();
+        try {
+            return $operation();
+        } finally {
+            self::$verificationHooks[] = 'exit';
+        }
+    }
+
+    /**
+     * Refuse a checkpoint whose committed source prefix is not staged unchanged or whose count differs.
+     */
+    public function assertCheckpoint(AdoptionStep $step, ?array $cursor, int $processed): void
+    {
+        self::$checkpointChecks[] = ['step' => $step->id, 'cursor' => $cursor, 'processed' => $processed];
+        [$source, $target] = self::Tables[$step->id];
+        $committed = $step->through($this->connection()->table($source)->useWritePdo(), $cursor)->pluck('id')->map(static fn (mixed $id): int => (int) $id)->all();
+        $staged = $this->rows($target);
+        $sourceRows = $this->rows($source);
+        foreach ($committed as $id) {
+            if (($staged[$id] ?? null) !== $sourceRows[$id]) {
+                throw new AdoptionException("Adoption step [{$step->id}] lost committed row [{$id}] behind its checkpoint.");
+            }
+        }
+        $count = count($committed);
+        if ($count !== $processed) {
+            throw new AdoptionException("Adoption step [{$step->id}] checkpoint counts {$processed} rows but {$count} are committed.");
         }
     }
 
@@ -176,7 +225,9 @@ final class FakeAdoptionAdapter extends AdoptionAdapter
         if (self::$delayMicroseconds > 0) {
             usleep(self::$delayMicroseconds);
         }
-        $this->connection()->table(self::Tables[$batch->step][1])->insert($batch->rows);
+        $target = $this->connection()->table(self::Tables[$batch->step][1]);
+        $staged = $target->clone()->useWritePdo()->whereIn('id', array_column($batch->rows, 'id'))->pluck('id')->map(static fn (mixed $id): int => (int) $id)->all();
+        $target->insert(array_values(array_filter($batch->rows, static fn (array $row): bool => ! in_array((int) $row['id'], $staged, true))));
         if (self::$failOnWrite === self::$writes) {
             throw new RuntimeException('Injected adoption failure.');
         }

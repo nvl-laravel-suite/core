@@ -85,6 +85,7 @@ Search for the relevant fully qualified service or contract and read only its ma
 - `Nvl\Support\Testing\FakeCall`
 - `Nvl\Support\Testing\FakeCalls`
 - `Nvl\Support\Testing\FakeExpectationFailed`
+- `Nvl\Support\Testing\TestServiceHosts`
 - `Nvl\Support\Testing\UnscriptedFakeCall`
 - `Nvl\Support\Traits\InteractsWithPackageFailure`
 
@@ -106,6 +107,11 @@ public function __construct(Illuminate\Contracts\Auth\Authenticatable|Nvl\Suppor
 @param array<string, mixed> $options
 public function actor(): Illuminate\Contracts\Auth\Authenticatable|Nvl\Support\Enums\SystemActor
 public function aroundBatch(Closure $batch): mixed
+public function aroundVerification(Closure $operation): mixed
+public function assertCheckpoint(Nvl\Support\Adoption\AdoptionStep $step, ?array $cursor, int $processed): void
+@param (Cursor | null) $cursor
+resolved @param (array<string, (int | string)> | null) $cursor
+@param int $processed
 public abstract function authorize(string $phase): void
 @param ('plan' | 'apply' | 'verify' | 'activate') $phase
 public abstract function connection(): Illuminate\Database\Connection
@@ -150,11 +156,15 @@ public readonly string $step
 ```text
 final readonly class Nvl\Support\Adoption\AdoptionCoordinator implements Nvl\Support\Adoption\Adoption
 public function __construct(Nvl\Support\Adoption\AdoptionAdapter $adapter): mixed
+public function abandon(string $run): void
 public function activate(string $fingerprint): Nvl\Support\Adoption\AdoptionProgress
 public function apply(string $fingerprint, int $batchSize=100, ?string $run=null): Nvl\Support\Adoption\AdoptionProgress
 public function plan(): Nvl\Support\Adoption\AdoptionPlan
 public function progress(Nvl\Support\Adoption\AdoptionPlan $plan): ?Nvl\Support\Adoption\AdoptionProgress
 public function verify(): Nvl\Support\Adoption\AdoptionVerification
+public function verifyWithProgress(): array
+@return array{verification: AdoptionVerification, progress: AdoptionProgress}
+resolved @return array{verification: Nvl\Support\Adoption\AdoptionVerification, progress: Nvl\Support\Adoption\AdoptionProgress}
 ```
 
 ## Nvl\Support\Adoption\AdoptionException
@@ -277,6 +287,9 @@ resolved @return array<string, (int | string)>
 public function page(Illuminate\Database\Query\Builder $query, ?array $cursor, int $limit): Illuminate\Database\Query\Builder
 @param (Cursor | null) $cursor
 resolved @param (array<string, (int | string)> | null) $cursor
+public function through(Illuminate\Database\Query\Builder $query, ?array $cursor): Illuminate\Database\Query\Builder
+@param (Cursor | null) $cursor
+resolved @param (array<string, (int | string)> | null) $cursor
 public function toArray(): array
 @return array{id: string, depends_on: list<string>, cursor_columns: list<string>}
 public readonly array $cursorColumns
@@ -299,6 +312,7 @@ public function checkpoints(string $runId): array
 resolved @return array<string, array{step: string, cursor: (array<string, (int | string)> | null), complete: bool, processed: int, batch_digest: string, output_revision: ?string}>
 public function create(string $scopeHash, Nvl\Support\Adoption\AdoptionPlan $plan, array $actor): ?string
 @param array{type: string, id: string} $actor
+public function delete(string $id): void
 public function find(string $id): ?array
 @return (Run | null)
 resolved @return (array{id: string, scope_hash: string, package: string, fingerprint: string, adapter_version: string, status: string, verification_digest: ?string, verified_at: ?string, activated_at: ?string, options_digest: ?string} | null)
@@ -1277,6 +1291,17 @@ public function willThrow(string $method, Throwable $exception): static
 
 ```text
 final class Nvl\Support\Testing\FakeExpectationFailed extends RuntimeException implements Nvl\Support\Contracts\PackageException
+```
+
+## Nvl\Support\Testing\TestServiceHosts
+
+```text
+final class Nvl\Support\Testing\TestServiceHosts
+public const string PROFILE_VARIABLE="NVL_TEST_SERVICE_PROFILE"
+public const string REDIS_HOST_VARIABLE="NVL_TEST_REDIS_HOST"
+public static function admitsDatabaseHost(mixed $host): bool
+public static function admitsRedisHost(mixed $host): bool
+public static function redisHost(): string
 ```
 
 ## Nvl\Support\Testing\UnscriptedFakeCall

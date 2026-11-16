@@ -12,9 +12,10 @@ use Nvl\Support\Enums\SystemActor;
 /**
  * Package hooks the shared coordinator drives. Build one instance per invocation; never keep it in a singleton.
  *
- * `plan()` must report every staged destination row that differs from its source as a collision. That is the only
- * drift detection: on resume the coordinator refuses a plan with collisions, and a checkpoint never justifies
- * overwriting a row.
+ * `plan()` must report every staged destination row that differs from its source as a collision, and
+ * `assertCheckpoint()` must refuse a stored checkpoint whose committed output is no longer staged. On resume the
+ * coordinator refuses a plan with collisions and a checkpoint that fails that check; a checkpoint never justifies
+ * rewinding or overwriting a row.
  *
  * Subclasses that need services declare their own constructor and pass `actor` and `options` to this one; the
  * registry resolves them through the container with those two named parameters.
@@ -75,6 +76,32 @@ abstract class AdoptionAdapter
     public function aroundBatch(Closure $batch): mixed
     {
         return $batch();
+    }
+
+    /**
+     * Run verify's or activate's run-locked transaction, including its commit. Take any lock that `aroundBatch()` takes
+     * here too, so every phase acquires it before the run row. Return the closure's result unchanged.
+     */
+    public function aroundVerification(Closure $operation): mixed
+    {
+        return $operation();
+    }
+
+    /**
+     * Refuse a stored checkpoint whose committed output is not fully staged; throw instead of rewinding or overwriting.
+     *
+     * Called under the run lock, inside the batch transaction, the first time an apply invocation reads a step's stored
+     * checkpoint, completed ones included. Re-read the source rows at or before `$cursor` (see `AdoptionStep::through()`),
+     * map them as `writeBatch()` did and confirm every mapped destination row, child rows included, is still staged.
+     * A null cursor means no source row was committed. The default fails closed, so custom adapters must implement it
+     * before they can resume.
+     *
+     * @param  Cursor|null  $cursor
+     * @param  int  $processed  Source rows the stored checkpoint counts
+     */
+    public function assertCheckpoint(AdoptionStep $step, ?array $cursor, int $processed): void
+    {
+        throw new AdoptionException('Adoption adapter ['.static::class."] cannot confirm the checkpoint of step [{$step->id}]; implement assertCheckpoint() before resuming.");
     }
 
     /**
