@@ -5,6 +5,8 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [7.2.0] - 2026-11-16
+
 ### Added
 
 - Add a shared adoption flow in `Nvl\Support\Adoption`: packages register an `AdoptionAdapter` and `nvl:adopt {package} plan|apply|verify|activate` runs it through a reviewed fingerprint, keyset-checkpointed batches that commit with their rows, an independent verify and an explicit activate step. `AdoptionGate::assertActive()` guards integrations that must wait for activation. Adapters can hold an external lock around each batch transaction, including its commit, through `AdoptionAdapter::aroundBatch()`. Resuming refuses options that differ from the run's reviewed options.
@@ -14,6 +16,12 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 - Always use the builder `TextMatcher::contains()` returns; it may be a different instance.
 - Require `ext-filter` and `ext-pdo` at runtime; they were previously undeclared or development-only.
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- adoption flow, PostgreSQL proof, release health and 7.2 floors
+<!-- NVL GENERATED CHANGES END -->
 
 ## [7.1.1] - 2026-11-16
 
