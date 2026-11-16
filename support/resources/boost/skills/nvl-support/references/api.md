@@ -6,6 +6,18 @@ Search for the relevant fully qualified service or contract and read only its ma
 
 ## Symbols
 
+- `Nvl\Support\Adoption\Adoption`
+- `Nvl\Support\Adoption\AdoptionAdapter`
+- `Nvl\Support\Adoption\AdoptionBatch`
+- `Nvl\Support\Adoption\AdoptionCoordinator`
+- `Nvl\Support\Adoption\AdoptionException`
+- `Nvl\Support\Adoption\AdoptionGate`
+- `Nvl\Support\Adoption\AdoptionPlan`
+- `Nvl\Support\Adoption\AdoptionProgress`
+- `Nvl\Support\Adoption\AdoptionRegistry`
+- `Nvl\Support\Adoption\AdoptionStep`
+- `Nvl\Support\Adoption\AdoptionStore`
+- `Nvl\Support\Adoption\AdoptionVerification`
 - `Nvl\Support\Auth\CanonicalActorResolver`
 - `Nvl\Support\Bindings\RequiredBindingDefinition`
 - `Nvl\Support\Bindings\RequiredBindingStatus`
@@ -75,6 +87,257 @@ Search for the relevant fully qualified service or contract and read only its ma
 - `Nvl\Support\Testing\FakeExpectationFailed`
 - `Nvl\Support\Testing\UnscriptedFakeCall`
 - `Nvl\Support\Traits\InteractsWithPackageFailure`
+
+## Nvl\Support\Adoption\Adoption
+
+```text
+interface Nvl\Support\Adoption\Adoption
+public abstract function activate(string $fingerprint): Nvl\Support\Adoption\AdoptionProgress
+public abstract function apply(string $fingerprint, int $batchSize=100, ?string $run=null): Nvl\Support\Adoption\AdoptionProgress
+public abstract function plan(): Nvl\Support\Adoption\AdoptionPlan
+public abstract function verify(): Nvl\Support\Adoption\AdoptionVerification
+```
+
+## Nvl\Support\Adoption\AdoptionAdapter
+
+```text
+abstract class Nvl\Support\Adoption\AdoptionAdapter
+public function __construct(Illuminate\Contracts\Auth\Authenticatable|Nvl\Support\Enums\SystemActor $actor, array $options=[]): mixed
+@param array<string, mixed> $options
+public function actor(): Illuminate\Contracts\Auth\Authenticatable|Nvl\Support\Enums\SystemActor
+public function aroundBatch(Closure $batch): mixed
+public abstract function authorize(string $phase): void
+@param ('plan' | 'apply' | 'verify' | 'activate') $phase
+public abstract function connection(): Illuminate\Database\Connection
+public abstract function nextBatch(Nvl\Support\Adoption\AdoptionStep $step, ?array $cursor, int $limit): Nvl\Support\Adoption\AdoptionBatch
+@param (Cursor | null) $cursor
+resolved @param (array<string, (int | string)> | null) $cursor
+public function options(): array
+@return array<string, mixed>
+public abstract function plan(): Nvl\Support\Adoption\AdoptionPlan
+public abstract function verify(Nvl\Support\Adoption\AdoptionPlan $plan): Nvl\Support\Adoption\AdoptionVerification
+public abstract function writeBatch(Nvl\Support\Adoption\AdoptionBatch $batch): ?string
+@return (string | null)
+```
+
+## Nvl\Support\Adoption\AdoptionBatch
+
+```text
+final readonly class Nvl\Support\Adoption\AdoptionBatch
+public function __construct(string $step, ?array $cursorIn, ?array $cursorOut, array $rows, bool $complete): mixed
+@param (Cursor | null) $cursorIn
+resolved @param (array<string, (int | string)> | null) $cursorIn
+@param (Cursor | null) $cursorOut
+resolved @param (array<string, (int | string)> | null) $cursorOut
+@param list<array<string, mixed>> $rows
+@param bool $complete
+public readonly bool $complete
+@param bool $complete
+public readonly ?array $cursorIn
+@param (Cursor | null) $cursorIn
+resolved @param (array<string, (int | string)> | null) $cursorIn
+public readonly ?array $cursorOut
+@param (Cursor | null) $cursorOut
+resolved @param (array<string, (int | string)> | null) $cursorOut
+public readonly string $digest
+public readonly array $rows
+@param list<array<string, mixed>> $rows
+public readonly string $step
+```
+
+## Nvl\Support\Adoption\AdoptionCoordinator
+
+```text
+final readonly class Nvl\Support\Adoption\AdoptionCoordinator implements Nvl\Support\Adoption\Adoption
+public function __construct(Nvl\Support\Adoption\AdoptionAdapter $adapter): mixed
+public function activate(string $fingerprint): Nvl\Support\Adoption\AdoptionProgress
+public function apply(string $fingerprint, int $batchSize=100, ?string $run=null): Nvl\Support\Adoption\AdoptionProgress
+public function plan(): Nvl\Support\Adoption\AdoptionPlan
+public function progress(Nvl\Support\Adoption\AdoptionPlan $plan): ?Nvl\Support\Adoption\AdoptionProgress
+public function verify(): Nvl\Support\Adoption\AdoptionVerification
+```
+
+## Nvl\Support\Adoption\AdoptionException
+
+```text
+final class Nvl\Support\Adoption\AdoptionException extends Nvl\Support\Exceptions\SupportException
+```
+
+## Nvl\Support\Adoption\AdoptionGate
+
+```text
+final readonly class Nvl\Support\Adoption\AdoptionGate
+public function __construct(Illuminate\Database\DatabaseManager $database): mixed
+public function assertActive(string $package, ?string $connection=null): void
+public function isActive(string $package, ?string $connection=null): bool
+```
+
+## Nvl\Support\Adoption\AdoptionPlan
+
+```text
+final readonly class Nvl\Support\Adoption\AdoptionPlan
+public const int Protocol=1
+public function __construct(string $package, string $adapterVersion, string $fingerprint, array $source, array $destination, string $optionsDigest, array $steps, array $expected=[], array $collisions=[], int $protocol=self::Protocol): mixed
+@param Identity $source
+resolved @param array<string, (scalar | null)> $source
+@param Identity $destination
+resolved @param array<string, (scalar | null)> $destination
+@param list<AdoptionStep> $steps
+resolved @param list<Nvl\Support\Adoption\AdoptionStep> $steps
+@param array<string, int> $expected
+@param list<string> $collisions
+public static function digest(mixed $value): string
+public function metadata(): array
+@return Metadata
+resolved @return array{protocol: int, package: string, adapter_version: string, source: array<string, (scalar | null)>, destination: array<string, (scalar | null)>, options_digest: string, steps: list<array{id: string, depends_on: list<string>, cursor_columns: list<string>}>, expected: array<string, int>, collisions: int}
+public function step(string $id): Nvl\Support\Adoption\AdoptionStep
+public readonly string $adapterVersion
+public readonly array $collisions
+@param list<string> $collisions
+public readonly array $destination
+@param Identity $destination
+resolved @param array<string, (scalar | null)> $destination
+public readonly array $expected
+@param array<string, int> $expected
+public readonly string $fingerprint
+public readonly string $optionsDigest
+public readonly string $package
+public readonly int $protocol
+public readonly array $source
+@param Identity $source
+resolved @param array<string, (scalar | null)> $source
+public readonly array $steps
+@param list<AdoptionStep> $steps
+resolved @param list<Nvl\Support\Adoption\AdoptionStep> $steps
+```
+
+## Nvl\Support\Adoption\AdoptionProgress
+
+```text
+final readonly class Nvl\Support\Adoption\AdoptionProgress
+public const string Active="active"
+public const string Applied="applied"
+public const string Applying="applying"
+public const string Failed="failed"
+public const string Planned="planned"
+public const string Verified="verified"
+public function __construct(string $run, string $package, string $fingerprint, string $state, array $steps, ?string $verifiedAt=null, ?string $activatedAt=null, int $written=0): mixed
+@param array<string, StepProgress> $steps
+resolved @param array<string, array{cursor: (array<string, (int | string)> | null), processed: int, expected: (int | null), complete: bool}> $steps
+@param int $written
+public function complete(): bool
+public function toArray(): array
+@return array{run: string, package: string, fingerprint: string, state: string, steps: array<string, StepProgress>, verified_at: ?string, activated_at: ?string, written: int}
+resolved @return array{run: string, package: string, fingerprint: string, state: string, steps: array<string, array{cursor: (array<string, (int | string)> | null), processed: int, expected: (int | null), complete: bool}>, verified_at: ?string, activated_at: ?string, written: int}
+public readonly ?string $activatedAt
+public readonly string $fingerprint
+public readonly string $package
+public readonly string $run
+public readonly string $state
+public readonly array $steps
+@param array<string, StepProgress> $steps
+resolved @param array<string, array{cursor: (array<string, (int | string)> | null), processed: int, expected: (int | null), complete: bool}> $steps
+public readonly ?string $verifiedAt
+public readonly int $written
+@param int $written
+```
+
+## Nvl\Support\Adoption\AdoptionRegistry
+
+```text
+final class Nvl\Support\Adoption\AdoptionRegistry
+public function __construct(Illuminate\Contracts\Container\Container $container): mixed
+public function adapters(): array
+@return array<string, class-string<AdoptionAdapter>>
+resolved @return array<string, class-string<Nvl\Support\Adoption\AdoptionAdapter>>
+public function has(string $package): bool
+public function make(string $package, Illuminate\Contracts\Auth\Authenticatable|Nvl\Support\Enums\SystemActor $actor, array $options=[]): Nvl\Support\Adoption\AdoptionAdapter
+@param array<array-key, mixed> $options
+public static function normalizeOptions(array $options): array
+@param array<array-key, mixed> $options
+@return array<string, mixed>
+public function register(string $package, string $adapter): void
+@param class-string<AdoptionAdapter> $adapter
+resolved @param class-string<Nvl\Support\Adoption\AdoptionAdapter> $adapter
+```
+
+## Nvl\Support\Adoption\AdoptionStep
+
+```text
+final readonly class Nvl\Support\Adoption\AdoptionStep
+public function __construct(string $id, array $dependsOn=[], array $cursorColumns=['id']): mixed
+@param list<string> $dependsOn
+@param list<string> $cursorColumns
+public function assertCursor(array $cursor): void
+@param array<array-key, mixed> $cursor
+public function cursorFrom(array|object $row): array
+@param (array<array-key, mixed> | object) $row
+@return Cursor
+resolved @return array<string, (int | string)>
+public function page(Illuminate\Database\Query\Builder $query, ?array $cursor, int $limit): Illuminate\Database\Query\Builder
+@param (Cursor | null) $cursor
+resolved @param (array<string, (int | string)> | null) $cursor
+public function toArray(): array
+@return array{id: string, depends_on: list<string>, cursor_columns: list<string>}
+public readonly array $cursorColumns
+@param list<string> $cursorColumns
+public readonly array $dependsOn
+@param list<string> $dependsOn
+public readonly string $id
+```
+
+## Nvl\Support\Adoption\AdoptionStore
+
+```text
+final readonly class Nvl\Support\Adoption\AdoptionStore
+public const string Checkpoints="nvl_core_adoption_checkpoints"
+public const string Runs="nvl_core_adoption_runs"
+public function __construct(Illuminate\Database\Connection $connection): mixed
+public function assertInstalled(): void
+public function checkpoints(string $runId): array
+@return array<string, Checkpoint>
+resolved @return array<string, array{step: string, cursor: (array<string, (int | string)> | null), complete: bool, processed: int, batch_digest: string, output_revision: ?string}>
+public function create(string $scopeHash, Nvl\Support\Adoption\AdoptionPlan $plan, array $actor): ?string
+@param array{type: string, id: string} $actor
+public function find(string $id): ?array
+@return (Run | null)
+resolved @return (array{id: string, scope_hash: string, package: string, fingerprint: string, adapter_version: string, status: string, verification_digest: ?string, verified_at: ?string, activated_at: ?string, options_digest: ?string} | null)
+public function findByScope(string $scopeHash): ?array
+@return (Run | null)
+resolved @return (array{id: string, scope_hash: string, package: string, fingerprint: string, adapter_version: string, status: string, verification_digest: ?string, verified_at: ?string, activated_at: ?string, options_digest: ?string} | null)
+public function hasActiveRun(string $package): bool
+public function installed(): bool
+public function lock(string $id): array
+@return Run
+resolved @return array{id: string, scope_hash: string, package: string, fingerprint: string, adapter_version: string, status: string, verification_digest: ?string, verified_at: ?string, activated_at: ?string, options_digest: ?string}
+public function saveCheckpoint(string $runId, array $checkpoint): void
+@param Checkpoint $checkpoint
+resolved @param array{step: string, cursor: (array<string, (int | string)> | null), complete: bool, processed: int, batch_digest: string, output_revision: ?string} $checkpoint
+public function update(string $id, array $attributes): void
+@param array{status?: string, verification_digest?: ?string, verified_at?: (\DateTimeInterface | null), activated_at?: (\DateTimeInterface | null)} $attributes
+resolved @param array{status?: string, verification_digest?: ?string, verified_at?: (DateTimeInterface | null), activated_at?: (DateTimeInterface | null)} $attributes
+```
+
+## Nvl\Support\Adoption\AdoptionVerification
+
+```text
+final readonly class Nvl\Support\Adoption\AdoptionVerification
+public function __construct(int $missing, int $extra, int $changed, string $digest, array $problems=[]): mixed
+@param string $digest
+@param list<string> $problems
+public function toArray(): array
+@return array{passed: bool, missing: int, extra: int, changed: int, digest: string, problems: list<string>}
+public function withProblems(array $problems): self
+@param list<string> $problems
+public readonly int $changed
+public readonly string $digest
+@param string $digest
+public readonly int $extra
+public readonly int $missing
+public readonly bool $passed
+public readonly array $problems
+@param list<string> $problems
+```
 
 ## Nvl\Support\Auth\CanonicalActorResolver
 

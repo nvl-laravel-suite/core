@@ -12,3 +12,11 @@ Light targets PHP 8.4 and Laravel 13 (minimum 13.30). It is a breaking family 7 
 - Keep durable outbox and queue recovery protocols. Process-local after-commit callbacks do not guarantee delivery after a crash.
 
 See [installation](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/installation.md) and [native consumer and extension contracts](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/consumer-api.md). Refresh configuration caches and restart workers after applying reviewed configuration changes.
+
+## Shared adoption flow (7.x)
+
+Adoption runs through `nvl:adopt` with reviewed, checkpointed batches and an explicit activate step. Committed batches survive a failure. Keep source and destination writers stopped from the final apply until verify and activate pass.
+
+- Nothing changes until you opt in. To use it, set `nvl-core.adoption.migrations.enabled` to `true`, or publish `nvl-core-migrations` once, and migrate each destination connection a package adapter writes to.
+- Run `plan`, review its fingerprint and collisions, then `apply --fingerprint=<reviewed>`. After a failure, resume with `apply --fingerprint=<reviewed> --run=<id>` and the same manifest. A changed source, different options, a different fingerprint for the same scope or drift behind the cursor stops the run, and planning again does not unblock it: the scope keeps its first run. Either revert the source or destination change and resume with the original fingerprint, or delete the run, its checkpoints and the staged destination rows, then plan and apply again.
+- `verify` must pass before `activate`. Activation re-verifies under a lock and changes no configuration: deploy the host switch afterwards. Integrations that must wait call `AdoptionGate::assertActive($package)`.

@@ -1,8 +1,0 @@
-includes:
-    - rules.neon
-
-services:
-    - Nvl\Support\Tests\PHPStan\FixtureSourceLocatorFactory
-    betterReflectionSourceLocator!:
-        factory: @Nvl\Support\Tests\PHPStan\FixtureSourceLocatorFactory::create()
-        autowired: false

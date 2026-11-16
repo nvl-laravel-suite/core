@@ -8,14 +8,27 @@ Register application owner models in `nvl-core.owners`. Identity registration do
 
 `SystemActor` implements Laravel's `Authorizable` ability contract for compatible global Gate hooks, including optional permission integrations. Its `can` method evaluates the Gate for that explicit enum; it supplies no login identity or default grant and does not implement `Authenticatable`. Host hooks used by native background operations must accept the actual actor type rather than assume an application User model.
 
-Native Ownership declarations, model guards, queue envelopes and committed-event dispatch remain available. Owned or previously adopted storage fails closed when its enforcing runtime is absent. Install `nvl/ownership` for enabled isolation and recovery. Core registers `nvl:queue:retry <failed-job-id>` itself: it requeues a captured or quarantined failed job verbatim, without restoring its command, whether or not `nvl/ownership` is installed; native `queue:retry` is refused for such records. Historical legacy source and tests are fixtures kept only in the source repository (`support/tests/Historical`) and are not distributed with the package; they are never production aliases or data conversion.
+Native Ownership declarations, model guards, queue envelopes and committed-event dispatch remain available. Owned or previously adopted storage fails closed when its enforcing runtime is absent. Install `nvl/ownership` for enabled isolation and recovery. Core registers `nvl:queue:retry <failed-job-id>` itself: it requeues a captured or quarantined failed job verbatim, without restoring its command, whether or not `nvl/ownership` is installed; native `queue:retry` is refused for such records.
 
 Core preserves host bindings and Laravel bus/batch behavior. `DomainEventDispatcher` publishes on the actual source connection's outer commit; rollback discards publication. Local callbacks are not a durable outbox. See [event delivery](docs/events.md).
 
-Configuration defaults require no publication. The supported tags are `nvl-core-config`, `nvl-core-translations` and `nvl-core-skills`. Domain diagnostics and migrations remain with their owning packages.
+Configuration defaults require no publication. The supported tags are `nvl-core-config`, `nvl-core-migrations`, `nvl-core-translations` and `nvl-core-skills`. Domain diagnostics and migrations remain with their owning packages; Core's only migration is the opt-in adoption run store.
 
 Canonical configuration uses `nvl-core` and each capability's `nvl-<package>` root. Legacy roots, environment fallbacks, option aliases and global-name compatibility switches are unavailable. Host registrations remain authoritative.
 
 Bind `Nvl\Support\Contracts\TextMatcher` to share application-specific text folding across packages that use it. The default matches literal substrings, with opt-in SQL wildcards, Unicode case folding on SQLite, and `ILIKE` on PostgreSQL. PostgreSQL uses `pg_catalog.pg_c_utf8` on 17 and newer and `pg_catalog.und-x-icu` on 16. Set `nvl-core.search.postgres_collation` to a deterministic collation name, optionally qualified by schema, to override it. `nvl:doctor` checks the selected Core PostgreSQL connection.
 
 For optional console setup and combined diagnostics, explicitly register `Nvl\Support\Providers\DoctorServiceProvider` in `bootstrap/providers.php`. It supplies `nvl:install` (including `--dry-run`) and `nvl:doctor`; Core's auto-discovered providers remain passive. See the [installation guide](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/getting-started.md) and [service and model extension contracts](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/consumer-api.md).
+
+## Adoption
+
+`nvl:adopt {package} {phase=plan} {manifest?}` runs a package's registered adoption adapter as `SystemActor::Background`, through that package's normal authorization. The optional manifest is a JSON options file. Phases run in order:
+
+1. `plan` reads the source graph and destination, reports the fingerprint, expected counts and collisions, and writes nothing.
+2. `apply --fingerprint=<reviewed>` refuses collisions, a changed fingerprint or an open transaction, then commits keyset batches (`--batch-size`, default `nvl-core.adoption.batch_size`). Each batch's rows and checkpoint commit together. Resume a stopped run with `--run=<id>`, the original fingerprint and the same manifest.
+3. `verify` scans committed source and destination independently and records the verification digest.
+4. `activate --fingerprint=<reviewed>` locks the run, re-authorizes, verifies again and marks it active. It changes no configuration.
+
+A scope keeps its first run. If the source, the options or a staged row changes, apply refuses to resume and planning again does not help. Revert the change and resume with the original fingerprint, or delete the run (its checkpoints cascade) and the staged destination rows, then plan again. Adapters report staged rows that differ from their source as plan collisions; that is the only drift detection.
+
+Keep source and destination writers stopped from the final apply until activation. Runs and checkpoints store hashes, cursors and counts only, in `nvl_core_adoption_runs` and `nvl_core_adoption_checkpoints` on each adapter's destination connection. Enable `nvl-core.adoption.migrations.enabled` or publish `nvl-core-migrations`, then migrate those connections. `--format=json` reports the run, fingerprint, state, cursors, counts and collisions.

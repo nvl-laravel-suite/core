@@ -9,8 +9,8 @@ Core discovers Support and Locale providers. It supplies narrow shared contracts
 
 ## Read by task
 
-- [Installation and publication](references/installation.md): Composer discovery, exact config/skill tags and migration absence.
-- [Consumer recipes](references/usage.md): owner registration, locale state, safe errors, commit-aware events, required bindings and optional Ownership ports.
+- [Installation and publication](references/installation.md): Composer discovery, exact config/migration/skill tags and the opt-in adoption migration.
+- [Consumer recipes](references/usage.md): owner registration, locale state, safe errors, commit-aware events, required bindings, package adoption runs and optional Ownership ports.
 - [Public API](references/api.md): exact namespaces, arguments, generic/array contracts, defaults and return values. Search the relevant capability rather than loading the whole catalog.
 
 The host must choose its model classes, policy and storage connection. Identity registration and actor normalization supply facts, not authorization. Read the complete operation's owning package skill when composing domain changes.
@@ -37,7 +37,7 @@ Core guards captured queue authority before supported worker/retry restoration. 
 
 ## Configuration and verification
 
-Use canonical `nvl-core` configuration and `nvl-core-config`, `nvl-core-translations`, `nvl-core-skills` publication tags. Resolve shared storage/options through PackageStorage and PackageOptions where supported. Keep authorization/capability decisions separate from infrastructure defaults.
+Use canonical `nvl-core` configuration and `nvl-core-config`, `nvl-core-migrations`, `nvl-core-translations`, `nvl-core-skills` publication tags. Resolve shared storage/options through PackageStorage and PackageOptions where supported. Keep authorization/capability decisions separate from infrastructure defaults.
 
 Core alone has no `nvl:doctor`, `nvl:install`, schema or Data commands. Use normal Laravel discovery, config/route caches and explicit migrations; do not install a host analyzer or HTTP renderer from an old Core runbook. Follow native Ownership guidance when isolation is enabled.
 

@@ -58,3 +58,39 @@ it('reports usable and missing PostgreSQL search collations through Doctor', fun
     config()->set('nvl-core.search.postgres_collation', 'pg_catalog.C; select 1');
     expect($collationCheck())->toMatchArray(['result' => 'fail', 'severity' => 'error']);
 });
+
+it('folds Cyrillic and Greek on a C-locale PostgreSQL database', function (): void {
+    $connection = DB::connection();
+
+    if ($connection->getDriverName() !== 'pgsql') {
+        $this->markTestSkipped('The C-locale case needs PostgreSQL.');
+    }
+    $collation = $connection->selectOne('select datcollate from pg_database where datname = current_database()')->datcollate;
+    if (getenv('NVL_TEST_DB_LOCALE') !== 'C' && $collation !== 'C') {
+        $this->markTestSkipped('The C-locale case runs on a C-locale database, such as postgresql-c-locale-package-tests.');
+    }
+
+    expect($collation)->toBe('C');
+
+    $connection->getSchemaBuilder()->create('c_locale_search_examples', static function (Blueprint $table): void {
+        $table->integer('id')->primary();
+        $table->text('label')->nullable();
+    });
+
+    try {
+        $connection->table('c_locale_search_examples')->insert([
+            ['id' => 1, 'label' => 'АНА'],
+            ['id' => 2, 'label' => 'ΣΟΦΙΑ'],
+            ['id' => 3, 'label' => '100%_off!'],
+            ['id' => 4, 'label' => '100xyoff'],
+        ]);
+        $matcher = app(TextMatcher::class);
+        $query = static fn () => $connection->table('c_locale_search_examples')->orderBy('id');
+
+        expect($matcher->contains($query(), 'label', 'ана')->pluck('id')->all())->toBe([1])
+            ->and($matcher->contains($query(), 'label', 'σοφια')->pluck('id')->all())->toBe([2])
+            ->and($matcher->contains($query(), 'label', '%_off!')->pluck('id')->all())->toBe([3]);
+    } finally {
+        $connection->getSchemaBuilder()->drop('c_locale_search_examples');
+    }
+});

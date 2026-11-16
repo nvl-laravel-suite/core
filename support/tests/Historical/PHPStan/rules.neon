@@ -1,7 +1,0 @@
-includes:
-    - ../../../../../../vendor/larastan/larastan/extension.neon
-    - ../../consumer-audit.neon
-
-parameters:
-    scanFiles:
-        - Fixtures/receivers.php.stub

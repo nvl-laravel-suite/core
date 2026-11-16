@@ -17,6 +17,10 @@ return [
     ],
     'owners' => [],
     'search' => ['postgres_collation' => null],
+    'adoption' => [
+        'batch_size' => 100,
+        'migrations' => ['enabled' => false],
+    ],
     'locales' => [
         'supported' => null,
         'default' => null,

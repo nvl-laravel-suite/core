@@ -36,6 +36,7 @@ That group copies the full skill tree to `.agents/skills`. Avoid force-overwriti
 ## Publishable groups
 
 - `nvl-core-config`
+- `nvl-core-migrations`
 - `nvl-core-skills`
 - `nvl-core-translations`
 
@@ -49,12 +50,24 @@ The consumer owns `config/nvl-core.php`. Inspect the actual files registered by 
 
 ## Migrations
 
-This package publishes no database migrations. Host models or schemas required by a capability are application-owned; follow the declarations and constraints in [usage](usage.md).
+Choose exactly one migration owner before the first migration:
+
+- **Vendor-loaded:** enable the package migration loader and run ordinary `php artisan migrate --no-interaction` after reviewing storage and bindings.
+- **Published:** publish the tagged files, disable `nvl-core.adoption.migrations.enabled` before migrating, then review and edit the application-owned copies before their first execution.
+
+```sh
+php artisan vendor:publish --tag=nvl-core-migrations --no-interaction
+```
+
+Publish migrations once during initial setup. Laravel retimestamps published migrations; publishing again can create duplicate dated copies even without `--force`. Update config or skills with their separate tags, and avoid a blanket `--provider` publication after migration setup. Do not run both vendor and host migration copies. Keep applied history intact; evolve an installed schema with a new reviewed host migration. Preserve required keys, unique constraints, indexes, ownership declarations and transaction connection.
+
+Core ships only the opt-in adoption run tables. `nvl-core.adoption.migrations.enabled` defaults to false; enable it only for vendor-loaded adoption runs and keep it false for published copies. The table names are fixed. Migrate them on each adapter's destination connection, because runs and checkpoints commit with the adopted rows.
 
 ## Artisan operations
 
 These commands are registered by Composer-discovered package providers. Feature-gated commands require the corresponding enabled adapter/runtime. Read each installed command’s `--help` before supplying operation options:
 
+- `php artisan nvl:adopt --help`
 - `php artisan nvl:queue:retry --help`
 
 ## Verify the consumer

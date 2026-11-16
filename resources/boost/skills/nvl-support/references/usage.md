@@ -1,6 +1,6 @@
 # Core consumer recipes
 
-Core publishes the `Nvl\Support` namespace from `nvl/core`. It has no Eloquent domain models or database migrations. It boots safe defaults without Auth, Ownership, Data/TypeScript tooling or an HTTP layer. See [installation](installation.md) for real resource tags and [API](api.md) for full signatures.
+Core publishes the `Nvl\Support` namespace from `nvl/core`. It has no Eloquent domain models; its only migration is the opt-in adoption run store. It boots safe defaults without Auth, Ownership, Data/TypeScript tooling or an HTTP layer. See [installation](installation.md) for real resource tags and [API](api.md) for full signatures.
 
 ## Select the capability
 
@@ -16,6 +16,7 @@ Core publishes the `Nvl\Support` namespace from `nvl/core`. It has no Eloquent d
 | Deliver immutable facts after commit | `Nvl\Support\Events\DomainEventDispatcher` | Actual writer connection, event data and listener behavior |
 | Declare ownership capability | `Nvl\Support\Ownership\Contracts\Ownable`, `Traits\HasOwnership`, resource registry and boundary/writer/context ports | Exact schema and optional enforcing runtime |
 | Capture admitted worker context | `OwnershipQueuedJob`, `CapturesOwnership`, `OwnershipJobEnvelope` in the Support Ownership namespace | Capture during production; native Ownership must re-admit it in the worker |
+| Run a reviewed package adoption | `nvl:adopt`, `Nvl\Support\Adoption\AdoptionRegistry`, `AdoptionAdapter`, `AdoptionGate` | Migrated destination connection, stopped writers, reviewed fingerprint and the host switch after activation |
 
 ## Identity registration is not ownership
 
@@ -99,6 +100,12 @@ $connection->transaction(function () use ($record, $connection): void {
 ```
 
 Here `$record` is an already authorized canonical host model whose input was validated by its owning service. Dispatch uses its actual source connection. An enclosing transaction delays delivery to the outer commit, and rollback discards delivery. This callback boundary is not a crash-durable outbox; use the owning domain's durable delivery/recovery capability when required. Events should contain immutable scalar facts rather than live models or current request authority.
+
+## Package adoption runs
+
+Packages register an `AdoptionAdapter` subclass with `AdoptionRegistry::register()` in their provider's boot method. `nvl:adopt {package} plan|apply|verify|activate` runs it as `SystemActor::Background` through the package's own authorization. Review the `plan` fingerprint and collisions, then `apply --fingerprint=<reviewed>`; resume a failed run with `--run=<id>` and the same manifest. `verify` must pass before `activate`, and activation changes no configuration.
+
+The run store is opt-in: enable `nvl-core.adoption.migrations.enabled` or publish `nvl-core-migrations`, then migrate each adapter's destination connection. Keep source and destination writers stopped from the final apply until activation. Integrations that must wait call `AdoptionGate::assertActive($package, $connection)`; the connection defaults to the default database connection. See the Core README's Adoption section for resume and drift rules.
 
 ## Optional Ownership and verification
 

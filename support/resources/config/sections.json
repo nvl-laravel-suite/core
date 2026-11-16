@@ -18,7 +18,7 @@
                 "queue.name",
                 "routes.middleware"
             ],
-            "advanced": ["search.postgres_collation"]
+            "advanced": ["adoption.batch_size", "adoption.migrations.enabled", "search.postgres_collation"]
         }
     }
 }

@@ -116,6 +116,7 @@
         "NVL_MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_EVENT_POLICY": null,
         "NVL_MAIL_NOTIFICATIONS_WEBHOOK_UNMATCHED_RETRY_GRACE_SECONDS": null,
         "NVL_MEDIA_ALLOW_NOOP_SCANNER": null,
+        "NVL_MEDIA_ALLOW_UNSCANNED_PRODUCTION": null,
         "NVL_MEDIA_ASSET_SIGNED_URL_LIFETIME": null,
         "NVL_MEDIA_AVIF_QUALITY": null,
         "NVL_MEDIA_DEDUPLICATION_LOCK_ENABLED": null,
@@ -155,8 +156,10 @@
         "NVL_MEDIA_WEBP_QUALITY": null,
         "NVL_PAGES_BASE_URL": null,
         "NVL_PAYMENTS_STRIPE_ACCOUNT_ID": null,
+        "NVL_PAYMENTS_STRIPE_PUBLISHABLE_KEY": null,
         "NVL_PAYMENTS_STRIPE_SECRET": null,
         "NVL_PAYMENTS_STRIPE_WEBHOOK_SECRET": null,
+        "NVL_PAYMENTS_STRIPE_WEBHOOK_URL": null,
         "NVL_PRIMITIVES_DEFAULT_LOCALE": null,
         "NVL_PRIMITIVES_PHONE_REGION": null,
         "NVL_SEO_BASE_URL": null,
@@ -1178,6 +1181,14 @@
             "owner": "nvl/core",
             "current": "nvl-core-config",
             "canonical": "nvl-core-config",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "surface": "publish",
+            "owner": "nvl/core",
+            "current": "nvl-core-migrations",
+            "canonical": "nvl-core-migrations",
             "compatibility": "none",
             "removal": null
         },
@@ -2504,6 +2515,14 @@
         {
             "owner": "nvl/media",
             "surface": "env",
+            "current": "NVL_MEDIA_ALLOW_UNSCANNED_PRODUCTION",
+            "canonical": "NVL_MEDIA_ALLOW_UNSCANNED_PRODUCTION",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/media",
+            "surface": "env",
             "current": "NVL_MEDIA_ASSET_SIGNED_URL_LIFETIME",
             "canonical": "NVL_MEDIA_ASSET_SIGNED_URL_LIFETIME",
             "compatibility": "none",
@@ -2816,6 +2835,14 @@
         {
             "owner": "nvl/payments",
             "surface": "env",
+            "current": "NVL_PAYMENTS_STRIPE_PUBLISHABLE_KEY",
+            "canonical": "NVL_PAYMENTS_STRIPE_PUBLISHABLE_KEY",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/payments",
+            "surface": "env",
             "current": "NVL_PAYMENTS_STRIPE_SECRET",
             "canonical": "NVL_PAYMENTS_STRIPE_SECRET",
             "compatibility": "none",
@@ -2826,6 +2853,14 @@
             "surface": "env",
             "current": "NVL_PAYMENTS_STRIPE_WEBHOOK_SECRET",
             "canonical": "NVL_PAYMENTS_STRIPE_WEBHOOK_SECRET",
+            "compatibility": "none",
+            "removal": null
+        },
+        {
+            "owner": "nvl/payments",
+            "surface": "env",
+            "current": "NVL_PAYMENTS_STRIPE_WEBHOOK_URL",
+            "canonical": "NVL_PAYMENTS_STRIPE_WEBHOOK_URL",
             "compatibility": "none",
             "removal": null
         },

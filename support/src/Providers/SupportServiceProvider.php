@@ -13,7 +13,10 @@ use Illuminate\Log\LogManager;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobRetryRequested;
 use Illuminate\Support\ServiceProvider;
+use Nvl\Support\Adoption\AdoptionGate;
+use Nvl\Support\Adoption\AdoptionRegistry;
 use Nvl\Support\Bindings\RequiredBindings;
+use Nvl\Support\Console\Commands\AdoptCommand;
 use Nvl\Support\Console\Commands\QueueQuarantineRetryCommand;
 use Nvl\Support\Contracts\LocaleCatalog;
 use Nvl\Support\Contracts\TextMatcher;
@@ -92,9 +95,11 @@ final class SupportServiceProvider extends ServiceProvider
             $app->make(Repository::class), static fn (): LogManager => $app->make(LogManager::class),
         ));
         $this->app->singletonIf(GlobalNames::class);
+        $this->app->singletonIf(AdoptionRegistry::class);
+        $this->app->singletonIf(AdoptionGate::class);
     }
 
-    /** Publish canonical resources, the raw quarantine retry command and the opted-in job absence guard. */
+    /** Publish canonical resources, the opt-in adoption migration, the adoption and raw quarantine retry commands and the opted-in job absence guard. */
     public function boot(Dispatcher $events): void
     {
         $events->listen(JobProcessing::class, [UnavailableOwnershipQueueAdmission::class, 'handle']);
@@ -103,8 +108,12 @@ final class SupportServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../../lang', 'nvl-core');
         $this->publishes([__DIR__.'/../../lang' => lang_path('vendor/nvl-core')], 'nvl-core-translations');
         $this->publishes([__DIR__.'/../../config/nvl-core.php' => config_path('nvl-core.php')], 'nvl-core-config');
+        $this->publishesMigrations([__DIR__.'/../../database/migrations' => database_path('migrations')], 'nvl-core-migrations');
+        if ($this->app->make(Repository::class)->get('nvl-core.adoption.migrations.enabled') === true) {
+            $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
+        }
         if ($this->app->runningInConsole()) {
-            $this->commands([QueueQuarantineRetryCommand::class]);
+            $this->commands([AdoptCommand::class, QueueQuarantineRetryCommand::class]);
             $this->publishes([__DIR__.'/../../resources/boost/skills' => base_path('.agents/skills')], 'nvl-core-skills');
         }
     }

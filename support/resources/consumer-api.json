@@ -5,6 +5,207 @@
         "Nvl\\Support\\": "support/src"
     },
     "symbols": {
+        "Nvl\\Support\\Adoption\\Adoption": {
+            "kind": "interface",
+            "file": "support/src/Adoption/Adoption.php",
+            "methods": [
+                "activate",
+                "apply",
+                "plan",
+                "verify"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Adoption\\AdoptionAdapter": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionAdapter.php",
+            "methods": [
+                "__construct",
+                "actor",
+                "aroundBatch",
+                "authorize",
+                "connection",
+                "nextBatch",
+                "options",
+                "plan",
+                "verify",
+                "writeBatch"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Adoption\\AdoptionBatch": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionBatch.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "complete",
+                "cursorIn",
+                "cursorOut",
+                "digest",
+                "rows",
+                "step"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Adoption\\AdoptionCoordinator": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionCoordinator.php",
+            "methods": [
+                "__construct",
+                "activate",
+                "apply",
+                "plan",
+                "progress",
+                "verify"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Adoption\\AdoptionException": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionException.php",
+            "methods": [],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Adoption\\AdoptionGate": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionGate.php",
+            "methods": [
+                "__construct",
+                "assertActive",
+                "isActive"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Adoption\\AdoptionPlan": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionPlan.php",
+            "methods": [
+                "__construct",
+                "digest",
+                "metadata",
+                "step"
+            ],
+            "properties": [
+                "adapterVersion",
+                "collisions",
+                "destination",
+                "expected",
+                "fingerprint",
+                "optionsDigest",
+                "package",
+                "protocol",
+                "source",
+                "steps"
+            ],
+            "constants": [
+                "Protocol"
+            ]
+        },
+        "Nvl\\Support\\Adoption\\AdoptionProgress": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionProgress.php",
+            "methods": [
+                "__construct",
+                "complete",
+                "toArray"
+            ],
+            "properties": [
+                "activatedAt",
+                "fingerprint",
+                "package",
+                "run",
+                "state",
+                "steps",
+                "verifiedAt",
+                "written"
+            ],
+            "constants": [
+                "Active",
+                "Applied",
+                "Applying",
+                "Failed",
+                "Planned",
+                "Verified"
+            ]
+        },
+        "Nvl\\Support\\Adoption\\AdoptionRegistry": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionRegistry.php",
+            "methods": [
+                "__construct",
+                "adapters",
+                "has",
+                "make",
+                "normalizeOptions",
+                "register"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Support\\Adoption\\AdoptionStep": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionStep.php",
+            "methods": [
+                "__construct",
+                "assertCursor",
+                "cursorFrom",
+                "page",
+                "toArray"
+            ],
+            "properties": [
+                "cursorColumns",
+                "dependsOn",
+                "id"
+            ],
+            "constants": []
+        },
+        "Nvl\\Support\\Adoption\\AdoptionStore": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionStore.php",
+            "methods": [
+                "__construct",
+                "assertInstalled",
+                "checkpoints",
+                "create",
+                "find",
+                "findByScope",
+                "hasActiveRun",
+                "installed",
+                "lock",
+                "saveCheckpoint",
+                "update"
+            ],
+            "properties": [],
+            "constants": [
+                "Checkpoints",
+                "Runs"
+            ]
+        },
+        "Nvl\\Support\\Adoption\\AdoptionVerification": {
+            "kind": "class",
+            "file": "support/src/Adoption/AdoptionVerification.php",
+            "methods": [
+                "__construct",
+                "toArray",
+                "withProblems"
+            ],
+            "properties": [
+                "changed",
+                "digest",
+                "extra",
+                "missing",
+                "passed",
+                "problems"
+            ],
+            "constants": []
+        },
         "Nvl\\Support\\Auth\\CanonicalActorResolver": {
             "kind": "class",
             "file": "support/src/Auth/CanonicalActorResolver.php",

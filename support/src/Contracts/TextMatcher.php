@@ -19,6 +19,8 @@ interface TextMatcher
      * The escape character `!` is always interpreted literally in the supplied value.
      *
      * Use `and` or `or` as the predicate conjunction.
+     *
+     * Returns the authoritative builder, which may be a different instance. Callers must use the return value.
      */
     public function contains(Builder $query, string $column, string $value, bool $negated = false, bool $wildcards = false, string $boolean = 'and'): Builder;
 }

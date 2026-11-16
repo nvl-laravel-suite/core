@@ -39,6 +39,7 @@ it('is auto-discoverable through Core and can boot its provider in isolation', f
     );
     $application = new Application($packageRoot);
     $application->instance(RepositoryContract::class, new Repository);
+    $application->alias(RepositoryContract::class, 'config');
     $application->instance('files', new Filesystem);
     $application->register(TranslationServiceProvider::class);
     $provider = new SupportServiceProvider($application);
@@ -54,6 +55,7 @@ it('publishes its packaged agent guidance through the documented tag', function 
     $packageRoot = dirname(__DIR__, 2);
     $application = new Application($packageRoot);
     $application->instance(RepositoryContract::class, new Repository);
+    $application->alias(RepositoryContract::class, 'config');
     $application->instance('files', new Filesystem);
     $application->register(TranslationServiceProvider::class);
     $provider = new SupportServiceProvider($application);
@@ -88,6 +90,7 @@ it('has no runtime boot side effects outside the console', function (): void {
         }
     };
     $application->instance(RepositoryContract::class, new Repository);
+    $application->alias(RepositoryContract::class, 'config');
     $application->instance('files', new Filesystem);
     $application->register(TranslationServiceProvider::class);
     $publishPathsBeforeBoot = SupportServiceProvider::pathsToPublish(
@@ -139,12 +142,11 @@ it('keeps its source boundary minimal and transport-neutral', function (): void 
         ->implode("\n");
 
     expect($sourceDirectories)
-        ->toBe(['Auth', 'Bindings', 'Config', 'Console', 'Contracts', 'Doctor', 'Enums', 'Events', 'Exceptions', 'Facades', 'Globals', 'Installation', 'Integrations', 'Locales', 'Logging', 'Models', 'Owners', 'Ownership', 'Providers', 'Schema', 'Testing', 'Traits'])
+        ->toBe(['Adoption', 'Auth', 'Bindings', 'Config', 'Console', 'Contracts', 'Doctor', 'Enums', 'Events', 'Exceptions', 'Facades', 'Globals', 'Installation', 'Integrations', 'Locales', 'Logging', 'Models', 'Owners', 'Ownership', 'Providers', 'Schema', 'Testing', 'Traits'])
         ->and($source)
         ->not->toMatch('/^use\s+Nvl\\\\(?!Support\\\\)/m')
         ->not->toMatch('/\b(?:abort|redirect|response)\s*\(/');
 
-    foreach (['database', 'routes'] as $forbiddenDirectory) {
-        expect($packageRoot.'/'.$forbiddenDirectory)->not->toBeDirectory();
-    }
+    expect($packageRoot.'/routes')->not->toBeDirectory()
+        ->and(array_map('basename', $filesystem->files($packageRoot.'/database/migrations')))->toBe(['2026_11_17_000001_nvl_core_create_adoption_tables.php']);
 });
