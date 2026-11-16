@@ -5,6 +5,8 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [7.3.0] - 2026-11-17
+
 ### Added
 
 - `Nvl\Support\Testing\TestServiceHosts` gives package test fixtures one allow-list for disposable database and Redis hosts, including the bound Dagger services.
@@ -20,6 +22,12 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 - Guard `incrementEach()`, `decrementEach()` and their quiet variants on ownership models through the persistence boundary before observers, like `increment()`; configured models must keep these hooks.
 - Reject partial, expression, invalid and not-ready unique indexes as released uniqueness in schema checks, and compare PostgreSQL key columns without their INCLUDE columns.
 - Report the run, fingerprint, state, cursors and counts in `nvl:adopt verify --format=json`, as the other phases do.
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- implement the Final spec audit for one release
+<!-- NVL GENERATED CHANGES END -->
 
 ## [7.2.0] - 2026-11-16
 
