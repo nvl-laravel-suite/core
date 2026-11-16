@@ -18,7 +18,7 @@
                 "queue.name",
                 "routes.middleware"
             ],
-            "advanced": []
+            "advanced": ["search.postgres_collation"]
         }
     }
 }

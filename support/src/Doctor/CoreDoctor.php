@@ -9,6 +9,7 @@ use Illuminate\Database\DatabaseManager;
 use InvalidArgumentException;
 use Nvl\Support\Config\PackageOptions;
 use Nvl\Support\Globals\GlobalNames;
+use Nvl\Support\Integrations\PostgresSearchCollation;
 use Nvl\Support\Locales\LocaleCatalogDiagnostics;
 use Nvl\Support\OwnerRegistry;
 use Throwable;
@@ -28,6 +29,7 @@ final readonly class CoreDoctor
         private OwnerIdentityDiagnostics $ownerRows,
         private DatabaseManager $database,
         private GlobalNames $globalNames,
+        private PostgresSearchCollation $collation,
     ) {}
 
     /**
@@ -37,7 +39,7 @@ final readonly class CoreDoctor
      */
     public function inspect(): array
     {
-        $checks = [...$this->infrastructureChecks(), ...$this->databasePlatformChecks(), ...$this->queuePersistenceChecks()];
+        $checks = [...$this->infrastructureChecks(), ...$this->databasePlatformChecks(), ...$this->searchChecks(), ...$this->queuePersistenceChecks()];
         try {
             $checks = [...$checks, ...$this->globalNames->diagnostics()];
         } catch (Throwable $exception) {
@@ -120,6 +122,23 @@ final readonly class CoreDoctor
             return [new DoctorCheck('database.platform', 'info', true, 'The selected database driver is supported.')];
         } catch (Throwable $exception) {
             return [new DoctorCheck('database.platform', 'error', false, $exception->getMessage())];
+        }
+    }
+
+    /** @return list<DoctorCheck> Diagnostics for the effective PostgreSQL search collation. */
+    private function searchChecks(): array
+    {
+        try {
+            $name = PackageOptions::connection('nvl-core');
+            if ($this->config->get('database.connections.'.$name.'.driver') !== 'pgsql') {
+                return [];
+            }
+
+            $collation = $this->collation->verify($this->database->connection($name));
+
+            return [new DoctorCheck('search.postgres_collation', 'info', true, "PostgreSQL text search uses [{$collation}].")];
+        } catch (Throwable $exception) {
+            return [new DoctorCheck('search.postgres_collation', 'error', false, $exception->getMessage())];
         }
     }
 

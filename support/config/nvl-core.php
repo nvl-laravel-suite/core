@@ -16,6 +16,7 @@ return [
         'packages' => ['csv' => ['verbosity' => 'quiet']],
     ],
     'owners' => [],
+    'search' => ['postgres_collation' => null],
     'locales' => [
         'supported' => null,
         'default' => null,

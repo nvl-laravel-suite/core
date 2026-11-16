@@ -16,9 +16,11 @@ use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Bindings\RequiredBindings;
 use Nvl\Support\Console\Commands\QueueQuarantineRetryCommand;
 use Nvl\Support\Contracts\LocaleCatalog;
+use Nvl\Support\Contracts\TextMatcher;
 use Nvl\Support\Events\ConnectionCommitCallbacks;
 use Nvl\Support\Events\DomainEventDispatcher;
 use Nvl\Support\Globals\GlobalNames;
+use Nvl\Support\Integrations\DatabaseTextMatcher;
 use Nvl\Support\Logging\PackageLogger;
 use Nvl\Support\Models\ConfiguredModelResolver;
 use Nvl\Support\OwnerRegistry;
@@ -64,6 +66,7 @@ final class SupportServiceProvider extends ServiceProvider
             $this->app->addDeferredServices([LocaleCatalog::class => LocaleServiceProvider::class]);
         }
         $this->mergePackageConfiguration(__DIR__.'/../../config/nvl-core.php', 'core');
+        $this->app->singletonIf(TextMatcher::class, DatabaseTextMatcher::class);
         $this->app->singletonIf(OwnerRegistry::class);
         $this->app->singletonIf(OwnershipResourceRegistry::class);
         $this->app->singletonIf(OwnershipContextParticipants::class);

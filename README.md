@@ -16,4 +16,6 @@ Configuration defaults require no publication. The supported tags are `nvl-core-
 
 Canonical configuration uses `nvl-core` and each capability's `nvl-<package>` root. Legacy roots, environment fallbacks, option aliases and global-name compatibility switches are unavailable. Host registrations remain authoritative.
 
+Bind `Nvl\Support\Contracts\TextMatcher` to share application-specific text folding across packages that use it. The default matches literal substrings, with opt-in SQL wildcards, Unicode case folding on SQLite, and `ILIKE` on PostgreSQL. PostgreSQL uses `pg_catalog.pg_c_utf8` on 17 and newer and `pg_catalog.und-x-icu` on 16. Set `nvl-core.search.postgres_collation` to a deterministic collation name, optionally qualified by schema, to override it. `nvl:doctor` checks the selected Core PostgreSQL connection.
+
 For optional console setup and combined diagnostics, explicitly register `Nvl\Support\Providers\DoctorServiceProvider` in `bootstrap/providers.php`. It supplies `nvl:install` (including `--dry-run`) and `nvl:doctor`; Core's auto-discovered providers remain passive. See the [installation guide](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/getting-started.md) and [service and model extension contracts](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/consumer-api.md).

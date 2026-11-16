@@ -126,6 +126,15 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Support\\Contracts\\TextMatcher": {
+            "kind": "interface",
+            "file": "support/src/Contracts/TextMatcher.php",
+            "methods": [
+                "contains"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Support\\Doctor\\DoctorCheck": {
             "kind": "class",
             "file": "support/src/Doctor/DoctorCheck.php",
