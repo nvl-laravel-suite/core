@@ -16,6 +16,7 @@ Search for the relevant fully qualified service or contract and read only its ma
 - `Nvl\Support\Contracts\PackageException`
 - `Nvl\Support\Contracts\RespondableException`
 - `Nvl\Support\Contracts\ResponseCode`
+- `Nvl\Support\Contracts\TextMatcher`
 - `Nvl\Support\Doctor\DoctorCheck`
 - `Nvl\Support\Doctor\DoctorContributor`
 - `Nvl\Support\Doctor\RequiredBindingsDoctor`
@@ -193,6 +194,13 @@ public abstract function translationParameters(): array
 
 ```text
 interface Nvl\Support\Contracts\ResponseCode extends BackedEnum
+```
+
+## Nvl\Support\Contracts\TextMatcher
+
+```text
+interface Nvl\Support\Contracts\TextMatcher
+public abstract function contains(Illuminate\Database\Query\Builder $query, string $column, string $value, bool $negated=false, bool $wildcards=false, string $boolean="and"): Illuminate\Database\Query\Builder
 ```
 
 ## Nvl\Support\Doctor\DoctorCheck
