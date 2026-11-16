@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Nvl\Support\Bindings\RequiredBindingDefinition;
 use Nvl\Support\Bindings\RequiredBindings;
@@ -21,12 +22,25 @@ beforeEach(function (): void {
 it('reports an empty consumer installation without workbench providers', function (): void {
     expect(Artisan::call('nvl:doctor', ['--strict' => true, '--format' => 'json']))->toBe(0);
     $report = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
+    $checks = [
+        'configuration.authorization.guard',
+        'configuration.connection',
+        'configuration.locks.store',
+        'configuration.queue.connection',
+        'configuration.queue.name',
+        'database.platform',
+        'logging.policy',
+    ];
+    if (DB::connection()->getDriverName() === 'pgsql') {
+        $checks[] = 'search.postgres_collation';
+    }
+
     expect($report)->toMatchArray([
         'schema_version' => 1,
         'healthy' => true,
         'strict' => true,
     ])->and(array_unique(array_column($report['checks'], 'package')))->toBe(['nvl/core'])
-        ->and($report['checks'])->toHaveCount(7);
+        ->and(array_column($report['checks'], 'key'))->toEqualCanonicalizing($checks);
 });
 
 it('reports the package logging policy among the Core checks', function (): void {
