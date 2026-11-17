@@ -1139,13 +1139,49 @@ public function save(array $options=[]): bool
 
 ```text
 trait Nvl\Support\Ownership\Traits\ScopesOwnedBuilderWrites
+public function decrement(mixed $column, mixed $amount=1, array $extra=[]): int
+public function decrementEach(array $columns, array $extra=[]): int
+@param array<string, (float | int | numeric-string)> $columns
+@param array<string, mixed> $extra
+public function delete(): mixed
+@return mixed
 public function forceDelete(): mixed
 @return mixed
+public function increment(mixed $column, mixed $amount=1, array $extra=[]): int
+public function incrementEach(array $columns, array $extra=[]): int
+@param array<string, (float | int | numeric-string)> $columns
+@param array<string, mixed> $extra
+public function insert(array $values): bool
+@param array<array-key, mixed> $values
+public function insertGetId(array $values, ?string $sequence=null): int|string
+@param array<string, mixed> $values
+public function insertOrIgnore(array $values): int
+@param array<array-key, mixed> $values
+public function insertOrIgnoreReturning(array $values, array $returning=['*'], array|string|null $uniqueBy=null): mixed
+@param array<array-key, mixed> $values
+@param non-empty-array<non-empty-string> $returning
+@param (non-empty-array<non-empty-string> | non-empty-string | null) $uniqueBy
+@return mixed
+public function insertOrIgnoreUsing(array $columns, mixed $query): int
+@param array<array-key, string> $columns
+@param (Closure | Builder<*> | QueryBuilder | string) $query
+resolved @param (Closure | Illuminate\Database\Eloquent\Builder<*> | Illuminate\Database\Query\Builder | string) $query
+public function insertUsing(array $columns, mixed $query): int
+@param array<array-key, string> $columns
+@param (Closure | Builder<*> | QueryBuilder | string) $query
+resolved @param (Closure | Illuminate\Database\Eloquent\Builder<*> | Illuminate\Database\Query\Builder | string) $query
+public function touch(mixed $column=null): int|false
+@param (array<array-key, string> | string | null) $column
+public function update(array $values): int
 public function updateFrom(array $values): int
 @param array<string, mixed> $values
 public function updateOrInsert(array $attributes, array|callable $values=[]): bool
 @param array<string, mixed> $attributes
-@param (array<string, mixed> | callable) $values
+@param (array<string, mixed> | Closure(bool): array<string, mixed>) $values
+public function upsert(array $values, mixed $uniqueBy, mixed $update=null): int
+@param array<array-key, mixed> $values
+@param (array<array-key, string> | string) $uniqueBy
+@param (array<array-key, mixed> | null) $update
 ```
 
 ## Nvl\Support\Ownership\ValueObjects\OwnerReference

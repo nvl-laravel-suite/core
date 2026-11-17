@@ -934,9 +934,23 @@
             "kind": "trait",
             "file": "support/src/Ownership/Traits/ScopesOwnedBuilderWrites.php",
             "methods": [
+                "decrement",
+                "decrementEach",
+                "delete",
                 "forceDelete",
+                "increment",
+                "incrementEach",
+                "insert",
+                "insertGetId",
+                "insertOrIgnore",
+                "insertOrIgnoreReturning",
+                "insertOrIgnoreUsing",
+                "insertUsing",
+                "touch",
+                "update",
                 "updateFrom",
-                "updateOrInsert"
+                "updateOrInsert",
+                "upsert"
             ],
             "properties": [],
             "constants": []

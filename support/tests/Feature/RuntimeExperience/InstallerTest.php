@@ -91,7 +91,7 @@ it('reports native runtime ownership prerequisites without retired static toolin
     $tester = new CommandTester($command);
     expect($tester->execute(['packages' => ['example'], '--dry-run' => true]))->toBe(0)
         ->and($tester->getDisplay())->toContain('host authorization', 'fail closed at runtime')
-        ->not->toContain('consumer-audit.neon', 'enforced statically, not at runtime');
+        ->not->toContain('consumer-audit.neon')->not->toContain('enforced statically, not at runtime');
 });
 
 it('exposes setup and diagnostics only through the explicitly registered tooling provider', function (): void {

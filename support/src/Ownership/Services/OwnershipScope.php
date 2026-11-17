@@ -68,4 +68,52 @@ final readonly class OwnershipScope implements Scope
     {
         return (clone $builder)->withoutGlobalScopesExcept([self::class])->applyScopes()->getQuery();
     }
+
+    /**
+     * Admit a builder write and return the ownership fields every new row must carry.
+     *
+     * A public site writes only its writable resources. Null means a native write: the model has
+     * no canonical resource. An empty list means the admitted resource assigns no ownership fields.
+     *
+     * @return array<string, int|string|null>|null
+     */
+    public static function admitWrite(Model $model): ?array
+    {
+        $container = Container::getInstance();
+        foreach ($container->make(OwnershipResourceRegistry::class)->all() as $resource) {
+            if ($resource->model === $model::class) {
+                $site = OwnerSiteContext::current();
+                if ($site !== null && ! in_array($resource->key, $site->writableResources, true)) {
+                    throw new OwnershipViolation('Public site admission does not grant management writes.');
+                }
+
+                return $container->make(OwnershipBoundary::class)->attributes($resource->key);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Require every inserted row to carry exactly the admitted ownership fields.
+     *
+     * @param  array<array-key, mixed>  $values  One row or a list of rows.
+     * @param  array<string, int|string|null>|null  $fields
+     */
+    public static function assertOwnedRows(array $values, ?array $fields): void
+    {
+        if ($fields === null || $fields === [] || $values === []) {
+            return;
+        }
+        foreach (is_array(reset($values)) ? $values : [$values] as $row) {
+            foreach ($fields as $field => $expected) {
+                $actual = is_array($row) && array_key_exists($field, $row) ? $row[$field] : false;
+                $same = $actual === $expected
+                    || ((is_int($actual) || is_string($actual)) && (is_int($expected) || is_string($expected)) && (string) $actual === (string) $expected);
+                if (! $same) {
+                    throw new OwnershipViolation('Builder inserts must carry exactly the admitted ownership fields.');
+                }
+            }
+        }
+    }
 }

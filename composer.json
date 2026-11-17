@@ -133,6 +133,7 @@
         "guzzlehttp/psr7": "<2.12.3",
         "league/commonmark": "<2.10.2",
         "league/flysystem": "<3.35.3",
+        "nvl/forms": "<7.4.0",
         "nvl/support": "*",
         "paragonie/random_compat": "<2.0",
         "symfony/http-kernel": "<7.4.23 || >=8.0.0 <8.1.11",

@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Exceptions\OwnershipConfigurationInvalid;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\Services\OwnedEloquentBuilder;
@@ -56,4 +58,35 @@ it('fails closed when an ownership model would receive the plain framework build
     };
 
     expect(fn () => $model->newQuery())->toThrow(OwnershipConfigurationInvalid::class);
+});
+
+it('requires owned builder inserts and upserts to stay inside the admitted owner partition', function (): void {
+    app(OwnershipResourceRegistry::class)->register(new OwnershipResourceDefinition('test.claimed', 'test', OwnedOwnershipReplacement::class, OwnedOwnershipReplacement::ownershipDefinition()));
+    app()->instance(OwnershipBoundary::class, new class implements OwnershipBoundary
+    {
+        public function query(Builder $query, string $resource): Builder
+        {
+            return $query->where('company_id', 7);
+        }
+
+        public function assertRecord(Model $record, string $resource): void {}
+
+        public function attributes(string $resource): array
+        {
+            return ['company_id' => 7];
+        }
+
+        public function key(string $resource, string $identity): string
+        {
+            return $identity;
+        }
+    });
+
+    expect(fn () => OwnedOwnershipReplacement::query()->insert(['id' => 3, 'company_id' => 8]))->toThrow(OwnershipViolation::class)
+        ->and(fn () => OwnedOwnershipReplacement::query()->insertOrIgnore([['id' => 3, 'company_id' => 7], ['id' => 4]]))->toThrow(OwnershipViolation::class)
+        ->and(fn () => OwnedOwnershipReplacement::query()->insertUsing(['id', 'company_id'], DB::table('ownership_claimed_models')->select(['id', 'company_id'])))->toThrow(OwnershipViolation::class)
+        ->and(fn () => OwnedOwnershipReplacement::query()->upsert([['id' => 1, 'company_id' => 7, 'name' => 'taken']], ['id'], ['name']))->toThrow(OwnershipViolation::class)
+        ->and(fn () => OwnedOwnershipReplacement::query()->updateOrInsert(['id' => 3], ['company_id' => 8]))->toThrow(OwnershipViolation::class)
+        ->and(OwnedOwnershipReplacement::query()->insert(['id' => 3, 'company_id' => '7', 'name' => 'own']))->toBeTrue()
+        ->and(DB::table('ownership_claimed_models')->orderBy('id')->pluck('name', 'id')->all())->toBe([1 => 'first', 2 => 'second', 3 => 'own']);
 });
