@@ -5,6 +5,8 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 
 ## [Unreleased]
 
+## [7.4.0] - 2026-11-17
+
 ### Changed
 
 - Conflicts with `nvl/forms` below 7.4.0. Earlier Forms releases bump public submission counters through the owned builder, which this release refuses inside a public site; install Forms 7.4.0 with this Core release.
@@ -14,6 +16,12 @@ All notable changes to `nvl/core` are documented here. Earlier Support history i
 - `ScopesOwnedBuilderWrites` (the default builder of owned models) admits every bulk builder write: `update`, `delete`, `forceDelete`, `touch`, the counters, the insert family, `upsert`, `updateOrInsert` and `updateFrom` are refused inside a public site that does not list the resource as writable.
 - Owned builder inserts (`insert`, `insertOrIgnore`, `insertGetId`, `insertOrIgnoreReturning`, and the insert branch of `updateOrInsert`) must carry exactly the fields of `OwnershipBoundary::attributes()`, so a row can no longer be written into another owner's partition; `insertUsing()`/`insertOrIgnoreUsing()` are refused for admitted owned resources because their rows cannot be verified.
 - An owned `upsert()` must name `owner_scope_key` in `$uniqueBy`; previously its `ON CONFLICT ... DO UPDATE` ignored the owner scope and could update another owner's row.
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- consumer-audit fixes across the suite, UTC timestamps, core/forms release ordering
+<!-- NVL GENERATED CHANGES END -->
 
 ## [7.3.0] - 2026-11-17
 
